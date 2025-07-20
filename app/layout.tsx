@@ -19,8 +19,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${nunito.variable} antialiased`}>{children}</body>
+    <html lang="en" style={{ overflowX: "hidden" }}>
+      <body
+        className={`${nunito.variable} antialiased`}
+        style={{ overflowX: "hidden" }}
+      >
+        {children}
+      </body>
     </html>
   );
 }

@@ -2,9 +2,9 @@
 
 export default function Navigation() {
   return (
-    <nav className="absolute top-6 right-6 flex gap-4">
+    <nav className="absolute top-6 right-6 flex gap-7">
       <button
-        className="px-6 py-3 rounded-2xl text-white font-bold transition-all cursor-pointer"
+        className="px-5 py-2 rounded-xl text-white font-bold transition-all cursor-pointer"
         style={{
           background:
             "linear-gradient(90.81deg, #9D638D 0.58%, #BF8EFF 99.31%)",
@@ -13,7 +13,7 @@ export default function Navigation() {
         Home
       </button>
       <button
-        className="px-6 py-3 rounded-2xl text-white font-bold transition-all hover:opacity-80 cursor-pointer"
+        className="px-5 py-2 rounded-xl text-white font-bold transition-all hover:opacity-80 cursor-pointer"
         style={{
           backgroundColor: "#B84786",
         }}
@@ -21,7 +21,7 @@ export default function Navigation() {
         About
       </button>
       <button
-        className="px-6 py-3 rounded-2xl text-white font-bold transition-all hover:opacity-80 cursor-pointer"
+        className="px-5 py-2 rounded-xl text-white font-bold transition-all hover:opacity-80 cursor-pointer"
         style={{
           backgroundColor: "#B84786",
         }}
@@ -29,7 +29,7 @@ export default function Navigation() {
         Characters
       </button>
       <button
-        className="px-6 py-3 rounded-2xl text-white font-bold transition-all hover:opacity-80 cursor-pointer"
+        className="px-5 py-2 rounded-xl text-white font-bold transition-all hover:opacity-80 cursor-pointer"
         style={{
           backgroundColor: "#B84786",
         }}
