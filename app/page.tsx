@@ -1,87 +1,122 @@
+"use client";
+
 import Navigation from "./components/Navigation";
+import Characters from "./components/home/Characters";
 
 export default function Home() {
   return (
-    <section
-      className="overflow-hidden"
-      style={{
-        width: "100%",
-        height: "100vh",
-        backgroundImage: "url(/assets/ZoneOneBattle.jpg)",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-      }}
-    >
-      {/* Gradient Overlay */}
-      <div
-        className="absolute inset-0 w-full h-full"
+    <>
+      <style jsx>{`
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .fade-in-up {
+          opacity: 0;
+          animation: fadeInUp 0.8s ease-out forwards;
+        }
+
+        .delay-1 {
+          animation-delay: 0.3s;
+        }
+        .delay-2 {
+          animation-delay: 0.5s;
+        }
+        .delay-3 {
+          animation-delay: 0.7s;
+        }
+        .delay-4 {
+          animation-delay: 0.9s;
+        }
+      `}</style>
+
+      <section
+        className="overflow-hidden"
         style={{
-          background:
-            "linear-gradient(180deg, rgba(0, 0, 0, 0.20) 0%, rgba(0, 0, 0, 0) 100%)",
-          zIndex: 1,
+          width: "100%",
+          height: "100vh",
+          backgroundImage: "url(/assets/ZoneOneBattle.jpg)",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
         }}
-      ></div>
-
-      <div style={{ zIndex: 2, position: "relative" }}>
-        <Navigation />
-      </div>
-
-      <div
-        className="flex flex-col items-center justify-center h-full"
-        style={{ zIndex: 2, position: "relative" }}
       >
-        <h1 className="text-6xl font-black text-white">Sage</h1>
-      </div>
+        {/* Gradient Overlay */}
+        <div
+          className="absolute inset-0 w-full h-full"
+          style={{
+            background:
+              "linear-gradient(180deg, rgba(0, 0, 0, 0.20) 0%, rgba(0, 0, 0, 0) 100%)",
+            zIndex: 1,
+          }}
+        ></div>
 
-      {/* Characters - Right Side */}
-      <div
-        className="absolute bottom-0 -right-20 flex items-end gap-2 pr-8 pb-4"
-        style={{ zIndex: 2 }}
-      >
-        <img
-          src="/assets/Noah.png"
-          alt="Noah"
-          className="h-72 object-contain scale-x-[-1]"
-        />
-        <img
-          src="/assets/Gabriel.png"
-          alt="Gabriel"
-          className="h-70 object-contain mb-30"
-        />
-        <img
-          src="/assets/David.png"
-          alt="David"
-          className="h-72 object-contain -mb-5"
-        />
-      </div>
+        <div style={{ zIndex: 2, position: "relative" }}>
+          <Navigation />
+        </div>
 
-      {/* Characters - Left Side */}
-      <div
-        className="absolute bottom-0 -left-20 flex items-end gap-0 pl-0 pb-4"
-        style={{ zIndex: 2 }}
-      >
-        <img
-          src="/assets/Samson.png"
-          alt="Samson"
-          className="h-72 object-contain"
-        />
-        <img
-          src="/assets/Ruth.png"
-          alt="Ruth"
-          className="h-70 object-contain mb-20"
-        />
-        <img
-          src="/assets/Deborah.png"
-          alt="Deborah"
-          className="h-70 object-contain -mb-4"
-        />
-        <img
-          src="/assets/Elijah.png"
-          alt="Elijah"
-          className="h-70 object-contain mb-10"
-        />
-      </div>
-    </section>
+        <div
+          className="flex flex-col items-center justify-center h-full"
+          style={{ zIndex: 2, position: "relative" }}
+        >
+          <div
+            className="mb-3 px-3 py-1.5 rounded-full text-white font-bold text-sm fade-in-up delay-1"
+            style={{ backgroundColor: "#BF8EFF" }}
+          >
+            Out December 30, 2025
+          </div>
+          <h1 className="text-6xl font-black text-white fade-in-up delay-2">
+            Sage
+          </h1>
+          <p className="text-white text-base mt-4 text-center font-bold max-w-sm fade-in-up delay-3">
+            A{" "}
+            <span
+              className="px-1 py-0.5 rounded"
+              style={{
+                background:
+                  "linear-gradient(90.81deg, #9D638D 0.58%, #BF8EFF 99.31%)",
+                borderRadius: "10px",
+              }}
+            >
+              Christian Self-Care
+            </span>{" "}
+            App. Sign up for early access and updates before launch.
+          </p>
+
+          <div className="mt-12 w-full max-w-md fade-in-up delay-4">
+            <div
+              className="relative flex items-center rounded-full p-2"
+              style={{
+                backgroundColor: "#282828",
+              }}
+            >
+              <input
+                type="email"
+                placeholder="Enter your email"
+                className="flex-1 bg-transparent text-white placeholder-gray-400 px-4 py-2 rounded-full focus:outline-none"
+              />
+              <button
+                className="px-6 py-2 text-white font-semibold rounded-full"
+                style={{
+                  background:
+                    "linear-gradient(90.81deg, #9D638D 0.58%, #BF8EFF 99.31%)",
+                }}
+              >
+                Subscribe
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <Characters />
+      </section>
+    </>
   );
 }
