@@ -45,50 +45,50 @@ export default function Characters() {
 
       {/* Characters - Right Side */}
       <div
-        className="absolute bottom-0 -right-20 flex items-end gap-2 pr-8 pb-4"
-        style={{ zIndex: 2 }}
+        className="absolute bottom-0 right-0 sm:-right-2 md:-right-4 lg:-right-6 xl:-right-10 2xl:-right-20 flex items-end gap-0.5 sm:gap-1 md:gap-1.5 lg:gap-2 pr-0 sm:pr-1 md:pr-2 lg:pr-3 xl:pr-4 2xl:pr-8 pb-1 sm:pb-2 md:pb-3 lg:pb-4"
+        style={{ zIndex: 2, pointerEvents: "none" }}
       >
         <img
           src="/assets/Noah.png"
           alt="Noah"
-          className="h-72 object-contain scale-x-[-1] character-fade-in character-delay-5"
+          className="h-24 sm:h-32 md:h-40 lg:h-48 xl:h-56 2xl:h-72 object-contain scale-x-[-1] character-fade-in character-delay-5"
         />
         <img
           src="/assets/Gabriel.png"
           alt="Gabriel"
-          className="h-70 object-contain mb-30 character-fade-in character-delay-6"
+          className="hidden sm:block h-32 md:h-40 lg:h-48 xl:h-56 2xl:h-70 object-contain mb-6 sm:mb-8 md:mb-12 lg:mb-16 xl:mb-20 2xl:mb-30 character-fade-in character-delay-6"
         />
         <img
           src="/assets/David.png"
           alt="David"
-          className="h-72 object-contain -mb-5 character-fade-in character-delay-7"
+          className="h-24 sm:h-32 md:h-40 lg:h-48 xl:h-56 2xl:h-72 object-contain -mb-1 sm:-mb-2 md:-mb-3 lg:-mb-4 xl:-mb-5 character-fade-in character-delay-7"
         />
       </div>
 
       {/* Characters - Left Side */}
       <div
-        className="absolute bottom-0 -left-20 flex items-end gap-0 pl-0 pb-4"
-        style={{ zIndex: 2 }}
+        className="absolute bottom-0 left-0 sm:-left-2 md:-left-4 lg:-left-6 xl:-left-10 2xl:-left-20 flex items-end gap-0 pl-0 pb-1 sm:pb-2 md:pb-3 lg:pb-4"
+        style={{ zIndex: 2, pointerEvents: "none" }}
       >
         <img
           src="/assets/Samson.png"
           alt="Samson"
-          className="h-72 object-contain character-fade-in character-delay-1"
+          className="h-24 sm:h-32 md:h-40 lg:h-48 xl:h-56 2xl:h-72 object-contain character-fade-in character-delay-1"
         />
         <img
           src="/assets/Ruth.png"
           alt="Ruth"
-          className="h-70 object-contain mb-20 character-fade-in character-delay-2"
+          className="hidden sm:block h-32 md:h-40 lg:h-48 xl:h-56 2xl:h-70 object-contain mb-4 sm:mb-6 md:mb-8 lg:mb-12 xl:mb-16 2xl:mb-20 character-fade-in character-delay-2"
         />
         <img
           src="/assets/Deborah.png"
           alt="Deborah"
-          className="h-70 object-contain -mb-4 character-fade-in character-delay-3"
+          className="h-24 sm:h-32 md:h-40 lg:h-48 xl:h-56 2xl:h-70 object-contain -mb-1 sm:-mb-1 md:-mb-2 lg:-mb-3 xl:-mb-4 character-fade-in character-delay-3"
         />
         <img
           src="/assets/Elijah.png"
           alt="Elijah"
-          className="h-70 object-contain mb-10 character-fade-in character-delay-4"
+          className="hidden md:block h-40 lg:h-48 xl:h-56 2xl:h-70 object-contain mb-4 lg:mb-6 xl:mb-8 2xl:mb-10 character-fade-in character-delay-4"
         />
       </div>
     </>
