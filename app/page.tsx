@@ -65,7 +65,7 @@ export default function Home() {
         </div>
 
         <div
-          className="flex flex-col items-center justify-center h-full px-4 sm:px-6 md:px-8 pt-16 md:pt-0"
+          className="flex flex-col items-center justify-center h-full px-4 sm:px-6 md:px-8"
           style={{ zIndex: 10, position: "relative", pointerEvents: "auto" }}
         >
           <div
@@ -92,7 +92,7 @@ export default function Home() {
             App. Sign up for early access and updates before launch.
           </p>
 
-          <div className="mt-8 sm:mt-12 w-full max-w-xs sm:max-w-md fade-in-up delay-4 px-4">
+          <div className="mt-8 sm:mt-12 w-[100%] sm:w-full sm:max-w-md fade-in-up delay-4 px-2 sm:px-4">
             <div
               className="relative flex flex-col sm:flex-row items-center rounded-2xl sm:rounded-full p-2 gap-2 sm:gap-0"
               style={{
@@ -121,6 +121,16 @@ export default function Home() {
         </div>
 
         <Characters />
+
+        {/* Desktop Bottom Text */}
+        <div
+          className="hidden md:flex absolute bottom-4 left-0 right-0 justify-center px-4"
+          style={{ zIndex: 10, pointerEvents: "none" }}
+        >
+          <p className="text-white text-sm opacity-80 text-center font-bold">
+            Have an idea you want us to implement?
+          </p>
+        </div>
       </section>
     </>
   );

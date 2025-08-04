@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 
 export default function Navigation() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -51,10 +52,14 @@ export default function Navigation() {
           }}
         >
           {/* Logo */}
-          <img
+          <Image
             src="/assets/LogoWBG.png"
             alt="Sage Logo"
+            width={32}
+            height={32}
+            quality={95}
             className="h-8 w-8 rounded-full object-cover"
+            priority
           />
 
           {/* Hamburger Button */}
