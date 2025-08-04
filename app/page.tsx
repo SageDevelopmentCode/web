@@ -2,6 +2,7 @@
 
 import Navigation from "./components/Navigation";
 import Characters from "./components/home/Characters";
+import Starters from "./components/home/Starters";
 
 export default function Home() {
   return (
@@ -132,6 +133,9 @@ export default function Home() {
           </p>
         </div>
       </section>
+
+      {/* Meet the Starters Section */}
+      <Starters />
     </>
   );
 }
