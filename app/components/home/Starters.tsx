@@ -100,7 +100,7 @@ export default function Starters() {
       `}</style>
 
       <section
-        className="pt-30 pb-16 px-4 sm:px-6 md:px-8"
+        className="pt-30 pb-16 px-4 sm:px-6 md:px-0"
         style={{ backgroundColor: "#3C4806" }}
       >
         <div className="max-w-7xl mx-auto">
@@ -132,10 +132,9 @@ export default function Starters() {
                     <Image
                       src={character.src}
                       alt={character.name}
-                      width={192}
-                      height={192}
-                      quality={95}
-                      className="object-cover w-full h-full scale-125"
+                      width={288}
+                      height={288}
+                      className="object-cover w-full h-full"
                       style={{
                         objectPosition: "center -50%",
                       }}
@@ -148,8 +147,8 @@ export default function Starters() {
 
           {/* Character Details Section */}
           {selectedCharacter && (
-            <div className="mt-12 px-4 sm:px-6 md:px-8">
-              <div className="max-w-7xl mx-auto">
+            <div className="mt-12">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-16">
                 {(() => {
                   const character = characters.find(
                     (c) => c.name === selectedCharacter
@@ -157,9 +156,9 @@ export default function Starters() {
                   if (!character) return null;
 
                   return (
-                    <div className="flex flex-col md:flex-row overflow-hidden min-h-[500px] rounded-3xl md:gap-6">
+                    <div className="flex flex-col md:flex-row overflow-hidden min-h-[400px] rounded-3xl md:gap-2 md:items-center">
                       {/* Left Section - Character Background & Image */}
-                      <div className="w-full md:w-80 relative overflow-hidden rounded-3xl md:rounded-l-3xl md:rounded-r-3xl">
+                      <div className="w-full md:w-80 h-80 md:h-140 relative overflow-hidden rounded-3xl md:rounded-l-3xl md:rounded-r-3xl">
                         {/* Background Image */}
                         <div
                           className="absolute inset-0"
@@ -173,14 +172,13 @@ export default function Starters() {
                         />
                         {/* 35% Black Overlay */}
                         <div className="absolute inset-0 bg-black opacity-35" />
-                        <div className="relative z-10 flex items-center justify-center h-full p-4">
-                          <div className="w-64 h-64 md:w-72 md:h-72">
+                        <div className="relative z-10 flex items-end justify-center h-full p-1">
+                          <div className="w-96 h-96 md:w-[34rem] md:h-[34rem]">
                             <Image
                               src={character.src}
                               alt={character.name}
-                              width={288}
-                              height={288}
-                              quality={95}
+                              width={480}
+                              height={480}
                               className="object-contain w-full h-full"
                             />
                           </div>
@@ -189,7 +187,7 @@ export default function Starters() {
 
                       {/* Right Section - Character Info */}
                       <div
-                        className="flex-1 p-8 md:p-12 space-y-6 rounded-3xl md:rounded-l-xl md:rounded-r-3xl"
+                        className="flex-1 p-8 md:py-12 md:pl-12 space-y-6 rounded-3xl md:rounded-l-xl md:rounded-r-3xl"
                         style={{ backgroundColor: "#3C4806" }}
                       >
                         {/* Header */}
