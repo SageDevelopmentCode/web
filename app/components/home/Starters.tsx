@@ -191,33 +191,55 @@ export default function Starters() {
                         style={{ backgroundColor: "#3C4806" }}
                       >
                         {/* Header */}
-                        <div className="flex items-center gap-4">
-                          <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                              <span className="text-sm font-bold">👤</span>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-5">
+                            <div
+                              className="w-16 h-16 rounded-full flex items-center justify-center"
+                              style={{ backgroundColor: "#518ED2" }}
+                            >
+                              <Image
+                                src="/assets/PatienceLogo.png"
+                                alt="Patience Logo"
+                                width={32}
+                                height={32}
+                                className="object-contain"
+                              />
                             </div>
-                            <span className="text-xl font-bold text-white">
-                              {character.name}
-                            </span>
+                            <div className="flex flex-col">
+                              <div className="flex items-center gap-3">
+                                <span className="text-3xl font-extrabold text-white">
+                                  {character.name}
+                                </span>
+                                <span
+                                  className="px-2 py-1 rounded-lg text-base font-bold text-white"
+                                  style={{ backgroundColor: "#323232" }}
+                                >
+                                  #
+                                  {characters.findIndex(
+                                    (c) => c.name === character.name
+                                  ) + 1}
+                                </span>
+                              </div>
+                              <span
+                                className="text-base font-bold tracking-wider"
+                                style={{ color: "#518ED2" }}
+                              >
+                                PATIENCE
+                              </span>
+                            </div>
                           </div>
                           <span
-                            className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                              character.rarity === "Legendary"
-                                ? "bg-yellow-600"
-                                : character.rarity === "Epic"
-                                ? "bg-purple-600"
-                                : "bg-blue-600"
-                            }`}
+                            className="px-6 py-2 rounded-full text-base font-bold text-white"
+                            style={{
+                              background:
+                                "linear-gradient(90.81deg, #9D638D 0.58%, #BF8EFF 99.31%)",
+                            }}
                           >
                             {character.rarity}
                           </span>
                         </div>
 
-                        <div className="text-sm text-gray-300 font-semibold tracking-wider">
-                          {character.title}
-                        </div>
-
-                        <p className="text-sm leading-relaxed text-gray-200">
+                        <p className="text-base font-semibold leading-relaxed text-gray-200">
                           {character.description}
                         </p>
 
