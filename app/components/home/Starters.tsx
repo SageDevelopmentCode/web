@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { Twemoji } from "../Twemoji";
 
 export default function Starters() {
   const [selectedCharacter, setSelectedCharacter] = useState<string | null>(
@@ -249,7 +250,12 @@ export default function Starters() {
                           style={{ backgroundColor: "#323817" }}
                         >
                           <div className="flex items-center gap-2">
-                            <span className="text-green-400">😊</span>
+                            <Twemoji
+                              hex="1f3af"
+                              size={30}
+                              className="text-green-400"
+                              alt="Target - Best For"
+                            />
                             <span className="font-semibold text-green-400">
                               Best For:
                             </span>
@@ -265,7 +271,12 @@ export default function Starters() {
                           style={{ backgroundColor: "#323817" }}
                         >
                           <div className="flex items-center gap-2">
-                            <span className="text-red-400">⚔️</span>
+                            <Twemoji
+                              hex="2694"
+                              size={30}
+                              className="text-red-400"
+                              alt="Crossed Swords - Super Effective Against"
+                            />
                             <span className="font-semibold text-red-400">
                               Super Effective Against:
                             </span>
@@ -292,7 +303,12 @@ export default function Starters() {
                           style={{ backgroundColor: "#323817" }}
                         >
                           <div className="flex items-center gap-2">
-                            <span className="text-blue-400">📖</span>
+                            <Twemoji
+                              hex="1f4da"
+                              size={30}
+                              className="text-blue-400"
+                              alt="Books - Verse Collection"
+                            />
                             <span className="font-semibold text-blue-400">
                               Verse Collection:
                             </span>
