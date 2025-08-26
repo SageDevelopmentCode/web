@@ -47,7 +47,7 @@ export default function Characters() {
 
       {/* Characters - Right Side */}
       <div
-        className="absolute bottom-0 right-0 sm:-right-2 md:-right-4 lg:-right-6 xl:-right-10 2xl:-right-20 flex items-end gap-0.5 sm:gap-1 md:gap-1.5 lg:gap-2 pr-0 sm:pr-1 md:pr-2 lg:pr-3 xl:pr-4 2xl:pr-8 pb-1 sm:pb-2 md:pb-3 lg:pb-4"
+        className="absolute bottom-0 right-0 sm:-right-2 md:-right-4 lg:-right-6 xl:-right-10 2xl:-right-20 flex items-end gap-0.5 sm:gap-1 md:gap-1.5 lg:gap-2 pr-2 sm:pr-1 md:pr-2 lg:pr-3 xl:pr-4 2xl:pr-8 pb-1 sm:pb-2 md:pb-3 lg:pb-4 max-w-[50vw] overflow-hidden"
         style={{ zIndex: 2, pointerEvents: "none" }}
       >
         <Image
@@ -80,7 +80,7 @@ export default function Characters() {
 
       {/* Characters - Left Side */}
       <div
-        className="absolute bottom-0 left-0 sm:-left-2 md:-left-4 lg:-left-6 xl:-left-10 2xl:-left-20 flex items-end gap-0 pl-0 pb-1 sm:pb-2 md:pb-3 lg:pb-4"
+        className="absolute bottom-0 left-0 sm:-left-2 md:-left-4 lg:-left-6 xl:-left-10 2xl:-left-20 flex items-end gap-0 pl-2 sm:pl-0 pb-1 sm:pb-2 md:pb-3 lg:pb-4 max-w-[50vw] overflow-hidden"
         style={{ zIndex: 2, pointerEvents: "none" }}
       >
         <Image

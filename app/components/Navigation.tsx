@@ -1,14 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 
 export default function Navigation() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop = window.scrollY;
+      setIsScrolled(scrollTop > 10);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
 
   const menuItems = [
     { name: "Home", isActive: true },
@@ -42,13 +55,14 @@ export default function Navigation() {
       </nav>
 
       {/* Mobile Navigation Bar */}
-      <div className="md:hidden fixed top-0 left-0 right-0 z-50 pointer-events-auto">
+      <div className="md:hidden fixed top-0 left-0 right-0 z-50 pointer-events-auto w-full max-w-full overflow-hidden">
         {/* Mobile Nav Bar */}
         <div
-          className="flex items-center justify-between px-4 py-3"
+          className="flex items-center justify-between px-4 py-3 transition-all duration-300 ease-in-out"
           style={{
-            backgroundColor: "#B84786",
-            opacity: 0.9,
+            backgroundColor: isScrolled ? "#282828" : "transparent",
+            opacity: isScrolled ? 0.95 : 1,
+            backdropFilter: isScrolled ? "blur(10px)" : "none",
           }}
         >
           {/* Logo */}
@@ -65,9 +79,11 @@ export default function Navigation() {
           {/* Hamburger Button */}
           <button
             onClick={toggleMobileMenu}
-            className="p-2 rounded-lg text-white transition-all hover:opacity-80 cursor-pointer"
+            className="p-2 rounded-lg text-white transition-all duration-300 ease-in-out hover:opacity-80 cursor-pointer"
             style={{
-              backgroundColor: "rgba(255, 255, 255, 0.2)",
+              backgroundColor: isScrolled
+                ? "rgba(255, 255, 255, 0.1)"
+                : "rgba(255, 255, 255, 0.2)",
               backdropFilter: "blur(10px)",
             }}
             aria-label="Toggle mobile menu"
@@ -102,11 +118,12 @@ export default function Navigation() {
         {/* Mobile Menu Dropdown - Full Width */}
         {isMobileMenuOpen && (
           <div
-            className="w-full shadow-lg"
+            className="w-full shadow-lg transition-all duration-300 ease-in-out"
             style={{
-              backgroundColor: "#B84786",
+              backgroundColor: isScrolled ? "#282828" : "#B84786",
               opacity: 0.95,
               animation: "slideDown 0.3s ease-out",
+              backdropFilter: isScrolled ? "blur(10px)" : "none",
             }}
           >
             <div className="py-2">

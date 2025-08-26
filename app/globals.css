@@ -27,4 +27,14 @@ body {
   color: var(--foreground);
   font-family: var(--font-nunito), Arial, Helvetica, sans-serif;
   overflow-x: hidden;
+  max-width: 100vw;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+#__next {
+  overflow-x: hidden;
+  max-width: 100vw;
 }

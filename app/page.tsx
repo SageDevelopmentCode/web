@@ -8,7 +8,7 @@ import BottomText from "./components/home/BottomText";
 
 export default function Home() {
   return (
-    <>
+    <div className="overflow-x-hidden min-h-screen w-full max-w-full">
       <style jsx>{`
         @keyframes fadeInUp {
           from {
@@ -41,7 +41,7 @@ export default function Home() {
       `}</style>
 
       <section
-        className="overflow-hidden"
+        className="overflow-hidden relative"
         style={{
           width: "100%",
           height: "100vh",
@@ -49,6 +49,7 @@ export default function Home() {
           backgroundSize: "cover",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
+          maxWidth: "100vw",
         }}
       >
         {/* Gradient Overlay */}
@@ -76,6 +77,6 @@ export default function Home() {
 
       {/* Meet the Starters Section */}
       <Starters />
-    </>
+    </div>
   );
 }

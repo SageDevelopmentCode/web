@@ -104,7 +104,7 @@ export default function Starters() {
       `}</style>
 
       <section
-        className="pt-30 pb-16 px-4 sm:px-6 md:px-0"
+        className="pt-30 pb-16 px-4 sm:px-6 md:px-0 w-full max-w-full overflow-x-hidden"
         style={{ backgroundColor: "#3C4806" }}
       >
         <div className="max-w-7xl mx-auto">

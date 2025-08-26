@@ -39,7 +39,7 @@ export default function HeroSection() {
         App. Sign up for early access and updates before launch.
       </p>
 
-      <div className="mt-8 sm:mt-12 w-[100%] sm:w-full sm:max-w-md fade-in-up delay-4 px-2 sm:px-4">
+      <div className="mt-8 sm:mt-12 w-full max-w-xs sm:max-w-md fade-in-up delay-4 px-2 sm:px-4">
         <div
           className="relative flex flex-col sm:flex-row items-center rounded-2xl sm:rounded-full p-2 gap-2 sm:gap-0"
           style={{
