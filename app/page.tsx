@@ -73,7 +73,7 @@ export default function Home() {
             className="mb-3 px-3 py-1.5 rounded-full text-white font-bold text-xs sm:text-sm fade-in-up delay-1"
             style={{ backgroundColor: "#BF8EFF" }}
           >
-            Out December 30, 2025
+            Out April 15, 2026
           </div>
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-white fade-in-up delay-2 text-center">
             Sage

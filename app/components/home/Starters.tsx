@@ -159,7 +159,7 @@ export default function Starters() {
                   return (
                     <div className="flex flex-col md:flex-row overflow-hidden min-h-[400px] rounded-3xl md:gap-2 md:items-center">
                       {/* Left Section - Character Background & Image */}
-                      <div className="w-full md:w-80 h-80 md:h-140 relative overflow-hidden rounded-3xl md:rounded-l-3xl md:rounded-r-3xl">
+                      <div className="w-full md:w-80 h-80 md:h-170 relative overflow-hidden rounded-3xl md:rounded-l-3xl md:rounded-r-3xl">
                         {/* Background Image */}
                         <div
                           className="absolute inset-0"
@@ -246,86 +246,114 @@ export default function Starters() {
 
                         {/* Best For Section */}
                         <div
-                          className="rounded-lg p-4 space-y-2"
+                          className="rounded-2xl p-6 space-y-2"
                           style={{ backgroundColor: "#323817" }}
                         >
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-start gap-3">
                             <Twemoji
                               hex="1f3af"
                               size={30}
-                              className="text-green-400"
+                              className="text-green-400 mt-1"
                               alt="Target - Best For"
                             />
-                            <span className="font-semibold text-green-400">
-                              Best For:
-                            </span>
+                            <div>
+                              <span className="font-bold text-white text-xl">
+                                Best For:
+                              </span>
+                              <p className="text-base text-gray-200 mt-1">
+                                {character.bestFor}
+                              </p>
+                            </div>
                           </div>
-                          <p className="text-sm text-gray-200 ml-6">
-                            {character.bestFor}
-                          </p>
                         </div>
 
                         {/* Super Effective Against */}
                         <div
-                          className="rounded-lg p-4 space-y-3"
+                          className="rounded-2xl p-6 space-y-3"
                           style={{ backgroundColor: "#323817" }}
                         >
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-start gap-3">
                             <Twemoji
                               hex="2694"
                               size={30}
-                              className="text-red-400"
+                              className="text-red-400 mt-1"
                               alt="Crossed Swords - Super Effective Against"
                             />
-                            <span className="font-semibold text-red-400">
-                              Super Effective Against:
-                            </span>
-                          </div>
-                          <div className="flex gap-2 ml-6">
-                            {character.superEffectiveAgainst.map(
-                              (weakness, index) => (
-                                <div
-                                  key={index}
-                                  className="bg-red-900 bg-opacity-50 px-3 py-1 rounded-lg"
-                                >
-                                  <span className="text-sm font-medium">
-                                    {weakness}
-                                  </span>
-                                </div>
-                              )
-                            )}
+                            <div>
+                              <span className="font-bold text-white text-xl">
+                                Super Effective Against:
+                              </span>
+                              <div className="flex mt-3">
+                                {character.superEffectiveAgainst.map(
+                                  (weakness, index) => (
+                                    <div
+                                      key={index}
+                                      className="flex flex-col items-center mr-4"
+                                    >
+                                      <div
+                                        className="w-16 h-16 rounded-2xl flex items-center justify-center mb-2"
+                                        style={{ backgroundColor: "#7A1B1B" }}
+                                      >
+                                        <Image
+                                          src="/assets/PatienceLogo.png"
+                                          alt="Patience Logo"
+                                          width={32}
+                                          height={32}
+                                          className="object-contain"
+                                        />
+                                      </div>
+                                      <span className="text-xs font-bold text-white tracking-wider">
+                                        {weakness.toUpperCase()}
+                                      </span>
+                                    </div>
+                                  )
+                                )}
+                              </div>
+                            </div>
                           </div>
                         </div>
 
                         {/* Verse Collection */}
                         <div
-                          className="rounded-lg p-4 space-y-3"
+                          className="rounded-2xl p-6 space-y-3"
                           style={{ backgroundColor: "#323817" }}
                         >
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-start gap-3">
                             <Twemoji
                               hex="1f4da"
                               size={30}
-                              className="text-blue-400"
+                              className="text-blue-400 mt-1"
                               alt="Books - Verse Collection"
                             />
-                            <span className="font-semibold text-blue-400">
-                              Verse Collection:
-                            </span>
-                          </div>
-                          <div className="ml-6 bg-gray-800 bg-opacity-50 rounded-lg p-4">
-                            <div className="flex items-center gap-3">
-                              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                                <span className="text-white text-xs font-bold">
-                                  📜
-                                </span>
-                              </div>
-                              <div>
-                                <div className="font-semibold text-white">
-                                  {character.verseCollection.title}
-                                </div>
-                                <div className="text-sm text-gray-400">
-                                  {character.verseCollection.subtitle}
+                            <div>
+                              <span className="font-bold text-white text-xl">
+                                Verse Collection:
+                              </span>
+                              <div className="mt-2">
+                                <div
+                                  className="inline-flex items-center gap-3 rounded-3xl p-3"
+                                  style={{ backgroundColor: "#262626" }}
+                                >
+                                  <div
+                                    className="w-12 h-12 rounded-xl flex items-center justify-center relative overflow-hidden"
+                                    style={{
+                                      backgroundImage: `url('/assets/${character.name}Background.jpg')`,
+                                      backgroundSize: "cover",
+                                      backgroundPosition: "center",
+                                      backgroundRepeat: "no-repeat",
+                                    }}
+                                  >
+                                    {/* Optional overlay if needed for contrast */}
+                                    <div className="absolute inset-0 bg-black opacity-20" />
+                                  </div>
+                                  <div>
+                                    <div className="font-bold text-white">
+                                      {character.verseCollection.title}
+                                    </div>
+                                    <div className="text-sm text-gray-400">
+                                      {character.verseCollection.subtitle}
+                                    </div>
+                                  </div>
                                 </div>
                               </div>
                             </div>
