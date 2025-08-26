@@ -2,7 +2,10 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { Twemoji } from "../Twemoji";
+import BestFor from "./BestFor";
+import SuperEffectiveAgainst from "./SuperEffectiveAgainst";
+import VerseCollection from "./VerseCollection";
+import CharacterHeader from "./CharacterHeader";
 
 export default function Starters() {
   const [selectedCharacter, setSelectedCharacter] = useState<string | null>(
@@ -191,174 +194,32 @@ export default function Starters() {
                         className="flex-1 p-8 md:py-12 md:pl-12 space-y-6 rounded-3xl md:rounded-l-xl md:rounded-r-3xl"
                         style={{ backgroundColor: "#3C4806" }}
                       >
-                        {/* Header */}
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-5">
-                            <div
-                              className="w-16 h-16 rounded-full flex items-center justify-center"
-                              style={{ backgroundColor: "#518ED2" }}
-                            >
-                              <Image
-                                src="/assets/PatienceLogo.png"
-                                alt="Patience Logo"
-                                width={32}
-                                height={32}
-                                className="object-contain"
-                              />
-                            </div>
-                            <div className="flex flex-col">
-                              <div className="flex items-center gap-3">
-                                <span className="text-3xl font-extrabold text-white">
-                                  {character.name}
-                                </span>
-                                <span
-                                  className="px-2 py-1 rounded-lg text-base font-bold text-white"
-                                  style={{ backgroundColor: "#323232" }}
-                                >
-                                  #
-                                  {characters.findIndex(
-                                    (c) => c.name === character.name
-                                  ) + 1}
-                                </span>
-                              </div>
-                              <span
-                                className="text-base font-bold tracking-wider"
-                                style={{ color: "#518ED2" }}
-                              >
-                                PATIENCE
-                              </span>
-                            </div>
-                          </div>
-                          <span
-                            className="px-6 py-2 rounded-full text-base font-bold text-white"
-                            style={{
-                              background:
-                                "linear-gradient(90.81deg, #9D638D 0.58%, #BF8EFF 99.31%)",
-                            }}
-                          >
-                            {character.rarity}
-                          </span>
-                        </div>
+                        <CharacterHeader
+                          name={character.name}
+                          number={
+                            characters.findIndex(
+                              (c) => c.name === character.name
+                            ) + 1
+                          }
+                          title={character.title}
+                          rarity={character.rarity}
+                        />
 
                         <p className="text-base font-semibold leading-relaxed text-gray-200">
                           {character.description}
                         </p>
 
-                        {/* Best For Section */}
-                        <div
-                          className="rounded-2xl p-6 space-y-2"
-                          style={{ backgroundColor: "#323817" }}
-                        >
-                          <div className="flex items-start gap-3">
-                            <Twemoji
-                              hex="1f3af"
-                              size={30}
-                              className="text-green-400 mt-1"
-                              alt="Target - Best For"
-                            />
-                            <div>
-                              <span className="font-bold text-white text-xl">
-                                Best For:
-                              </span>
-                              <p className="text-base text-gray-200 mt-1">
-                                {character.bestFor}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
+                        <BestFor description={character.bestFor} />
 
-                        {/* Super Effective Against */}
-                        <div
-                          className="rounded-2xl p-6 space-y-3"
-                          style={{ backgroundColor: "#323817" }}
-                        >
-                          <div className="flex items-start gap-3">
-                            <Twemoji
-                              hex="2694"
-                              size={30}
-                              className="text-red-400 mt-1"
-                              alt="Crossed Swords - Super Effective Against"
-                            />
-                            <div>
-                              <span className="font-bold text-white text-xl">
-                                Super Effective Against:
-                              </span>
-                              <div className="flex mt-3">
-                                {character.superEffectiveAgainst.map(
-                                  (weakness, index) => (
-                                    <div
-                                      key={index}
-                                      className="flex flex-col items-center mr-4"
-                                    >
-                                      <div
-                                        className="w-16 h-16 rounded-2xl flex items-center justify-center mb-2"
-                                        style={{ backgroundColor: "#7A1B1B" }}
-                                      >
-                                        <Image
-                                          src="/assets/PatienceLogo.png"
-                                          alt="Patience Logo"
-                                          width={32}
-                                          height={32}
-                                          className="object-contain"
-                                        />
-                                      </div>
-                                      <span className="text-xs font-bold text-white tracking-wider">
-                                        {weakness.toUpperCase()}
-                                      </span>
-                                    </div>
-                                  )
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
+                        <SuperEffectiveAgainst
+                          weaknesses={character.superEffectiveAgainst}
+                        />
 
-                        {/* Verse Collection */}
-                        <div
-                          className="rounded-2xl p-6 space-y-3"
-                          style={{ backgroundColor: "#323817" }}
-                        >
-                          <div className="flex items-start gap-3">
-                            <Twemoji
-                              hex="1f4da"
-                              size={30}
-                              className="text-blue-400 mt-1"
-                              alt="Books - Verse Collection"
-                            />
-                            <div>
-                              <span className="font-bold text-white text-xl">
-                                Verse Collection:
-                              </span>
-                              <div className="mt-2">
-                                <div
-                                  className="inline-flex items-center gap-3 rounded-3xl p-3"
-                                  style={{ backgroundColor: "#262626" }}
-                                >
-                                  <div
-                                    className="w-12 h-12 rounded-xl flex items-center justify-center relative overflow-hidden"
-                                    style={{
-                                      backgroundImage: `url('/assets/${character.name}Background.jpg')`,
-                                      backgroundSize: "cover",
-                                      backgroundPosition: "center",
-                                      backgroundRepeat: "no-repeat",
-                                    }}
-                                  >
-                                    {/* Optional overlay if needed for contrast */}
-                                    <div className="absolute inset-0 bg-black opacity-20" />
-                                  </div>
-                                  <div>
-                                    <div className="font-bold text-white">
-                                      {character.verseCollection.title}
-                                    </div>
-                                    <div className="text-sm text-gray-400">
-                                      {character.verseCollection.subtitle}
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
+                        <VerseCollection
+                          characterName={character.name}
+                          title={character.verseCollection.title}
+                          subtitle={character.verseCollection.subtitle}
+                        />
                       </div>
                     </div>
                   );
