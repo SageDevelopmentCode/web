@@ -18,24 +18,25 @@ export default function VerseCollection({
       className="rounded-2xl p-6 space-y-3"
       style={{ backgroundColor: "#323817" }}
     >
-      <div className="flex items-start gap-3">
+      {/* Mobile: centered layout, Desktop: original left-aligned layout */}
+      <div className="flex flex-col items-center text-center md:flex-row md:items-start md:text-left md:gap-3">
         <Twemoji
           hex="1f4da"
-          size={30}
-          className="text-blue-400 mt-1"
+          size={24}
+          className="text-blue-400 mb-2 md:mb-0 md:mt-1 md:w-[30px]"
           alt="Books - Verse Collection"
         />
-        <div>
-          <span className="font-bold text-white text-xl">
+        <div className="w-full">
+          <span className="font-bold text-white text-lg md:text-xl">
             Verse Collection:
           </span>
-          <div className="mt-2">
+          <div className="mt-2 flex justify-center md:justify-start">
             <div
               className="inline-flex items-center gap-3 rounded-3xl p-3"
               style={{ backgroundColor: "#262626" }}
             >
               <div
-                className="w-12 h-12 rounded-xl flex items-center justify-center relative overflow-hidden"
+                className="w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center relative overflow-hidden"
                 style={{
                   backgroundImage: `url('/assets/${characterName}Background.jpg')`,
                   backgroundSize: "cover",
@@ -47,8 +48,12 @@ export default function VerseCollection({
                 <div className="absolute inset-0 bg-black opacity-20" />
               </div>
               <div>
-                <div className="font-bold text-white">{title}</div>
-                <div className="text-sm text-gray-400">{subtitle}</div>
+                <div className="font-bold text-white text-sm md:text-base">
+                  {title}
+                </div>
+                <div className="text-xs md:text-sm text-gray-400">
+                  {subtitle}
+                </div>
               </div>
             </div>
           </div>

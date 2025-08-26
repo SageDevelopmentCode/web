@@ -177,7 +177,7 @@ export default function Starters() {
                         {/* 35% Black Overlay */}
                         <div className="absolute inset-0 bg-black opacity-35" />
                         <div className="relative z-10 flex items-end justify-center h-full p-1">
-                          <div className="w-96 h-96 md:w-[34rem] md:h-[34rem]">
+                          <div className="w-64 h-64 md:w-[34rem] md:h-[34rem]">
                             <Image
                               src={character.src}
                               alt={character.name}
@@ -191,7 +191,7 @@ export default function Starters() {
 
                       {/* Right Section - Character Info */}
                       <div
-                        className="flex-1 p-8 md:py-12 md:pl-12 space-y-6 rounded-3xl md:rounded-l-xl md:rounded-r-3xl"
+                        className="flex-1 py-8 px-0 md:py-12 md:pl-12 space-y-6 rounded-3xl md:rounded-l-xl md:rounded-r-3xl"
                         style={{ backgroundColor: "#3C4806" }}
                       >
                         <CharacterHeader
