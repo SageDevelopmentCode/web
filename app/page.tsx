@@ -3,6 +3,7 @@
 import Navigation from "./components/Navigation";
 import Characters from "./components/home/Characters";
 import Starters from "./components/home/Starters";
+import Features from "./components/home/Features";
 import HeroSection from "./components/home/HeroSection";
 import BottomText from "./components/home/BottomText";
 
@@ -77,6 +78,9 @@ export default function Home() {
 
       {/* Meet the Starters Section */}
       <Starters />
+
+      {/* Features Section */}
+      <Features />
     </div>
   );
 }
