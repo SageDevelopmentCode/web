@@ -7,6 +7,16 @@ export default function Features() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
+  // Define gradient options for alternating cards
+  const gradientOptions = [
+    "linear-gradient(90.81deg, #4AA78B 0.58%, #68AFFF 99.31%)", // Teal to Blue
+    "linear-gradient(90.81deg, #9D638D 0.58%, #BF8EFF 99.31%)", // Purple to Violet
+    "linear-gradient(90.81deg, #E67E22 0.58%, #F39C12 99.31%)", // Orange to Golden
+    "linear-gradient(90.81deg, #2ECC71 0.58%, #27AE60 99.31%)", // Light Green to Green
+    "linear-gradient(90.81deg, #E74C3C 0.58%, #C0392B 99.31%)", // Light Red to Red
+    "linear-gradient(90.81deg, #3498DB 0.58%, #2980B9 99.31%)", // Light Blue to Blue
+  ];
+
   const featureCards = [
     {
       title: "Set goals with purpose",
@@ -126,6 +136,7 @@ export default function Features() {
                 title={card.title}
                 description={card.description}
                 images={card.images}
+                gradient={gradientOptions[index % gradientOptions.length]}
               />
             </div>
           ))}

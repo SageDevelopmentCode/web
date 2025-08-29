@@ -12,6 +12,7 @@ interface FeatureCardProps {
     src: string;
     alt: string;
   }[];
+  gradient?: string;
 }
 
 interface FloatingEmoji {
@@ -28,6 +29,7 @@ export default function FeatureCard({
   title,
   description,
   images,
+  gradient = "linear-gradient(90.81deg, #4AA78B 0.58%, #68AFFF 99.31%)",
 }: FeatureCardProps) {
   const [selectedReaction, setSelectedReaction] = useState<ReactionType | null>(
     null
@@ -92,10 +94,10 @@ export default function FeatureCard({
       >
         {/* Inner Gradient Rectangle */}
         <div
-          className="w-full px-6 rounded-2xl h-30 flex flex-col justify-center text-left"
+          className="w-full px-6 h-30 flex flex-col justify-center text-left"
           style={{
-            background:
-              "linear-gradient(90.81deg, #4AA78B 0.58%, #68AFFF 99.31%)",
+            background: gradient,
+            borderRadius: "30px",
           }}
         >
           <h3 className="text-2xl md:text-3xl font-extrabold text-white mb-2">
@@ -161,9 +163,7 @@ export default function FeatureCard({
                         ? "transparent"
                         : "#2D301F",
                     background:
-                      selectedReaction === reaction.type
-                        ? "linear-gradient(90.81deg, #4AA78B 0.58%, #68AFFF 99.31%)"
-                        : "#2D301F",
+                      selectedReaction === reaction.type ? gradient : "#2D301F",
                   }}
                 >
                   <Twemoji hex={reaction.emoji} size={30} />
