@@ -104,7 +104,7 @@ export default function Starters() {
       `}</style>
 
       <section
-        className="pt-30 pb-16 px-4 sm:px-6 md:px-0 w-full max-w-full overflow-x-hidden"
+        className="pt-30 pb-16 px-4 md:px-35 w-full max-w-full overflow-x-hidden"
         style={{ backgroundColor: "#3C4806" }}
       >
         <div className="max-w-7xl mx-auto">
@@ -114,7 +114,7 @@ export default function Starters() {
           </h2>
 
           {/* Characters Grid */}
-          <div className="horizontal-scroll flex overflow-x-auto gap-4 md:gap-8 md:flex-wrap md:justify-center md:overflow-visible pb-4 md:pb-0">
+          <div className="horizontal-scroll flex overflow-x-auto gap-4 md:gap-8 md:flex-wrap md:justify-center md:overflow-visible pb-4 md:pb-0 px-2 md:px-0">
             {characters.map((character, index) => (
               <div
                 key={character.name}

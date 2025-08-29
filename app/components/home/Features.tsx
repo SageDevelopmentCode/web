@@ -105,7 +105,7 @@ export default function Features() {
 
   return (
     <section
-      className="pt-30 pb-16 px-4 sm:px-6 md:px-0 w-full max-w-full overflow-x-hidden"
+      className="pt-30 pb-16 sm:px-6 md:px-50 w-full max-w-full overflow-x-hidden"
       style={{ backgroundColor: "#3C4806" }}
     >
       <div className="max-w-7xl mx-auto">

@@ -87,7 +87,7 @@ export default function FeatureCard({
   return (
     <div className="flex justify-center">
       <div
-        className="w-160 rounded-2xl p-6 flex flex-col gap-6 relative overflow-hidden"
+        className="w-160 rounded-3xl p-6 flex flex-col gap-6 relative overflow-hidden"
         style={{ backgroundColor: "#323817" }}
       >
         {/* Inner Gradient Rectangle */}
