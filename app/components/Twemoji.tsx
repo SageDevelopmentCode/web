@@ -8,6 +8,12 @@ const emojiAssets: { [key: string]: string } = {
   "1f3af": "/assets/emojis/1f3af.png", // 🎯 target/aiming
   "1f4da": "/assets/emojis/1f4da.png", // 📚 books
   "2694": "/assets/emojis/2694.png", // ⚔️ crossed swords
+  "1f44e": "/assets/emojis/1f44e.png", // 👎 thumbs down
+  "1f610": "/assets/emojis/1f610.png", // 😐 neutral face
+  "1f44d": "/assets/emojis/1f44d.png", // 👍 thumbs up
+  "1f4ac": "/assets/emojis/1f4ac.png", // 💬 speech bubble
+  "1fae4": "/assets/emojis/1fae4.png", // 🫤 face with diagonal mouth (meh)
+  "2764": "/assets/emojis/2764.png", // ❤️ red heart
 };
 
 interface TwemojiProps {
@@ -107,6 +113,12 @@ export const EmojiMap = {
   TARGET: "1f3af", // 🎯
   BOOKS: "1f4da", // 📚
   SWORDS: "2694", // ⚔️
+  THUMBS_DOWN: "1f44e", // 👎
+  NEUTRAL: "1f610", // 😐
+  THUMBS_UP: "1f44d", // 👍
+  SPEECH_BUBBLE: "1f4ac", // 💬
+  MEH: "1fae4", // 🫤
+  HEART: "2764", // ❤️
 } as const;
 
 /**
