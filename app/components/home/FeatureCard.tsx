@@ -2,6 +2,9 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Twemoji } from "../Twemoji";
+import { Send } from "lucide-react";
+import FavoriteIcon from "@mui/icons-material/Favorite";
+import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 
 type ReactionType = "dislike" | "meh" | "neutral" | "like" | "love";
 
@@ -32,6 +35,7 @@ interface Comment {
   timestamp: string;
   replies?: Reply[];
   showReplies?: boolean;
+  isHearted?: boolean;
 }
 
 interface Reply {
@@ -39,6 +43,7 @@ interface Reply {
   username: string;
   content: string;
   timestamp: string;
+  isHearted?: boolean;
 }
 
 export default function FeatureCard({
@@ -62,18 +67,21 @@ export default function FeatureCard({
         "This was a very good verse that challenged me and spoke to my heart.",
       timestamp: "5d",
       showReplies: false,
+      isHearted: false,
       replies: [
         {
           id: 1,
           username: "Sarah M • 4d",
           content: "I completely agree! This verse really touched me too.",
           timestamp: "4d",
+          isHearted: false,
         },
         {
           id: 2,
           username: "David L • 3d",
           content: "Such a powerful message. Thanks for sharing your thoughts!",
           timestamp: "3d",
+          isHearted: false,
         },
       ],
     },
@@ -84,12 +92,14 @@ export default function FeatureCard({
         "This was a very good verse that challenged me and spoke to my heart.",
       timestamp: "5d",
       showReplies: false,
+      isHearted: false,
       replies: [
         {
           id: 3,
           username: "Mary J • 2d",
           content: "Beautiful reflection. God bless!",
           timestamp: "2d",
+          isHearted: false,
         },
       ],
     },
@@ -100,6 +110,7 @@ export default function FeatureCard({
         "This was a very good verse that challenged me and spoke to my heart.",
       timestamp: "5d",
       showReplies: false,
+      isHearted: false,
       replies: [],
     },
     {
@@ -109,6 +120,7 @@ export default function FeatureCard({
         "This was a very good verse that challenged me and spoke to my heart.",
       timestamp: "5d",
       showReplies: false,
+      isHearted: false,
       replies: [],
     },
   ]);
@@ -131,7 +143,9 @@ export default function FeatureCard({
     if (!button) return;
 
     const buttonRect = button.getBoundingClientRect();
-    const containerRect = button.closest(".w-160")?.getBoundingClientRect();
+    const containerRect = button
+      .closest(".feature-card-container")
+      ?.getBoundingClientRect();
     if (!containerRect) return;
 
     // Calculate button position relative to container
@@ -171,16 +185,43 @@ export default function FeatureCard({
     );
   };
 
+  // Toggle heart for comments
+  const toggleCommentHeart = (commentId: number) => {
+    setComments((prevComments) =>
+      prevComments.map((comment) =>
+        comment.id === commentId
+          ? { ...comment, isHearted: !comment.isHearted }
+          : comment
+      )
+    );
+  };
+
+  // Toggle heart for replies
+  const toggleReplyHeart = (commentId: number, replyId: number) => {
+    setComments((prevComments) =>
+      prevComments.map((comment) => {
+        if (comment.id === commentId && comment.replies) {
+          const updatedReplies = comment.replies.map((reply) =>
+            reply.id === replyId
+              ? { ...reply, isHearted: !reply.isHearted }
+              : reply
+          );
+          return { ...comment, replies: updatedReplies };
+        }
+        return comment;
+      })
+    );
+  };
+
   return (
     <div className="flex justify-center">
       <div
-        className={`rounded-3xl p-6 flex relative transition-all duration-500 ease-in-out ${
+        className={`feature-card-container rounded-3xl p-6 flex relative ${
           isCommentPressed ? "flex-row gap-6" : "flex-col gap-6"
         }`}
         style={{
           backgroundColor: "#323817",
           width: isCommentPressed ? "1000px" : "640px",
-          minHeight: "600px",
         }}
       >
         {/* Main Content Container */}
@@ -188,16 +229,17 @@ export default function FeatureCard({
           className={`flex flex-col gap-6 flex-shrink-0 ${
             isCommentPressed ? "w-[640px]" : "w-full"
           }`}
+          style={{ height: "100%" }}
         >
           {/* Inner Gradient Rectangle */}
           <div
-            className="w-full px-8 h-34 flex flex-col justify-center text-left"
+            className="w-full px-8 h-28 flex flex-col justify-center text-left"
             style={{
               background: gradient,
               borderRadius: "30px",
             }}
           >
-            <h3 className="text-2xl md:text-3xl font-extrabold text-white mb-2">
+            <h3 className="text-xl md:text-2xl font-extrabold text-white mb-2">
               {title}
             </h3>
             <p className="text-white text-sm md:text-base">{description}</p>
@@ -210,7 +252,7 @@ export default function FeatureCard({
                 key={index}
                 src={image.src}
                 alt={image.alt}
-                className="w-[37%] h-auto object-contain"
+                className="w-[35%] h-auto object-contain"
               />
             ))}
           </div>
@@ -253,7 +295,7 @@ export default function FeatureCard({
                     onClick={() =>
                       handleReactionClick(reaction.type, reaction.emoji)
                     }
-                    className="px-6 py-6 rounded-2xl flex items-center justify-center transition-all duration-300 cursor-pointer transform hover:scale-110 active:scale-95"
+                    className="px-4 py-4 rounded-2xl flex items-center justify-center transition-all duration-300 cursor-pointer transform hover:scale-110 active:scale-95"
                     style={{
                       backgroundColor:
                         selectedReaction === reaction.type
@@ -265,7 +307,7 @@ export default function FeatureCard({
                           : "#2D301F",
                     }}
                   >
-                    <Twemoji hex={reaction.emoji} size={30} />
+                    <Twemoji hex={reaction.emoji} size={24} />
                   </button>
                   <span className="text-xs font-medium text-white text-center">
                     {reaction.label}
@@ -278,7 +320,7 @@ export default function FeatureCard({
             <div className="flex flex-col items-center">
               <button
                 onClick={() => setIsCommentPressed(!isCommentPressed)}
-                className="px-6 py-6 rounded-full flex items-center justify-center transition-all duration-200 cursor-pointer"
+                className="px-4 py-4 rounded-full flex items-center justify-center transition-all duration-200 cursor-pointer"
                 style={{
                   backgroundColor: isCommentPressed ? "white" : "#2D301F",
                 }}
@@ -292,9 +334,12 @@ export default function FeatureCard({
 
         {/* Comments Section */}
         {isCommentPressed && (
-          <div className="w-[300px] flex-shrink-0 bg-[#1a1a1a] rounded-3xl p-4 flex flex-col h-full">
+          <div
+            className="w-[300px] flex-shrink-0 bg-[#1a1a1a] rounded-3xl py-6 px-5 flex flex-col"
+            style={{ height: "calc(100% - 0px)" }}
+          >
             {/* Comments Header */}
-            <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-600">
+            <div className="flex items-center justify-between mb-4 pb-3">
               <h4 className="text-white font-semibold text-lg">
                 See what others are saying
               </h4>
@@ -306,11 +351,7 @@ export default function FeatureCard({
                 <div key={comment.id} className="space-y-3">
                   {/* Main Comment */}
                   <div className="flex space-x-3">
-                    <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
-                      <span className="text-white text-sm font-semibold">
-                        T
-                      </span>
-                    </div>
+                    <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0"></div>
                     <div className="flex-1 space-y-1">
                       <div className="flex items-center space-x-2">
                         <span className="text-gray-300 text-sm font-medium">
@@ -321,11 +362,19 @@ export default function FeatureCard({
                         {comment.content}
                       </p>
                       <div className="flex items-center space-x-4 pt-1">
-                        <button className="flex items-center space-x-1 text-gray-400 hover:text-white transition-colors">
-                          <Twemoji hex="2764" size={16} />
-                        </button>
-                        <button className="flex items-center space-x-1 text-gray-400 hover:text-white transition-colors">
-                          <Twemoji hex="1f44e" size={16} />
+                        <button
+                          onClick={() => toggleCommentHeart(comment.id)}
+                          className={`flex items-center space-x-1 transition-colors cursor-pointer ${
+                            comment.isHearted
+                              ? "text-red-500 hover:text-red-400"
+                              : "text-gray-400 hover:text-white"
+                          }`}
+                        >
+                          {comment.isHearted ? (
+                            <FavoriteIcon sx={{ fontSize: 20 }} />
+                          ) : (
+                            <FavoriteBorderIcon sx={{ fontSize: 20 }} />
+                          )}
                         </button>
                         <button className="text-gray-400 hover:text-white transition-colors text-sm">
                           Reply
@@ -365,11 +414,21 @@ export default function FeatureCard({
                                 {reply.content}
                               </p>
                               <div className="flex items-center space-x-4 pt-1">
-                                <button className="flex items-center space-x-1 text-gray-400 hover:text-white transition-colors">
-                                  <Twemoji hex="2764" size={14} />
-                                </button>
-                                <button className="flex items-center space-x-1 text-gray-400 hover:text-white transition-colors">
-                                  <Twemoji hex="1f44e" size={14} />
+                                <button
+                                  onClick={() =>
+                                    toggleReplyHeart(comment.id, reply.id)
+                                  }
+                                  className={`flex items-center space-x-1 transition-colors cursor-pointer ${
+                                    reply.isHearted
+                                      ? "text-red-500 hover:text-red-400"
+                                      : "text-gray-400 hover:text-white"
+                                  }`}
+                                >
+                                  {reply.isHearted ? (
+                                    <FavoriteIcon sx={{ fontSize: 16 }} />
+                                  ) : (
+                                    <FavoriteBorderIcon sx={{ fontSize: 16 }} />
+                                  )}
                                 </button>
                                 <button className="text-gray-400 hover:text-white transition-colors text-sm">
                                   Reply
@@ -385,28 +444,17 @@ export default function FeatureCard({
             </div>
 
             {/* Comment Input */}
-            <div className="mt-4 pt-4 border-t border-gray-600">
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center flex-shrink-0">
-                  <span className="text-white text-sm font-semibold">U</span>
-                </div>
-                <div className="flex-1 relative">
-                  <input
-                    type="text"
-                    placeholder="Say Something..."
-                    className="w-full bg-gray-800 text-white placeholder-gray-400 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  />
-                  <button className="absolute right-2 top-1/2 transform -translate-y-1/2 text-purple-400 hover:text-purple-300">
-                    <svg
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                    >
-                      <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
-                    </svg>
-                  </button>
-                </div>
+            <div className="mt-4">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Say Something..."
+                  className="w-full text-white placeholder-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  style={{ backgroundColor: "#4B5563" }}
+                />
+                <button className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white hover:text-purple-400 cursor-pointer transition-all duration-300">
+                  <Send size={20} />
+                </button>
               </div>
             </div>
           </div>
