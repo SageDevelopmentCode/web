@@ -233,45 +233,63 @@ export default function FeatureCard({
         >
           {/* Inner Gradient Rectangle */}
           <div
-            className="w-full px-8 h-28 flex flex-col justify-center text-left"
+            className="w-full px-8 h-28 flex items-center"
             style={{
               background: gradient,
               borderRadius: "30px",
             }}
           >
-            <h3 className="text-xl md:text-2xl font-extrabold text-white mb-2">
-              {title}
-            </h3>
-            <p className="text-white text-sm md:text-base">{description}</p>
+            {/* Text content - 80% of the width */}
+            <div
+              className="flex flex-col justify-center text-left"
+              style={{ width: "90%" }}
+            >
+              <h3 className="text-xl md:text-2xl font-extrabold text-white mb-2">
+                {title}
+              </h3>
+              <p className="text-white text-sm md:text-base">{description}</p>
+            </div>
+
+            {/* Comment button - 20% of the width */}
+            <div
+              className="flex justify-center items-center"
+              style={{ width: "10%" }}
+            >
+              <button
+                onClick={() => setIsCommentPressed(!isCommentPressed)}
+                className="px-4 py-4 rounded-full flex items-center justify-center transition-all duration-200 cursor-pointer flex-shrink-0"
+                style={{
+                  backgroundColor: isCommentPressed
+                    ? "white"
+                    : "rgba(255, 255, 255, 0.2)",
+                }}
+              >
+                <Twemoji hex="1f4ac" size={24} />
+              </button>
+            </div>
           </div>
 
-          {/* Phone Mockups */}
-          <div className="flex justify-center gap-4">
-            {images.map((image, index) => (
-              <img
-                key={index}
-                src={image.src}
-                alt={image.alt}
-                className="w-[35%] h-auto object-contain"
-              />
-            ))}
-          </div>
+          {/* Phone Mockups and Reaction Buttons */}
+          <div className="flex justify-between items-start gap-6">
+            {/* Phone Mockups */}
+            <div className="flex justify-center gap-4 flex-1">
+              {images.map((image, index) => (
+                <img
+                  key={index}
+                  src={image.src}
+                  alt={image.alt}
+                  className="w-[35%] h-auto object-contain"
+                />
+              ))}
+            </div>
 
-          {/* Reaction Buttons */}
-          <div className="flex justify-between items-start mt-2">
-            {/* Left side - Reaction emojis */}
-            <div className="flex gap-4">
+            {/* Vertical Reaction Buttons */}
+            <div className="flex flex-col gap-4 items-center">
               {[
                 {
-                  type: "dislike" as ReactionType,
-                  emoji: "1f44e",
-                  label: "Dislike",
-                },
-                { type: "meh" as ReactionType, emoji: "1fae4", label: "Meh" },
-                {
-                  type: "neutral" as ReactionType,
-                  emoji: "1f610",
-                  label: "Neutral",
+                  type: "love" as ReactionType,
+                  emoji: "2764",
+                  label: "Love It!",
                 },
                 {
                   type: "like" as ReactionType,
@@ -279,14 +297,19 @@ export default function FeatureCard({
                   label: "Like",
                 },
                 {
-                  type: "love" as ReactionType,
-                  emoji: "2764",
-                  label: "Love It!",
+                  type: "neutral" as ReactionType,
+                  emoji: "1f610",
+                  label: "Neutral",
+                },
+                {
+                  type: "dislike" as ReactionType,
+                  emoji: "1f44e",
+                  label: "Dislike",
                 },
               ].map((reaction) => (
                 <div
                   key={reaction.type}
-                  className="flex flex-col items-center gap-2"
+                  className="flex flex-col items-center gap-1"
                 >
                   <button
                     ref={(el) => {
@@ -315,28 +338,14 @@ export default function FeatureCard({
                 </div>
               ))}
             </div>
-
-            {/* Right side - Comment button */}
-            <div className="flex flex-col items-center">
-              <button
-                onClick={() => setIsCommentPressed(!isCommentPressed)}
-                className="px-4 py-4 rounded-full flex items-center justify-center transition-all duration-200 cursor-pointer"
-                style={{
-                  backgroundColor: isCommentPressed ? "white" : "#2D301F",
-                }}
-              >
-                <Twemoji hex="1f4ac" size={24} />
-              </button>
-              <span className="text-xs font-medium text-white text-center"></span>
-            </div>
           </div>
         </div>
 
         {/* Comments Section */}
         {isCommentPressed && (
           <div
-            className="w-[300px] flex-shrink-0 bg-[#1a1a1a] rounded-3xl py-6 px-5 flex flex-col"
-            style={{ height: "calc(100% - 0px)" }}
+            className="w-[300px] flex-shrink-0 bg-[#1a1a1a] rounded-3xl py-4 px-5 flex flex-col"
+            style={{ height: "400px" }}
           >
             {/* Comments Header */}
             <div className="flex items-center justify-between mb-4 pb-3">

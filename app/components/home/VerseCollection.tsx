@@ -15,7 +15,7 @@ export default function VerseCollection({
 }: VerseCollectionProps) {
   return (
     <div
-      className="rounded-2xl p-6 space-y-3"
+      className="rounded-2xl px-6 py-4 space-y-3"
       style={{ backgroundColor: "#323817" }}
     >
       {/* Mobile: centered layout, Desktop: original left-aligned layout */}

@@ -219,7 +219,7 @@ export default function Starters() {
 
           {/* Character Details Section */}
           {selectedCharacter && (
-            <div className="mt-12">
+            <div className="mt-4">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-16">
                 {(() => {
                   const character = characters.find(
@@ -234,7 +234,7 @@ export default function Starters() {
                     >
                       {/* Left Section - Character Background & Image */}
                       <div
-                        className={`w-full md:w-80 h-80 md:h-170 relative overflow-hidden rounded-3xl md:rounded-l-3xl md:rounded-r-3xl character-container ${
+                        className={`w-full md:w-80 h-80 md:h-145 relative overflow-hidden rounded-3xl md:rounded-l-3xl md:rounded-r-3xl character-container ${
                           isTransitioning
                             ? "opacity-0 transform scale-98"
                             : "opacity-100 transform scale-100"
@@ -278,7 +278,7 @@ export default function Starters() {
 
                       {/* Right Section - Character Info */}
                       <div
-                        className="flex-1 py-8 px-0 md:py-12 md:pl-12 space-y-6 rounded-3xl md:rounded-l-xl md:rounded-r-3xl"
+                        className="flex-1 py-8 px-0 md:py-12 md:pl-12 space-y-3 rounded-3xl md:rounded-l-xl md:rounded-r-3xl"
                         style={{ backgroundColor: "#3C4806" }}
                       >
                         <div className="text-section">

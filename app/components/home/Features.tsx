@@ -127,7 +127,7 @@ export default function Features() {
         {/* Feature Cards Carousel */}
         <div
           ref={scrollContainerRef}
-          className="flex gap-8 overflow-x-auto overflow-y-visible scrollbar-hide scroll-smooth mb-8"
+          className="flex gap-8 overflow-x-auto overflow-y-visible scrollbar-hide scroll-smooth mb-6"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
           {featureCards.map((card, index) => (
