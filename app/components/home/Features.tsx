@@ -115,10 +115,10 @@ export default function Features() {
 
   return (
     <section
-      className="pt-30 pb-16 sm:px-6 md:px-50 w-full max-w-full overflow-x-hidden"
+      className="pt-30 pb-16 sm:px-6 md:px-50 w-full max-w-full overflow-x-visible"
       style={{ backgroundColor: "#3C4806" }}
     >
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-none mx-auto px-4">
         {/* Section Title */}
         <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-white text-center mb-8">
           Features
@@ -127,7 +127,7 @@ export default function Features() {
         {/* Feature Cards Carousel */}
         <div
           ref={scrollContainerRef}
-          className="flex gap-8 overflow-x-auto scrollbar-hide scroll-smooth mb-8"
+          className="flex gap-8 overflow-x-auto overflow-y-visible scrollbar-hide scroll-smooth mb-8"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
           {featureCards.map((card, index) => (
