@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import BestFor from "./BestFor";
 import SuperEffectiveAgainst from "./SuperEffectiveAgainst";
@@ -11,6 +11,22 @@ export default function Starters() {
   const [selectedCharacter, setSelectedCharacter] = useState<string | null>(
     "Gabriel"
   );
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [animationKey, setAnimationKey] = useState(0);
+
+  // Handle character selection with transition
+  const handleCharacterSelect = (characterName: string) => {
+    if (characterName === selectedCharacter) return;
+
+    setIsTransitioning(true);
+    setTimeout(() => {
+      setSelectedCharacter(characterName);
+      setAnimationKey((prev) => prev + 1);
+      setTimeout(() => {
+        setIsTransitioning(false);
+      }, 50);
+    }, 200);
+  };
 
   const characters = [
     {
@@ -101,6 +117,58 @@ export default function Starters() {
         .horizontal-scroll::-webkit-scrollbar {
           display: none;
         }
+
+        .character-details-enter {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+
+        .character-details-enter-active {
+          opacity: 1;
+          transform: translateY(0);
+          transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+        }
+
+        .background-transition {
+          transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .character-image-transition {
+          transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .character-container {
+          transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .text-section {
+          opacity: 0;
+          transform: translateY(15px);
+          animation: fadeInUp 0.5s ease-out forwards;
+        }
+
+        .text-section:nth-child(1) {
+          animation-delay: 0.1s;
+        }
+        .text-section:nth-child(2) {
+          animation-delay: 0.2s;
+        }
+        .text-section:nth-child(3) {
+          animation-delay: 0.3s;
+        }
+        .text-section:nth-child(4) {
+          animation-delay: 0.4s;
+        }
+        .text-section:nth-child(5) {
+          animation-delay: 0.5s;
+        }
+
+        @keyframes fadeInUp {
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
       `}</style>
 
       <section
@@ -119,7 +187,7 @@ export default function Starters() {
               <div
                 key={character.name}
                 className="cursor-pointer transition-transform duration-200 hover:scale-105 flex-shrink-0"
-                onClick={() => setSelectedCharacter(character.name)}
+                onClick={() => handleCharacterSelect(character.name)}
               >
                 {/* Character Background */}
                 <div
@@ -127,7 +195,7 @@ export default function Starters() {
                   style={{
                     backgroundColor:
                       selectedCharacter === character.name
-                        ? "#323817"
+                        ? "#7A873D"
                         : "#37400F",
                   }}
                 >
@@ -160,24 +228,43 @@ export default function Starters() {
                   if (!character) return null;
 
                   return (
-                    <div className="flex flex-col md:flex-row overflow-hidden min-h-[400px] rounded-3xl md:gap-2 md:items-center">
+                    <div
+                      key={animationKey}
+                      className="flex flex-col md:flex-row overflow-hidden min-h-[400px] rounded-3xl md:gap-2 md:items-center"
+                    >
                       {/* Left Section - Character Background & Image */}
-                      <div className="w-full md:w-80 h-80 md:h-170 relative overflow-hidden rounded-3xl md:rounded-l-3xl md:rounded-r-3xl">
+                      <div
+                        className={`w-full md:w-80 h-80 md:h-170 relative overflow-hidden rounded-3xl md:rounded-l-3xl md:rounded-r-3xl character-container ${
+                          isTransitioning
+                            ? "opacity-0 transform scale-98"
+                            : "opacity-100 transform scale-100"
+                        }`}
+                      >
                         {/* Background Image */}
                         <div
-                          className="absolute inset-0"
+                          className="absolute inset-0 background-transition"
                           style={{
                             backgroundImage: `url('/assets/${character.name}Background.jpg')`,
                             backgroundSize: "cover",
                             backgroundPosition: "center",
                             backgroundRepeat: "no-repeat",
                             minHeight: "100%",
+                            transform: isTransitioning
+                              ? "scale(1.05)"
+                              : "scale(1)",
+                            filter: isTransitioning ? "blur(2px)" : "blur(0px)",
                           }}
                         />
                         {/* 35% Black Overlay */}
                         <div className="absolute inset-0 bg-black opacity-35" />
                         <div className="relative z-10 flex items-end justify-center h-full p-1">
-                          <div className="w-64 h-64 md:w-[34rem] md:h-[34rem]">
+                          <div
+                            className={`w-64 h-64 md:w-[34rem] md:h-[34rem] character-image-transition ${
+                              isTransitioning
+                                ? "opacity-0 transform scale-90 rotate-1"
+                                : "opacity-100 transform scale-100 rotate-0"
+                            }`}
+                          >
                             <Image
                               src={character.src}
                               alt={character.name}
@@ -194,32 +281,42 @@ export default function Starters() {
                         className="flex-1 py-8 px-0 md:py-12 md:pl-12 space-y-6 rounded-3xl md:rounded-l-xl md:rounded-r-3xl"
                         style={{ backgroundColor: "#3C4806" }}
                       >
-                        <CharacterHeader
-                          name={character.name}
-                          number={
-                            characters.findIndex(
-                              (c) => c.name === character.name
-                            ) + 1
-                          }
-                          title={character.title}
-                          rarity={character.rarity}
-                        />
+                        <div className="text-section">
+                          <CharacterHeader
+                            name={character.name}
+                            number={
+                              characters.findIndex(
+                                (c) => c.name === character.name
+                              ) + 1
+                            }
+                            title={character.title}
+                            rarity={character.rarity}
+                          />
+                        </div>
 
-                        <p className="text-base font-semibold leading-relaxed text-gray-200">
-                          {character.description}
-                        </p>
+                        <div className="text-section">
+                          <p className="text-base font-semibold leading-relaxed text-gray-200">
+                            {character.description}
+                          </p>
+                        </div>
 
-                        <BestFor description={character.bestFor} />
+                        <div className="text-section">
+                          <BestFor description={character.bestFor} />
+                        </div>
 
-                        <SuperEffectiveAgainst
-                          weaknesses={character.superEffectiveAgainst}
-                        />
+                        <div className="text-section">
+                          <SuperEffectiveAgainst
+                            weaknesses={character.superEffectiveAgainst}
+                          />
+                        </div>
 
-                        <VerseCollection
-                          characterName={character.name}
-                          title={character.verseCollection.title}
-                          subtitle={character.verseCollection.subtitle}
-                        />
+                        <div className="text-section">
+                          <VerseCollection
+                            characterName={character.name}
+                            title={character.verseCollection.title}
+                            subtitle={character.verseCollection.subtitle}
+                          />
+                        </div>
                       </div>
                     </div>
                   );
