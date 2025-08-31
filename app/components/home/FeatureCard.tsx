@@ -46,6 +46,46 @@ interface Reply {
   isHearted?: boolean;
 }
 
+interface CounterAnimationProps {
+  target: number;
+  duration?: number;
+}
+
+// Counter Animation Component
+function CounterAnimation({ target, duration = 1000 }: CounterAnimationProps) {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    let startTime: number;
+    let animationFrame: number;
+
+    const animate = (timestamp: number) => {
+      if (!startTime) startTime = timestamp;
+      const progress = Math.min((timestamp - startTime) / duration, 1);
+
+      // Easing function for smooth animation
+      const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+      const currentCount = Math.floor(easeOutQuart * target);
+
+      setCount(currentCount);
+
+      if (progress < 1) {
+        animationFrame = requestAnimationFrame(animate);
+      }
+    };
+
+    animationFrame = requestAnimationFrame(animate);
+
+    return () => {
+      if (animationFrame) {
+        cancelAnimationFrame(animationFrame);
+      }
+    };
+  }, [target, duration]);
+
+  return <span>{count}</span>;
+}
+
 export default function FeatureCard({
   title,
   description,
@@ -59,6 +99,15 @@ export default function FeatureCard({
   const [floatingEmojis, setFloatingEmojis] = useState<FloatingEmoji[]>([]);
   const [animatingReaction, setAnimatingReaction] =
     useState<ReactionType | null>(null);
+  const [showReactionCounts, setShowReactionCounts] = useState<boolean>(false);
+
+  // Mock reaction counts
+  const reactionCounts = {
+    love: 142,
+    like: 89,
+    neutral: 23,
+    dislike: 7,
+  };
   const [comments, setComments] = useState<Comment[]>([
     {
       id: 1,
@@ -124,7 +173,9 @@ export default function FeatureCard({
       replies: [],
     },
   ]);
+  const [showScrollHint, setShowScrollHint] = useState(true);
   const buttonRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
+  const commentsContainerRef = useRef<HTMLDivElement>(null);
 
   // Clean up floating emojis after animation
   useEffect(() => {
@@ -136,6 +187,28 @@ export default function FeatureCard({
       return () => clearTimeout(timer);
     }
   }, [floatingEmojis]);
+
+  // Check if scrolling is needed and handle scroll hint
+  useEffect(() => {
+    const checkScrollable = () => {
+      const container = commentsContainerRef.current;
+      if (container) {
+        const isScrollable = container.scrollHeight > container.clientHeight;
+        setShowScrollHint(isScrollable);
+      }
+    };
+
+    // Check initially and when comments change
+    checkScrollable();
+  }, [comments, isCommentPressed]);
+
+  // Handle scroll to hide hint
+  const handleScroll = () => {
+    const container = commentsContainerRef.current;
+    if (container && container.scrollTop > 20) {
+      setShowScrollHint(false);
+    }
+  };
 
   // Function to create floating emoji animation
   const createEmojiFlurry = (emoji: string, reactionType: ReactionType) => {
@@ -171,6 +244,7 @@ export default function FeatureCard({
   const handleReactionClick = (reactionType: ReactionType, emoji: string) => {
     setSelectedReaction(reactionType);
     setAnimatingReaction(reactionType);
+    setShowReactionCounts(true);
     createEmojiFlurry(emoji, reactionType);
   };
 
@@ -216,20 +290,25 @@ export default function FeatureCard({
   return (
     <div className="flex justify-center">
       <div
-        className={`feature-card-container rounded-3xl p-6 flex relative ${
+        className={`feature-card-container rounded-3xl p-6 flex relative transition-all duration-400 ${
           isCommentPressed ? "flex-row gap-6" : "flex-col gap-6"
         }`}
         style={{
           backgroundColor: "#323817",
-          width: isCommentPressed ? "1000px" : "640px",
+          width: isCommentPressed ? "900px" : "540px",
+          height: "590px", // Increased height for better content spacing
+          transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
         }}
       >
         {/* Main Content Container */}
         <div
-          className={`flex flex-col gap-6 flex-shrink-0 ${
-            isCommentPressed ? "w-[640px]" : "w-full"
+          className={`flex flex-col gap-6 flex-shrink-0 transition-all duration-400 ${
+            isCommentPressed ? "w-[540px]" : "w-full"
           }`}
-          style={{ height: "100%" }}
+          style={{
+            height: "100%",
+            transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
+          }}
         >
           {/* Inner Gradient Rectangle */}
           <div
@@ -270,15 +349,15 @@ export default function FeatureCard({
           </div>
 
           {/* Phone Mockups and Reaction Buttons */}
-          <div className="flex justify-between items-start gap-6">
+          <div className="flex justify-between items-center gap-2">
             {/* Phone Mockups */}
-            <div className="flex justify-center gap-4 flex-1">
+            <div className="flex justify-start gap-4 flex-1">
               {images.map((image, index) => (
                 <img
                   key={index}
                   src={image.src}
                   alt={image.alt}
-                  className="w-[35%] h-auto object-contain"
+                  className="w-[200] h-auto object-contain"
                 />
               ))}
             </div>
@@ -333,7 +412,18 @@ export default function FeatureCard({
                     <Twemoji hex={reaction.emoji} size={24} />
                   </button>
                   <span className="text-xs font-medium text-white text-center">
-                    {reaction.label}
+                    {showReactionCounts ? (
+                      <CounterAnimation
+                        target={
+                          reactionCounts[
+                            reaction.type as keyof typeof reactionCounts
+                          ] || 0
+                        }
+                        duration={800}
+                      />
+                    ) : (
+                      reaction.label
+                    )}
                   </span>
                 </div>
               ))}
@@ -344,8 +434,8 @@ export default function FeatureCard({
         {/* Comments Section */}
         {isCommentPressed && (
           <div
-            className="w-[300px] flex-shrink-0 bg-[#1a1a1a] rounded-3xl py-4 px-5 flex flex-col"
-            style={{ height: "400px" }}
+            className="w-[300px] flex-shrink-0 bg-[#1a1a1a] rounded-3xl py-4 px-5 flex flex-col animate-slide-in"
+            style={{ height: "100%" }}
           >
             {/* Comments Header */}
             <div className="flex items-center justify-between mb-4 pb-3">
@@ -355,7 +445,11 @@ export default function FeatureCard({
             </div>
 
             {/* Comments List */}
-            <div className="flex-1 overflow-y-auto space-y-4 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent">
+            <div
+              ref={commentsContainerRef}
+              onScroll={handleScroll}
+              className="flex-1 overflow-y-auto space-y-4 scrollbar-hide relative"
+            >
               {comments.map((comment) => (
                 <div key={comment.id} className="space-y-3">
                   {/* Main Comment */}
@@ -452,6 +546,15 @@ export default function FeatureCard({
               ))}
             </div>
 
+            {/* Scroll Hint */}
+            {showScrollHint && (
+              <div className="text-center py-2">
+                <p className="text-gray-400 text-xs">
+                  Scroll to view more comments
+                </p>
+              </div>
+            )}
+
             {/* Comment Input */}
             <div className="mt-4">
               <div className="relative">
@@ -531,6 +634,31 @@ export default function FeatureCard({
               transform: translate(-50%, -50%)
                 translate(var(--random-x), var(--random-y)) scale(0.7);
             }
+          }
+
+          @keyframes slideIn {
+            0% {
+              opacity: 0;
+              transform: translateX(8px);
+            }
+            100% {
+              opacity: 1;
+              transform: translateX(0);
+            }
+          }
+
+          .animate-slide-in {
+            animation: slideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+          }
+
+          /* Hide scrollbar while keeping scroll functionality */
+          .scrollbar-hide {
+            -ms-overflow-style: none; /* IE and Edge */
+            scrollbar-width: none; /* Firefox */
+          }
+
+          .scrollbar-hide::-webkit-scrollbar {
+            display: none; /* Chrome, Safari and Opera */
           }
         `}</style>
       </div>
