@@ -2,9 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Twemoji } from "../Twemoji";
-import { Send } from "lucide-react";
-import FavoriteIcon from "@mui/icons-material/Favorite";
-import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
+import DesktopComments from "./DesktopComments";
+import MobileComments from "./MobileComments";
 
 type ReactionType = "dislike" | "meh" | "neutral" | "like" | "love";
 
@@ -177,9 +176,7 @@ export default function FeatureCard({
       replies: [],
     },
   ]);
-  const [showScrollHint, setShowScrollHint] = useState(true);
   const buttonRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
-  const commentsContainerRef = useRef<HTMLDivElement>(null);
 
   // Detect mobile screen size
   useEffect(() => {
@@ -212,28 +209,6 @@ export default function FeatureCard({
       return () => clearTimeout(timer);
     }
   }, [floatingEmojis]);
-
-  // Check if scrolling is needed and handle scroll hint
-  useEffect(() => {
-    const checkScrollable = () => {
-      const container = commentsContainerRef.current;
-      if (container) {
-        const isScrollable = container.scrollHeight > container.clientHeight;
-        setShowScrollHint(isScrollable);
-      }
-    };
-
-    // Check initially and when comments change
-    checkScrollable();
-  }, [comments, isCommentPressed]);
-
-  // Handle scroll to hide hint
-  const handleScroll = () => {
-    const container = commentsContainerRef.current;
-    if (container && container.scrollTop > 20) {
-      setShowScrollHint(false);
-    }
-  };
 
   // Function to create floating emoji animation
   const createEmojiFlurry = (emoji: string, reactionType: ReactionType) => {
@@ -533,312 +508,25 @@ export default function FeatureCard({
 
         {/* Comments Section - Desktop */}
         {isCommentPressed && !isMobile && (
-          <div
-            className="w-[300px] flex-shrink-0 bg-[#1a1a1a] rounded-3xl py-4 px-5 flex flex-col animate-slide-in"
-            style={{ height: "100%" }}
-          >
-            {/* Comments Header */}
-            <div className="flex items-center justify-between mb-4 pb-3">
-              <h4 className="text-white font-semibold text-lg">
-                See what others are saying
-              </h4>
-            </div>
-
-            {/* Comments List */}
-            <div
-              ref={commentsContainerRef}
-              onScroll={handleScroll}
-              className="flex-1 overflow-y-auto space-y-4 scrollbar-hide relative"
-            >
-              {comments.map((comment) => (
-                <div key={comment.id} className="space-y-3">
-                  {/* Main Comment */}
-                  <div className="flex space-x-3">
-                    <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0"></div>
-                    <div className="flex-1 space-y-1">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-gray-300 text-sm font-medium">
-                          {comment.username}
-                        </span>
-                      </div>
-                      <p className="text-white text-sm leading-relaxed">
-                        {comment.content}
-                      </p>
-                      <div className="flex items-center space-x-4 pt-1">
-                        <button
-                          onClick={() => toggleCommentHeart(comment.id)}
-                          className={`flex items-center space-x-1 transition-colors cursor-pointer ${
-                            comment.isHearted
-                              ? "text-red-500 hover:text-red-400"
-                              : "text-gray-400 hover:text-white"
-                          }`}
-                        >
-                          {comment.isHearted ? (
-                            <FavoriteIcon sx={{ fontSize: 20 }} />
-                          ) : (
-                            <FavoriteBorderIcon sx={{ fontSize: 20 }} />
-                          )}
-                        </button>
-                        <button className="text-gray-400 hover:text-white transition-colors text-sm">
-                          Reply
-                        </button>
-                        {comment.replies && comment.replies.length > 0 && (
-                          <button
-                            onClick={() => toggleReplies(comment.id)}
-                            className="text-gray-400 hover:text-white transition-colors text-sm"
-                          >
-                            {comment.showReplies ? "Hide" : "View"}{" "}
-                            {comment.replies.length} Replies
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Replies */}
-                  {comment.showReplies &&
-                    comment.replies &&
-                    comment.replies.length > 0 && (
-                      <div className="ml-11 space-y-3 border-l-2 border-gray-700 pl-4">
-                        {comment.replies.map((reply) => (
-                          <div key={reply.id} className="flex space-x-3">
-                            <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
-                              <span className="text-white text-xs font-semibold">
-                                {reply.username.charAt(0)}
-                              </span>
-                            </div>
-                            <div className="flex-1 space-y-1">
-                              <div className="flex items-center space-x-2">
-                                <span className="text-gray-300 text-sm font-medium">
-                                  {reply.username}
-                                </span>
-                              </div>
-                              <p className="text-white text-sm leading-relaxed">
-                                {reply.content}
-                              </p>
-                              <div className="flex items-center space-x-4 pt-1">
-                                <button
-                                  onClick={() =>
-                                    toggleReplyHeart(comment.id, reply.id)
-                                  }
-                                  className={`flex items-center space-x-1 transition-colors cursor-pointer ${
-                                    reply.isHearted
-                                      ? "text-red-500 hover:text-red-400"
-                                      : "text-gray-400 hover:text-white"
-                                  }`}
-                                >
-                                  {reply.isHearted ? (
-                                    <FavoriteIcon sx={{ fontSize: 16 }} />
-                                  ) : (
-                                    <FavoriteBorderIcon sx={{ fontSize: 16 }} />
-                                  )}
-                                </button>
-                                <button className="text-gray-400 hover:text-white transition-colors text-sm">
-                                  Reply
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                </div>
-              ))}
-            </div>
-
-            {/* Scroll Hint */}
-            {showScrollHint && (
-              <div className="text-center py-2">
-                <p className="text-gray-400 text-xs">
-                  Scroll to view more comments
-                </p>
-              </div>
-            )}
-
-            {/* Comment Input */}
-            <div className="mt-4">
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Say Something..."
-                  className="w-full text-white placeholder-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  style={{ backgroundColor: "#4B5563" }}
-                />
-                <button className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white hover:text-purple-400 cursor-pointer transition-all duration-300">
-                  <Send size={20} />
-                </button>
-              </div>
-            </div>
-          </div>
+          <DesktopComments
+            comments={comments}
+            onToggleReplies={toggleReplies}
+            onToggleCommentHeart={toggleCommentHeart}
+            onToggleReplyHeart={toggleReplyHeart}
+          />
         )}
 
         {/* Mobile Bottom Sheet - Comments */}
-        {isCommentPressed && isMobile && (
-          <>
-            {/* Overlay */}
-            <div
-              className="fixed inset-0 z-40 transition-opacity duration-300"
-              style={{
-                backgroundColor: "rgba(0, 0, 0, 0.5)",
-                opacity: showOverlay && !isClosingBottomSheet ? 1 : 0,
-              }}
-              onClick={handleCloseBottomSheet}
-            />
-
-            {/* Bottom Sheet */}
-            <div className="fixed inset-0 z-50 flex items-end pointer-events-none">
-              <div
-                className={`w-full bg-[#1a1a1a] rounded-t-3xl pointer-events-auto ${
-                  isClosingBottomSheet
-                    ? "animate-slide-down"
-                    : "animate-slide-up"
-                }`}
-                style={{ height: "75vh" }}
-                onClick={(e) => e.stopPropagation()}
-              >
-                {/* Bottom Sheet Header */}
-                <div className="flex items-center justify-between p-4 border-b border-gray-700">
-                  <h4 className="text-white font-semibold text-lg">
-                    See what others are saying
-                  </h4>
-                  <button
-                    onClick={handleCloseBottomSheet}
-                    className="text-gray-400 hover:text-white p-2"
-                  >
-                    <svg
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                    >
-                      <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
-                    </svg>
-                  </button>
-                </div>
-
-                {/* Comments List */}
-                <div
-                  ref={commentsContainerRef}
-                  onScroll={handleScroll}
-                  className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-hide"
-                  style={{ height: "calc(75vh - 160px)" }}
-                >
-                  {comments.map((comment) => (
-                    <div key={comment.id} className="space-y-3">
-                      {/* Main Comment */}
-                      <div className="flex space-x-3">
-                        <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0"></div>
-                        <div className="flex-1 space-y-1">
-                          <div className="flex items-center space-x-2">
-                            <span className="text-gray-300 text-sm font-medium">
-                              {comment.username}
-                            </span>
-                          </div>
-                          <p className="text-white text-sm leading-relaxed">
-                            {comment.content}
-                          </p>
-                          <div className="flex items-center space-x-4 pt-1">
-                            <button
-                              onClick={() => toggleCommentHeart(comment.id)}
-                              className={`flex items-center space-x-1 transition-colors cursor-pointer ${
-                                comment.isHearted
-                                  ? "text-red-500 hover:text-red-400"
-                                  : "text-gray-400 hover:text-white"
-                              }`}
-                            >
-                              {comment.isHearted ? (
-                                <FavoriteIcon sx={{ fontSize: 20 }} />
-                              ) : (
-                                <FavoriteBorderIcon sx={{ fontSize: 20 }} />
-                              )}
-                            </button>
-                            <button className="text-gray-400 hover:text-white transition-colors text-sm">
-                              Reply
-                            </button>
-                            {comment.replies && comment.replies.length > 0 && (
-                              <button
-                                onClick={() => toggleReplies(comment.id)}
-                                className="text-gray-400 hover:text-white transition-colors text-sm"
-                              >
-                                {comment.showReplies ? "Hide" : "View"}{" "}
-                                {comment.replies.length} Replies
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Replies */}
-                      {comment.showReplies &&
-                        comment.replies &&
-                        comment.replies.length > 0 && (
-                          <div className="ml-11 space-y-3 border-l-2 border-gray-700 pl-4">
-                            {comment.replies.map((reply) => (
-                              <div key={reply.id} className="flex space-x-3">
-                                <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
-                                  <span className="text-white text-xs font-semibold">
-                                    {reply.username.charAt(0)}
-                                  </span>
-                                </div>
-                                <div className="flex-1 space-y-1">
-                                  <div className="flex items-center space-x-2">
-                                    <span className="text-gray-300 text-sm font-medium">
-                                      {reply.username}
-                                    </span>
-                                  </div>
-                                  <p className="text-white text-sm leading-relaxed">
-                                    {reply.content}
-                                  </p>
-                                  <div className="flex items-center space-x-4 pt-1">
-                                    <button
-                                      onClick={() =>
-                                        toggleReplyHeart(comment.id, reply.id)
-                                      }
-                                      className={`flex items-center space-x-1 transition-colors cursor-pointer ${
-                                        reply.isHearted
-                                          ? "text-red-500 hover:text-red-400"
-                                          : "text-gray-400 hover:text-white"
-                                      }`}
-                                    >
-                                      {reply.isHearted ? (
-                                        <FavoriteIcon sx={{ fontSize: 16 }} />
-                                      ) : (
-                                        <FavoriteBorderIcon
-                                          sx={{ fontSize: 16 }}
-                                        />
-                                      )}
-                                    </button>
-                                    <button className="text-gray-400 hover:text-white transition-colors text-sm">
-                                      Reply
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                    </div>
-                  ))}
-                </div>
-
-                {/* Comment Input */}
-                <div className="px-4 py-4 border-t border-gray-700">
-                  <div className="relative">
-                    <input
-                      type="text"
-                      placeholder="Say Something..."
-                      className="w-full text-white placeholder-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-                      style={{ backgroundColor: "#4B5563" }}
-                    />
-                    <button className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white hover:text-purple-400 cursor-pointer transition-all duration-300">
-                      <Send size={20} />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </>
-        )}
+        <MobileComments
+          comments={comments}
+          isOpen={isCommentPressed && isMobile}
+          isClosing={isClosingBottomSheet}
+          showOverlay={showOverlay}
+          onClose={handleCloseBottomSheet}
+          onToggleReplies={toggleReplies}
+          onToggleCommentHeart={toggleCommentHeart}
+          onToggleReplyHeart={toggleReplyHeart}
+        />
 
         {/* Floating Emoji Animation */}
         {floatingEmojis.map((floatingEmoji) => (
@@ -902,57 +590,6 @@ export default function FeatureCard({
               transform: translate(-50%, -50%)
                 translate(var(--random-x), var(--random-y)) scale(0.7);
             }
-          }
-
-          @keyframes slideIn {
-            0% {
-              opacity: 0;
-              transform: translateX(8px);
-            }
-            100% {
-              opacity: 1;
-              transform: translateX(0);
-            }
-          }
-
-          @keyframes slideUp {
-            0% {
-              transform: translateY(100%);
-            }
-            100% {
-              transform: translateY(0);
-            }
-          }
-
-          @keyframes slideDown {
-            0% {
-              transform: translateY(0);
-            }
-            100% {
-              transform: translateY(100%);
-            }
-          }
-
-          .animate-slide-in {
-            animation: slideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-          }
-
-          .animate-slide-up {
-            animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-          }
-
-          .animate-slide-down {
-            animation: slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-          }
-
-          /* Hide scrollbar while keeping scroll functionality */
-          .scrollbar-hide {
-            -ms-overflow-style: none; /* IE and Edge */
-            scrollbar-width: none; /* Firefox */
-          }
-
-          .scrollbar-hide::-webkit-scrollbar {
-            display: none; /* Chrome, Safari and Opera */
           }
         `}</style>
       </div>
