@@ -14,6 +14,9 @@ const emojiAssets: { [key: string]: string } = {
   "1f4ac": "/assets/emojis/1f4ac.png", // 💬 speech bubble
   "1fae4": "/assets/emojis/1fae4.png", // 🫤 face with diagonal mouth (meh)
   "2764": "/assets/emojis/2764.png", // ❤️ red heart
+  "1f4c8": "/assets/emojis/1f4c8.png", // 📈 trending up (for Top)
+  "1f304": "/assets/emojis/1f304.png", // 🌄 sunrise over mountains (for New)
+  "1f331": "/assets/emojis/1f331.png", // 🌱 seedling (for Upcoming)
 };
 
 interface TwemojiProps {
@@ -119,6 +122,9 @@ export const EmojiMap = {
   SPEECH_BUBBLE: "1f4ac", // 💬
   MEH: "1fae4", // 🫤
   HEART: "2764", // ❤️
+  TOP: "1f4c8", // 📈 trending up
+  NEW: "1f331", // 🌱 seedling
+  UPCOMING: "1f304", // 🌄 sunrise over mountains
 } as const;
 
 /**
