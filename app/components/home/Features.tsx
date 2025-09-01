@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import FeatureCard from "./FeatureCard";
 
 export default function Features() {
@@ -71,8 +72,27 @@ export default function Features() {
       const cardWidth = container.children[0]?.clientWidth || 0;
       const gap = 32; // 2rem gap between cards
       const scrollLeft = container.scrollLeft;
-      const newIndex = Math.round(scrollLeft / (cardWidth + gap));
-      setCurrentIndex(Math.max(0, Math.min(newIndex, featureCards.length - 1)));
+
+      // Calculate which card is most visible in the viewport
+      const cardWithGap = cardWidth + gap;
+
+      // Use a more precise calculation - find the card that's most centered
+      let newIndex = 0;
+      let minDistance = Infinity;
+
+      for (let i = 0; i < featureCards.length; i++) {
+        const cardPosition = i * cardWithGap;
+        const distance = Math.abs(scrollLeft - cardPosition);
+        if (distance < minDistance) {
+          minDistance = distance;
+          newIndex = i;
+        }
+      }
+
+      // Only update if the index actually changed
+      if (newIndex !== currentIndex) {
+        setCurrentIndex(newIndex);
+      }
     }
   };
 
@@ -80,22 +100,38 @@ export default function Features() {
   useEffect(() => {
     const container = scrollContainerRef.current;
     if (container) {
+      // Initialize current index on mount
+      updateCurrentIndex();
+
       container.addEventListener("scroll", updateCurrentIndex);
       return () => container.removeEventListener("scroll", updateCurrentIndex);
     }
   }, []);
 
+  // Also update when window resizes to recalculate positions
+  useEffect(() => {
+    const handleResize = () => {
+      setTimeout(updateCurrentIndex, 100); // Small delay to ensure layout is updated
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   const scrollToCard = (index: number) => {
     if (scrollContainerRef.current) {
-      const cardWidth =
-        scrollContainerRef.current.children[0]?.clientWidth || 0;
+      const container = scrollContainerRef.current;
+      const cardWidth = container.children[0]?.clientWidth || 0;
       const gap = 32; // 2rem gap between cards
       const scrollPosition = index * (cardWidth + gap);
 
-      scrollContainerRef.current.scrollTo({
+      container.scrollTo({
         left: scrollPosition,
         behavior: "smooth",
       });
+
+      // Update the current index immediately to prevent UI lag
+      setCurrentIndex(index);
     }
   };
 
@@ -147,50 +183,43 @@ export default function Features() {
           <button
             onClick={goToPrevious}
             disabled={currentIndex === 0}
-            className={`w-12 h-12 rounded-full transition-colors duration-200 flex items-center justify-center ${
+            className={`w-12 h-12 rounded-full transition-all duration-200 flex items-center justify-center ${
               currentIndex === 0
                 ? "bg-white/10 cursor-not-allowed"
-                : "bg-white/20 hover:bg-white/30 cursor-pointer"
+                : "cursor-pointer hover:opacity-80"
             }`}
+            style={{
+              backgroundColor: currentIndex === 0 ? undefined : "#323817",
+            }}
           >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke={currentIndex === 0 ? "rgba(255,255,255,0.3)" : "white"}
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <polyline points="15,18 9,12 15,6"></polyline>
-            </svg>
+            <ChevronLeft
+              size={26}
+              color={currentIndex === 0 ? "rgba(255,255,255,0.3)" : "white"}
+            />
           </button>
           <button
             onClick={goToNext}
             disabled={currentIndex === featureCards.length - 1}
-            className={`w-12 h-12 rounded-full transition-colors duration-200 flex items-center justify-center ${
+            className={`w-12 h-12 rounded-full transition-all duration-200 flex items-center justify-center ${
               currentIndex === featureCards.length - 1
                 ? "bg-white/10 cursor-not-allowed"
-                : "bg-white/20 hover:bg-white/30 cursor-pointer"
+                : "cursor-pointer hover:opacity-80"
             }`}
+            style={{
+              backgroundColor:
+                currentIndex === featureCards.length - 1
+                  ? undefined
+                  : "#323817",
+            }}
           >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke={
+            <ChevronRight
+              size={26}
+              color={
                 currentIndex === featureCards.length - 1
                   ? "rgba(255,255,255,0.3)"
                   : "white"
               }
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <polyline points="9,18 15,12 9,6"></polyline>
-            </svg>
+            />
           </button>
         </div>
       </div>
