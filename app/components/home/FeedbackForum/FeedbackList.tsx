@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { PresetEmoji } from "../../Twemoji";
 import { FeedbackPost } from "./types";
 
@@ -9,6 +9,16 @@ interface FeedbackListProps {
   selectedPostId: number | null;
   onSelectPost: (postId: number) => void;
   onToggleHeart: (postId: number) => void;
+}
+
+interface FloatingEmoji {
+  id: number;
+  emoji: string;
+  x: number;
+  y: number;
+  startX: number;
+  startY: number;
+  delay: number;
 }
 
 export default function FeedbackList({
@@ -20,44 +30,74 @@ export default function FeedbackList({
   const [activeFilter, setActiveFilter] = useState<
     "top" | "new" | "upcoming" | "all"
   >("all");
+  const [floatingEmojis, setFloatingEmojis] = useState<FloatingEmoji[]>([]);
+  const [animatingHeart, setAnimatingHeart] = useState<number | null>(null);
+  const buttonRefs = useRef<{ [key: number]: HTMLButtonElement | null }>({});
 
   const filteredPosts =
     activeFilter === "all"
       ? posts
       : posts.filter((post) => post.category === activeFilter);
 
-  const getCategoryEmoji = (category: "top" | "new" | "upcoming") => {
-    switch (category) {
-      case "top":
-        return <PresetEmoji type="TOP" size={16} />;
-      case "new":
-        return <PresetEmoji type="NEW" size={16} />;
-      case "upcoming":
-        return <PresetEmoji type="UPCOMING" size={16} />;
+  // Clean up floating emojis after animation
+  useEffect(() => {
+    if (floatingEmojis.length > 0) {
+      const timer = setTimeout(() => {
+        setFloatingEmojis([]);
+        setAnimatingHeart(null);
+      }, 2000);
+      return () => clearTimeout(timer);
     }
+  }, [floatingEmojis]);
+
+  // Function to create floating emoji animation
+  const createEmojiFlurry = (postId: number) => {
+    const button = buttonRefs.current[postId];
+    if (!button) return;
+
+    const buttonRect = button.getBoundingClientRect();
+    const containerRect = button
+      .closest(".feedback-list-container")
+      ?.getBoundingClientRect();
+    if (!containerRect) return;
+
+    // Calculate button position relative to container
+    const startX = buttonRect.left + buttonRect.width / 2 - containerRect.left;
+    const startY = buttonRect.top + buttonRect.height / 2 - containerRect.top;
+
+    const newEmojis: FloatingEmoji[] = [];
+    for (let i = 0; i < 6; i++) {
+      newEmojis.push({
+        id: Math.random(),
+        emoji: "2764",
+        startX,
+        startY,
+        x: Math.random() * 80 - 40, // Random x spread (-40 to 40)
+        y: -(Math.random() * 60 + 40), // Upward movement (-40 to -100)
+        delay: Math.random() * 0.2, // Random delay (0 to 0.2s)
+      });
+    }
+    setFloatingEmojis(newEmojis);
   };
 
-  const getCategoryColor = (category: "top" | "new" | "upcoming") => {
-    switch (category) {
-      case "top":
-        return "#FF6B6B";
-      case "new":
-        return "#4ECDC4";
-      case "upcoming":
-        return "#45B7D1";
-    }
+  // Enhanced heart handler
+  const handleHeartClick = (e: React.MouseEvent, postId: number) => {
+    e.stopPropagation();
+    setAnimatingHeart(postId);
+    createEmojiFlurry(postId);
+    onToggleHeart(postId);
   };
 
   return (
-    <div className="w-full h-full flex flex-col">
+    <div className="w-full h-full flex flex-col feedback-list-container relative">
       {/* Filter Tabs */}
       <div
-        className="flex mb-6 rounded-full p-1 flex-shrink-0"
+        className="flex mb-6 rounded-xl p-0 flex-shrink-0"
         style={{ backgroundColor: "#4D5915" }}
       >
         <button
           onClick={() => setActiveFilter("all")}
-          className="px-4 py-2 rounded-full text-sm font-medium transition-all text-white flex-1"
+          className="px-4 py-2 rounded-xl text-sm font-medium transition-all text-white flex-1 cursor-pointer"
           style={{
             backgroundColor: activeFilter === "all" ? "#7A873D" : "transparent",
           }}
@@ -66,33 +106,33 @@ export default function FeedbackList({
         </button>
         <button
           onClick={() => setActiveFilter("top")}
-          className="px-4 py-2 rounded-full text-sm font-medium transition-all text-white flex items-center justify-center gap-2 flex-1"
+          className="px-4 py-3 rounded-xl text-sm font-medium transition-all text-white flex items-center justify-center gap-2 flex-1 cursor-pointer"
           style={{
             backgroundColor: activeFilter === "top" ? "#7A873D" : "transparent",
           }}
         >
-          <PresetEmoji type="TOP" size={16} />
+          <PresetEmoji type="TOP" size={20} />
           Top
         </button>
         <button
           onClick={() => setActiveFilter("new")}
-          className="px-4 py-2 rounded-full text-sm font-medium transition-all text-white flex items-center justify-center gap-2 flex-1"
+          className="px-4 py-3 rounded-xl text-sm font-medium transition-all text-white flex items-center justify-center gap-2 flex-1 cursor-pointer"
           style={{
             backgroundColor: activeFilter === "new" ? "#7A873D" : "transparent",
           }}
         >
-          <PresetEmoji type="NEW" size={16} />
+          <PresetEmoji type="NEW" size={20} />
           New
         </button>
         <button
           onClick={() => setActiveFilter("upcoming")}
-          className="px-4 py-2 rounded-full text-sm font-medium transition-all text-white flex items-center justify-center gap-2 flex-1"
+          className="px-4 py-3 rounded-xl text-sm font-medium transition-all text-white flex items-center justify-center gap-2 flex-1 cursor-pointer"
           style={{
             backgroundColor:
               activeFilter === "upcoming" ? "#7A873D" : "transparent",
           }}
         >
-          <PresetEmoji type="UPCOMING" size={16} />
+          <PresetEmoji type="UPCOMING" size={20} />
           Upcoming
         </button>
       </div>
@@ -109,8 +149,16 @@ export default function FeedbackList({
                 selectedPostId === post.id ? "#7A873D" : "#323817",
             }}
           >
-            {/* Post Header */}
-            <div className="flex items-center justify-between mb-3">
+            {/* Post Content */}
+            <h3 className="text-white font-semibold text-base mb-2 line-clamp-2">
+              {post.title}
+            </h3>
+            <p className="text-gray-300 text-sm line-clamp-3 mb-3">
+              {post.description}
+            </p>
+
+            {/* Combined User Info and Post Actions */}
+            <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
                   <span className="text-white text-xs font-semibold">
@@ -129,64 +177,73 @@ export default function FeedbackList({
                   </span>
                 </div>
               </div>
-              <div
-                className="px-2 py-1 rounded-full flex items-center gap-1"
-                style={{
-                  backgroundColor: getCategoryColor(post.category) + "20",
-                }}
-              >
-                {getCategoryEmoji(post.category)}
-                <span
-                  className="text-xs font-medium capitalize"
-                  style={{ color: getCategoryColor(post.category) }}
-                >
-                  {post.category}
-                </span>
-              </div>
-            </div>
 
-            {/* Post Content */}
-            <h3 className="text-white font-semibold text-base mb-2 line-clamp-2">
-              {post.title}
-            </h3>
-            <p className="text-gray-300 text-sm line-clamp-3 mb-3">
-              {post.description}
-            </p>
-
-            {/* Post Actions */}
-            <div className="flex items-center gap-4">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onToggleHeart(post.id);
-                }}
-                className={`flex items-center gap-1 text-sm transition-colors ${
-                  post.isHearted
-                    ? "text-red-400 hover:text-red-300"
-                    : "text-gray-400 hover:text-white"
-                }`}
-              >
-                <PresetEmoji
-                  type="HEART"
-                  size={16}
-                  style={{
-                    filter: post.isHearted ? "none" : "grayscale(1)",
+              {/* Post Actions */}
+              <div className="flex items-center gap-3">
+                <button
+                  ref={(el) => {
+                    buttonRefs.current[post.id] = el;
                   }}
-                />
-                {post.heartsCount}
-              </button>
-              <div className="flex items-center gap-1 text-gray-400 text-sm">
-                <PresetEmoji
-                  type="SPEECH_BUBBLE"
-                  size={16}
-                  style={{ filter: "grayscale(1)" }}
-                />
-                {post.commentsCount}
+                  onClick={(e) => handleHeartClick(e, post.id)}
+                  className="px-3 py-2 rounded-xl flex items-center gap-2 text-sm transition-all duration-300 cursor-pointer transform hover:scale-105 active:scale-95"
+                  style={{
+                    backgroundColor: post.isHearted ? "transparent" : "#282828",
+                    background: post.isHearted
+                      ? "linear-gradient(90.81deg, #9D638D 0.58%, #BF8EFF 99.31%)"
+                      : "#282828",
+                  }}
+                >
+                  <PresetEmoji type="HEART" size={16} />
+                  <span className="text-white font-medium">
+                    {post.heartsCount}
+                  </span>
+                </button>
+                <div
+                  className="px-3 py-2 rounded-xl flex items-center gap-2 text-sm"
+                  style={{ backgroundColor: "#282828" }}
+                >
+                  <PresetEmoji type="SPEECH_BUBBLE" size={16} />
+                  <span className="text-white font-medium">
+                    {post.commentsCount}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
         ))}
       </div>
+
+      {/* Floating Emoji Animation */}
+      {floatingEmojis.map((floatingEmoji) => (
+        <div
+          key={floatingEmoji.id}
+          className="absolute pointer-events-none z-10"
+          style={
+            {
+              left: `${floatingEmoji.startX}px`,
+              top: `${floatingEmoji.startY}px`,
+              transform: `translate(-50%, -50%)`,
+              animation: `floatUpFromButton 2s ease-out ${floatingEmoji.delay}s forwards`,
+              "--random-x": `${floatingEmoji.x}px`,
+              "--random-y": `${floatingEmoji.y}px`,
+            } as React.CSSProperties & {
+              "--random-x": string;
+              "--random-y": string;
+            }
+          }
+        >
+          <div
+            className="animate-bounce"
+            style={{
+              animationDelay: `${floatingEmoji.delay}s`,
+              animationDuration: "0.6s",
+              animationIterationCount: "3",
+            }}
+          >
+            <PresetEmoji type="HEART" size={16} />
+          </div>
+        </div>
+      ))}
 
       {/* Custom Scrollbar Styles */}
       <style jsx>{`
@@ -208,6 +265,35 @@ export default function FeedbackList({
           -webkit-line-clamp: 3;
           -webkit-box-orient: vertical;
           overflow: hidden;
+        }
+        @keyframes floatUpFromButton {
+          0% {
+            opacity: 1;
+            transform: translate(-50%, -50%) translate(0, 0) scale(1);
+          }
+          25% {
+            opacity: 1;
+            transform: translate(-50%, -50%)
+              translate(
+                calc(var(--random-x) * 0.3),
+                calc(var(--random-y) * 0.3)
+              )
+              scale(1.1);
+          }
+          75% {
+            opacity: 0.6;
+            transform: translate(-50%, -50%)
+              translate(
+                calc(var(--random-x) * 0.8),
+                calc(var(--random-y) * 0.8)
+              )
+              scale(1.2);
+          }
+          100% {
+            opacity: 0;
+            transform: translate(-50%, -50%)
+              translate(var(--random-x), var(--random-y)) scale(0.7);
+          }
         }
       `}</style>
     </div>
