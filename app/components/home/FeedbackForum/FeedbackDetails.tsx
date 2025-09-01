@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Send } from "lucide-react";
+import { Send, MoreHorizontal } from "lucide-react";
 import { PresetEmoji } from "../../Twemoji";
 import { FeedbackPost, FeedbackComment } from "./types";
 
@@ -271,6 +271,15 @@ export default function FeedbackDetails({
                       {comment.replies.length} Replies
                     </button>
                   )}
+                  <button
+                    onClick={() => {
+                      // Handle more options menu for comment
+                    }}
+                    className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-600 transition-all duration-200 cursor-pointer ml-auto"
+                    style={{ backgroundColor: "#282828" }}
+                  >
+                    <MoreHorizontal size={14} />
+                  </button>
                 </div>
               </div>
             </div>
@@ -326,6 +335,15 @@ export default function FeedbackDetails({
                             style={{ backgroundColor: "#282828" }}
                           >
                             Reply
+                          </button>
+                          <button
+                            onClick={() => {
+                              // Handle more options menu for reply
+                            }}
+                            className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-600 transition-all duration-200 cursor-pointer ml-auto"
+                            style={{ backgroundColor: "#282828" }}
+                          >
+                            <MoreHorizontal size={12} />
                           </button>
                         </div>
                       </div>

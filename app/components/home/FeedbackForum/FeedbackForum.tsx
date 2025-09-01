@@ -101,7 +101,7 @@ export default function FeedbackForum() {
       className="pt-10 pb-16 px-4 sm:px-6 md:px-8 w-full"
       style={{ backgroundColor: "#3C4806" }}
     >
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         {/* Section Title */}
         <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-white text-center mb-8">
           Feedback Forum

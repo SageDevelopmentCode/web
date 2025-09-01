@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { MoreHorizontal } from "lucide-react";
 import { PresetEmoji } from "../../Twemoji";
 import { FeedbackPost } from "./types";
 
@@ -207,6 +208,16 @@ export default function FeedbackList({
                     {post.commentsCount}
                   </span>
                 </div>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // Handle more options menu
+                  }}
+                  className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-700 transition-all duration-200 cursor-pointer"
+                  style={{ backgroundColor: "#282828" }}
+                >
+                  <MoreHorizontal size={16} />
+                </button>
               </div>
             </div>
           </div>
