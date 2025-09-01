@@ -1,6 +1,6 @@
 "use client";
 
-import { Twemoji } from "../Twemoji";
+import { Twemoji } from "../../Twemoji";
 
 interface BestForProps {
   description: string;

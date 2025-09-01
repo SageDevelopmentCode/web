@@ -1,11 +1,11 @@
 "use client";
 
 import Navigation from "./components/Navigation";
-import Characters from "./components/home/Characters";
-import Starters from "./components/home/Starters";
-import Features from "./components/home/Features";
-import HeroSection from "./components/home/HeroSection";
-import BottomText from "./components/home/BottomText";
+import Characters from "./components/home/Hero/Characters";
+import Starters from "./components/home/Starters/Starters";
+import Features from "./components/home/Features/Features";
+import HeroSection from "./components/home/Hero/HeroSection";
+import BottomText from "./components/home/Hero/BottomText";
 
 export default function Home() {
   return (

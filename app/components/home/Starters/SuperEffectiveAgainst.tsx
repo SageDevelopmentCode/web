@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Twemoji } from "../Twemoji";
+import { Twemoji } from "../../Twemoji";
 
 interface SuperEffectiveAgainstProps {
   weaknesses: string[];

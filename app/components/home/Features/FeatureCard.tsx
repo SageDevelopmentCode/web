@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Twemoji } from "../Twemoji";
+import { Twemoji } from "../../Twemoji";
 import DesktopComments from "./DesktopComments";
 import MobileComments from "./MobileComments";
 
