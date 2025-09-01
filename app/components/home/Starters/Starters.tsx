@@ -13,12 +13,14 @@ export default function Starters() {
   );
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [animationKey, setAnimationKey] = useState(0);
+  const [showMobileDetails, setShowMobileDetails] = useState(false);
 
   // Handle character selection with transition
   const handleCharacterSelect = (characterName: string) => {
     if (characterName === selectedCharacter) return;
 
     setIsTransitioning(true);
+    setShowMobileDetails(false); // Reset mobile details visibility when changing characters
     setTimeout(() => {
       setSelectedCharacter(characterName);
       setAnimationKey((prev) => prev + 1);
@@ -300,22 +302,60 @@ export default function Starters() {
                           </p>
                         </div>
 
-                        <div className="text-section">
-                          <BestFor description={character.bestFor} />
+                        {/* Mobile Toggle Button */}
+                        <div className="md:hidden text-section">
+                          <button
+                            onClick={() =>
+                              setShowMobileDetails(!showMobileDetails)
+                            }
+                            className="w-full py-3 px-4 mt-4 mb-2 bg-[#7A873D] hover:bg-[#8B9A47] text-white font-semibold rounded-xl transition-colors duration-200 flex items-center justify-center gap-2"
+                          >
+                            <span>
+                              {showMobileDetails
+                                ? "Hide Details"
+                                : "Show Details"}
+                            </span>
+                            <svg
+                              className={`w-5 h-5 transition-transform duration-200 ${
+                                showMobileDetails ? "rotate-180" : ""
+                              }`}
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M19 9l-7 7-7-7"
+                              />
+                            </svg>
+                          </button>
                         </div>
 
-                        <div className="text-section">
-                          <SuperEffectiveAgainst
-                            weaknesses={character.superEffectiveAgainst}
-                          />
-                        </div>
+                        {/* Character Details - Hidden by default on mobile, always visible on desktop */}
+                        <div
+                          className={`${
+                            showMobileDetails ? "block" : "hidden"
+                          } md:block space-y-3`}
+                        >
+                          <div className="text-section">
+                            <BestFor description={character.bestFor} />
+                          </div>
 
-                        <div className="text-section">
-                          <VerseCollection
-                            characterName={character.name}
-                            title={character.verseCollection.title}
-                            subtitle={character.verseCollection.subtitle}
-                          />
+                          <div className="text-section">
+                            <SuperEffectiveAgainst
+                              weaknesses={character.superEffectiveAgainst}
+                            />
+                          </div>
+
+                          <div className="text-section">
+                            <VerseCollection
+                              characterName={character.name}
+                              title={character.verseCollection.title}
+                              subtitle={character.verseCollection.subtitle}
+                            />
+                          </div>
                         </div>
                       </div>
                     </div>
