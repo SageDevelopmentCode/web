@@ -34,6 +34,8 @@ export default function FeedbackDetails({
   const [commentText, setCommentText] = useState("");
   const [floatingEmojis, setFloatingEmojis] = useState<FloatingEmoji[]>([]);
   const [animatingHeart, setAnimatingHeart] = useState<string | null>(null);
+  const [activeReplyInput, setActiveReplyInput] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState("");
   const commentsContainerRef = useRef<HTMLDivElement>(null);
   const buttonRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
 
@@ -120,6 +122,26 @@ export default function FeedbackDetails({
     setAnimatingHeart(buttonId);
     createEmojiFlurry(buttonId);
     onToggleReplyHeart(commentId, replyId);
+  };
+
+  // Reply input handlers
+  const handleReplyClick = (replyId: string) => {
+    setActiveReplyInput(activeReplyInput === replyId ? null : replyId);
+    setReplyText("");
+  };
+
+  const handleReplySubmit = (replyId: string) => {
+    if (replyText.trim()) {
+      // Handle reply submission here
+      console.log(`Submitting reply for ${replyId}:`, replyText);
+      setReplyText("");
+      setActiveReplyInput(null);
+    }
+  };
+
+  const handleReplyCancel = () => {
+    setActiveReplyInput(null);
+    setReplyText("");
   };
 
   if (!post) {
@@ -260,6 +282,7 @@ export default function FeedbackDetails({
                     </span>
                   </button>
                   <button
+                    onClick={() => handleReplyClick(`comment-${comment.id}`)}
                     className="px-3 py-2 rounded-xl text-white text-sm transition-colors hover:bg-gray-600"
                     style={{ backgroundColor: "#282828" }}
                   >
@@ -286,6 +309,41 @@ export default function FeedbackDetails({
                 </div>
               </div>
             </div>
+
+            {/* Reply Input for Comment */}
+            {activeReplyInput === `comment-${comment.id}` && (
+              <div className="ml-12 mt-4">
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder={`Reply to ${comment.username}...`}
+                    value={replyText}
+                    onChange={(e) => setReplyText(e.target.value)}
+                    className="w-full text-white placeholder-gray-400 rounded-xl px-4 py-3 pr-24 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    style={{ backgroundColor: "#4B5563" }}
+                    onKeyPress={(e) => {
+                      if (e.key === "Enter") {
+                        handleReplySubmit(`comment-${comment.id}`);
+                      }
+                    }}
+                  />
+                  <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex gap-2">
+                    <button
+                      onClick={() => handleReplySubmit(`comment-${comment.id}`)}
+                      className="text-white hover:text-purple-400 cursor-pointer transition-all duration-300 p-1"
+                    >
+                      <Send size={16} />
+                    </button>
+                    <button
+                      onClick={handleReplyCancel}
+                      className="text-gray-400 hover:text-white cursor-pointer transition-all duration-300 p-1"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Replies */}
             {comment.showReplies &&
@@ -337,6 +395,11 @@ export default function FeedbackDetails({
                             </span>
                           </button>
                           <button
+                            onClick={() =>
+                              handleReplyClick(
+                                `reply-${comment.id}-${reply.id}`
+                              )
+                            }
                             className="px-3 py-2 rounded-xl text-white text-sm transition-colors hover:bg-gray-600"
                             style={{ backgroundColor: "#282828" }}
                           >
@@ -355,6 +418,50 @@ export default function FeedbackDetails({
                       </div>
                     </div>
                   ))}
+
+                  {/* Reply Input for Nested Replies - appears at bottom of all replies */}
+                  {comment.replies?.some(
+                    (reply) =>
+                      activeReplyInput === `reply-${comment.id}-${reply.id}`
+                  ) && (
+                    <div className="mt-4">
+                      <div className="relative">
+                        <input
+                          type="text"
+                          placeholder={`Reply to ${
+                            comment.replies?.find(
+                              (reply) =>
+                                activeReplyInput ===
+                                `reply-${comment.id}-${reply.id}`
+                            )?.username
+                          }...`}
+                          value={replyText}
+                          onChange={(e) => setReplyText(e.target.value)}
+                          className="w-full text-white placeholder-gray-400 rounded-xl px-4 py-3 pr-24 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                          style={{ backgroundColor: "#4B5563" }}
+                          onKeyPress={(e) => {
+                            if (e.key === "Enter") {
+                              handleReplySubmit(activeReplyInput!);
+                            }
+                          }}
+                        />
+                        <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex gap-2">
+                          <button
+                            onClick={() => handleReplySubmit(activeReplyInput!)}
+                            className="text-white hover:text-purple-400 cursor-pointer transition-all duration-300 p-1"
+                          >
+                            <Send size={16} />
+                          </button>
+                          <button
+                            onClick={handleReplyCancel}
+                            className="text-gray-400 hover:text-white cursor-pointer transition-all duration-300 p-1"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
           </div>
