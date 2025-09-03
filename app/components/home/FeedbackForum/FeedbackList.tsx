@@ -10,6 +10,7 @@ interface FeedbackListProps {
   selectedPostId: number | null;
   onSelectPost: (postId: number) => void;
   onToggleHeart: (postId: number) => void;
+  isMobile?: boolean;
 }
 
 interface FloatingEmoji {
@@ -27,6 +28,7 @@ export default function FeedbackList({
   selectedPostId,
   onSelectPost,
   onToggleHeart,
+  isMobile = false,
 }: FeedbackListProps) {
   const [activeFilter, setActiveFilter] = useState<
     "top" | "new" | "upcoming" | "all"
@@ -90,10 +92,16 @@ export default function FeedbackList({
   };
 
   return (
-    <div className="w-full h-full flex flex-col feedback-list-container relative">
-      {/* Filter Tabs */}
+    <div
+      className={`w-full h-full flex flex-col feedback-list-container relative ${
+        isMobile ? "pb-4" : ""
+      }`}
+    >
+      {/* Filter Tabs - Fixed position in mobile */}
       <div
-        className="flex mb-6 rounded-xl p-0 flex-shrink-0"
+        className={`flex rounded-xl p-0 flex-shrink-0 ${
+          isMobile ? "sticky top-0 z-10 mb-4" : "mb-6"
+        }`}
         style={{ backgroundColor: "#4D5915" }}
       >
         <button
@@ -139,7 +147,11 @@ export default function FeedbackList({
       </div>
 
       {/* Posts List */}
-      <div className="flex-1 overflow-y-auto space-y-4 scrollbar-hide min-h-0">
+      <div
+        className={`flex-1 overflow-y-auto space-y-4 scrollbar-hide min-h-0 ${
+          isMobile ? "px-4" : ""
+        }`}
+      >
         {filteredPosts.map((post) => (
           <div
             key={post.id}
@@ -208,16 +220,18 @@ export default function FeedbackList({
                     {post.commentsCount}
                   </span>
                 </div>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    // Handle more options menu
-                  }}
-                  className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-700 transition-all duration-200 cursor-pointer"
-                  style={{ backgroundColor: "#282828" }}
-                >
-                  <MoreHorizontal size={16} />
-                </button>
+                {!isMobile && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // Handle more options menu
+                    }}
+                    className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-700 transition-all duration-200 cursor-pointer"
+                    style={{ backgroundColor: "#282828" }}
+                  >
+                    <MoreHorizontal size={16} />
+                  </button>
+                )}
               </div>
             </div>
           </div>

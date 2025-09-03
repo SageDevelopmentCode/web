@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { Plus } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Plus, ChevronLeft } from "lucide-react";
+import { PresetEmoji } from "../../Twemoji";
 import FeedbackList from "./FeedbackList";
 import FeedbackDetails from "./FeedbackDetails";
 import { mockFeedbackPosts, FeedbackPost } from "./types";
@@ -9,11 +10,46 @@ import { mockFeedbackPosts, FeedbackPost } from "./types";
 export default function FeedbackForum() {
   const [posts, setPosts] = useState<FeedbackPost[]>(mockFeedbackPosts);
   const [selectedPostId, setSelectedPostId] = useState<number | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+  const [showBottomSheet, setShowBottomSheet] = useState(false);
+  const [bottomSheetView, setBottomSheetView] = useState<"list" | "details">(
+    "list"
+  );
 
   const selectedPost = posts.find((post) => post.id === selectedPostId) || null;
 
+  // Check for mobile viewport
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
   const handleSelectPost = (postId: number) => {
     setSelectedPostId(postId);
+    if (isMobile) {
+      setBottomSheetView("details");
+    }
+  };
+
+  const handleViewAll = () => {
+    setShowBottomSheet(true);
+    setBottomSheetView("list");
+  };
+
+  const handleCloseBottomSheet = () => {
+    setShowBottomSheet(false);
+    setSelectedPostId(null);
+  };
+
+  const handleBackToList = () => {
+    setBottomSheetView("list");
+    setSelectedPostId(null);
   };
 
   const handleTogglePostHeart = (postId: number) => {
@@ -109,7 +145,7 @@ export default function FeedbackForum() {
 
         {/* Header Section */}
         <div
-          className="rounded-3xl px-10 py-6 mb-8"
+          className="rounded-3xl px-4 sm:px-10 py-6 mb-8"
           style={{ backgroundColor: "#282828" }}
         >
           <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
@@ -140,33 +176,203 @@ export default function FeedbackForum() {
           </div>
         </div>
 
-        {/* Main Content - Split Layout */}
-        <div className="flex gap-6" style={{ height: "80vh" }}>
-          {/* Left Side - Feedback List (40%) */}
-          <div className="w-2/5 flex-shrink-0 h-full">
-            <FeedbackList
-              posts={posts}
-              selectedPostId={selectedPostId}
-              onSelectPost={handleSelectPost}
-              onToggleHeart={handleTogglePostHeart}
-            />
-          </div>
+        {/* Desktop Layout */}
+        {!isMobile && (
+          <div className="flex gap-6" style={{ height: "80vh" }}>
+            {/* Left Side - Feedback List (40%) */}
+            <div className="w-2/5 flex-shrink-0 h-full">
+              <FeedbackList
+                posts={posts}
+                selectedPostId={selectedPostId}
+                onSelectPost={handleSelectPost}
+                onToggleHeart={handleTogglePostHeart}
+              />
+            </div>
 
-          {/* Right Side - Feedback Details (60%) */}
-          <div
-            className="w-3/5 flex-shrink-0 rounded-3xl p-6 h-full"
-            style={{ backgroundColor: "#323817" }}
-          >
-            <FeedbackDetails
-              post={selectedPost}
-              onTogglePostHeart={handleTogglePostHeart}
-              onToggleCommentHeart={handleToggleCommentHeart}
-              onToggleReplyHeart={handleToggleReplyHeart}
-              onToggleReplies={handleToggleReplies}
-            />
+            {/* Right Side - Feedback Details (60%) */}
+            <div
+              className="w-3/5 flex-shrink-0 rounded-3xl p-6 h-full"
+              style={{ backgroundColor: "#323817" }}
+            >
+              <FeedbackDetails
+                post={selectedPost}
+                onTogglePostHeart={handleTogglePostHeart}
+                onToggleCommentHeart={handleToggleCommentHeart}
+                onToggleReplyHeart={handleToggleReplyHeart}
+                onToggleReplies={handleToggleReplies}
+              />
+            </div>
           </div>
-        </div>
+        )}
+
+        {/* Mobile Layout - Top 5 Posts */}
+        {isMobile && (
+          <div className="space-y-4">
+            {posts.slice(0, 5).map((post) => (
+              <div
+                key={post.id}
+                onClick={() => handleSelectPost(post.id)}
+                className="p-4 rounded-2xl cursor-pointer transition-all duration-200"
+                style={{ backgroundColor: "#323817" }}
+              >
+                {/* Post Content */}
+                <h3 className="text-white font-semibold text-base mb-2 line-clamp-2">
+                  {post.title}
+                </h3>
+                <p className="text-gray-300 text-sm line-clamp-3 mb-3">
+                  {post.description}
+                </p>
+
+                {/* Combined User Info and Post Actions */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
+                      <span className="text-white text-xs font-semibold">
+                        {post.username
+                          .split(" ")
+                          .map((n) => n[0])
+                          .join("")}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-gray-300 text-sm font-medium">
+                        {post.username}
+                      </span>
+                      <span className="text-gray-500 text-sm ml-2">
+                        {post.timestamp}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Post Actions */}
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleTogglePostHeart(post.id);
+                      }}
+                      className="px-3 py-2 rounded-xl flex items-center gap-2 text-sm transition-all duration-300 cursor-pointer transform hover:scale-105 active:scale-95"
+                      style={{
+                        backgroundColor: post.isHearted
+                          ? "transparent"
+                          : "#282828",
+                        background: post.isHearted
+                          ? "linear-gradient(90.81deg, #9D638D 0.58%, #BF8EFF 99.31%)"
+                          : "#282828",
+                      }}
+                    >
+                      <PresetEmoji type="HEART" size={16} />
+                      <span className="text-white font-medium">
+                        {post.heartsCount}
+                      </span>
+                    </button>
+                    <div
+                      className="px-3 py-2 rounded-xl flex items-center gap-2 text-sm"
+                      style={{ backgroundColor: "#282828" }}
+                    >
+                      <PresetEmoji type="SPEECH_BUBBLE" size={16} />
+                      <span className="text-white font-medium">
+                        {post.commentsCount}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            {/* View All Button */}
+            <button
+              onClick={handleViewAll}
+              className="w-full py-4 mt-6 text-white font-semibold rounded-2xl transition-opacity hover:opacity-90"
+              style={{
+                background:
+                  "linear-gradient(90.81deg, #9D638D 0.58%, #BF8EFF 99.31%)",
+              }}
+            >
+              View All Feedback
+            </button>
+          </div>
+        )}
+
+        {/* Mobile Bottom Sheet */}
+        {isMobile && showBottomSheet && (
+          <>
+            {/* Backdrop */}
+            <div
+              className="fixed inset-0 bg-black bg-opacity-50 z-40"
+              onClick={handleCloseBottomSheet}
+            />
+
+            {/* Bottom Sheet */}
+            <div
+              className="fixed bottom-0 left-0 right-0 bg-gray-900 rounded-t-3xl z-50 transform transition-transform duration-300"
+              style={{ height: "85vh" }}
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between p-4 border-b border-gray-700">
+                {bottomSheetView === "details" && (
+                  <button
+                    onClick={handleBackToList}
+                    className="p-2 text-white hover:bg-gray-700 rounded-full transition-colors"
+                  >
+                    <ChevronLeft size={24} />
+                  </button>
+                )}
+                <h3 className="text-white font-semibold text-lg flex-1 text-center">
+                  {bottomSheetView === "details"
+                    ? "Feedback Details"
+                    : "All Feedback"}
+                </h3>
+                <button
+                  onClick={handleCloseBottomSheet}
+                  className="p-2 text-white hover:bg-gray-700 rounded-full transition-colors"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Content */}
+              <div className="h-full overflow-hidden">
+                {bottomSheetView === "list" ? (
+                  <FeedbackList
+                    posts={posts}
+                    selectedPostId={selectedPostId}
+                    onSelectPost={handleSelectPost}
+                    onToggleHeart={handleTogglePostHeart}
+                    isMobile={true}
+                  />
+                ) : (
+                  <div className="p-4 h-full overflow-y-auto">
+                    <FeedbackDetails
+                      post={selectedPost}
+                      onTogglePostHeart={handleTogglePostHeart}
+                      onToggleCommentHeart={handleToggleCommentHeart}
+                      onToggleReplyHeart={handleToggleReplyHeart}
+                      onToggleReplies={handleToggleReplies}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          </>
+        )}
       </div>
+
+      {/* Mobile Styles */}
+      <style jsx>{`
+        .line-clamp-2 {
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+        .line-clamp-3 {
+          display: -webkit-box;
+          -webkit-line-clamp: 3;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+      `}</style>
     </section>
   );
 }

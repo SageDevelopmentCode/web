@@ -283,7 +283,7 @@ export default function FeedbackDetails({
                   </button>
                   <button
                     onClick={() => handleReplyClick(`comment-${comment.id}`)}
-                    className="px-3 py-2 rounded-xl text-white text-sm transition-colors hover:bg-gray-600"
+                    className="px-3 py-2 rounded-xl text-white text-sm transition-colors hover:bg-gray-600 cursor-pointer"
                     style={{ backgroundColor: "#282828" }}
                   >
                     Reply
@@ -400,7 +400,7 @@ export default function FeedbackDetails({
                                 `reply-${comment.id}-${reply.id}`
                               )
                             }
-                            className="px-3 py-2 rounded-xl text-white text-sm transition-colors hover:bg-gray-600"
+                            className="px-3 py-2 rounded-xl text-white text-sm transition-colors hover:bg-gray-600 cursor-pointer"
                             style={{ backgroundColor: "#282828" }}
                           >
                             Reply
