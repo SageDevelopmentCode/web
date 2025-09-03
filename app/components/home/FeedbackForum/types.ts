@@ -6,6 +6,7 @@ export interface FeedbackComment {
   replies?: FeedbackReply[];
   showReplies?: boolean;
   isHearted?: boolean;
+  heartsCount: number;
 }
 
 export interface FeedbackReply {
@@ -14,6 +15,7 @@ export interface FeedbackReply {
   content: string;
   timestamp: string;
   isHearted?: boolean;
+  heartsCount: number;
 }
 
 export interface FeedbackPost {
@@ -49,6 +51,7 @@ export const mockFeedbackPosts: FeedbackPost[] = [
           "This was a very good verse that challenged me and spoke to my heart.",
         timestamp: "5d",
         isHearted: false,
+        heartsCount: 2,
         replies: [
           {
             id: 1,
@@ -56,6 +59,7 @@ export const mockFeedbackPosts: FeedbackPost[] = [
             content: "Glad it spoke to you too!",
             timestamp: "4d",
             isHearted: true,
+            heartsCount: 1,
           },
         ],
       },
@@ -66,6 +70,7 @@ export const mockFeedbackPosts: FeedbackPost[] = [
           "I love this feature idea! It would really help with planning my reading schedule.",
         timestamp: "4d",
         isHearted: true,
+        heartsCount: 4,
       },
     ],
   },
@@ -87,6 +92,7 @@ export const mockFeedbackPosts: FeedbackPost[] = [
         content: "Totally agree! Sometimes I miss important updates.",
         timestamp: "4d",
         isHearted: true,
+        heartsCount: 3,
       },
     ],
   },
@@ -108,6 +114,7 @@ export const mockFeedbackPosts: FeedbackPost[] = [
         content: "Dark mode is essential! My eyes would thank you.",
         timestamp: "3d",
         isHearted: true,
+        heartsCount: 7,
       },
       {
         id: 2,
@@ -115,6 +122,7 @@ export const mockFeedbackPosts: FeedbackPost[] = [
         content: "Yes please! This should be a priority feature.",
         timestamp: "2d",
         isHearted: false,
+        heartsCount: 5,
       },
     ],
   },
@@ -136,6 +144,7 @@ export const mockFeedbackPosts: FeedbackPost[] = [
         content: "This would be perfect for my commute!",
         timestamp: "1d",
         isHearted: true,
+        heartsCount: 2,
       },
     ],
   },
@@ -157,6 +166,7 @@ export const mockFeedbackPosts: FeedbackPost[] = [
         content: "Search improvements would save so much time!",
         timestamp: "1d",
         isHearted: false,
+        heartsCount: 1,
       },
     ],
   },

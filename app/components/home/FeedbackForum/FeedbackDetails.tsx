@@ -172,13 +172,13 @@ export default function FeedbackDetails({
         </p>
 
         {/* Post Actions */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <button
             ref={(el) => {
               buttonRefs.current[`post-${post.id}`] = el;
             }}
             onClick={handlePostHeartClick}
-            className="px-4 py-3 rounded-xl flex items-center gap-2 text-base transition-all duration-300 cursor-pointer transform hover:scale-105 active:scale-95"
+            className="px-3 py-2 rounded-lg flex items-center gap-1.5 text-sm transition-all duration-300 cursor-pointer transform hover:scale-105 active:scale-95"
             style={{
               backgroundColor: post.isHearted ? "transparent" : "#282828",
               background: post.isHearted
@@ -186,14 +186,14 @@ export default function FeedbackDetails({
                 : "#282828",
             }}
           >
-            <PresetEmoji type="HEART" size={20} />
+            <PresetEmoji type="HEART" size={16} />
             <span className="text-white font-medium">{post.heartsCount}</span>
           </button>
           <div
-            className="px-4 py-3 rounded-xl flex items-center gap-2 text-base"
+            className="px-3 py-2 rounded-lg flex items-center gap-1.5 text-sm"
             style={{ backgroundColor: "#282828" }}
           >
-            <PresetEmoji type="SPEECH_BUBBLE" size={20} />
+            <PresetEmoji type="SPEECH_BUBBLE" size={16} />
             <span className="text-white font-medium">
               {post.commentsCount} Comments
             </span>
@@ -244,7 +244,7 @@ export default function FeedbackDetails({
                       buttonRefs.current[`comment-${comment.id}`] = el;
                     }}
                     onClick={() => handleCommentHeartClick(comment.id)}
-                    className="px-3 py-2 rounded-xl flex items-center gap-1 text-sm transition-all duration-300 cursor-pointer transform hover:scale-105 active:scale-95"
+                    className="px-3 py-2 rounded-xl flex items-center gap-1.5 text-sm transition-all duration-300 cursor-pointer transform hover:scale-105 active:scale-95"
                     style={{
                       backgroundColor: comment.isHearted
                         ? "transparent"
@@ -255,6 +255,9 @@ export default function FeedbackDetails({
                     }}
                   >
                     <PresetEmoji type="HEART" size={14} />
+                    <span className="text-white font-medium">
+                      {comment.heartsCount}
+                    </span>
                   </button>
                   <button
                     className="px-3 py-2 rounded-xl text-white text-sm transition-colors hover:bg-gray-600"
@@ -318,7 +321,7 @@ export default function FeedbackDetails({
                             onClick={() =>
                               handleReplyHeartClick(comment.id, reply.id)
                             }
-                            className="px-3 py-2 rounded-xl flex items-center gap-1 text-sm transition-all duration-300 cursor-pointer transform hover:scale-105 active:scale-95"
+                            className="px-3 py-2 rounded-xl flex items-center gap-1.5 text-sm transition-all duration-300 cursor-pointer transform hover:scale-105 active:scale-95"
                             style={{
                               backgroundColor: reply.isHearted
                                 ? "transparent"
@@ -329,6 +332,9 @@ export default function FeedbackDetails({
                             }}
                           >
                             <PresetEmoji type="HEART" size={12} />
+                            <span className="text-white font-medium">
+                              {reply.heartsCount}
+                            </span>
                           </button>
                           <button
                             className="px-3 py-2 rounded-xl text-white text-sm transition-colors hover:bg-gray-600"
