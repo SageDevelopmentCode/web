@@ -1,36 +1,38 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🌿 Sage – Self-Care Christian App for All Ages
 
-## Getting Started
+<img width="1140" height="571" alt="image" src="https://github.com/user-attachments/assets/e8ba58e1-6bef-4a96-8a4b-2f496d5d4e0d" />
 
-First, run the development server:
+<br />
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Link: Coming soon 🎇
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Welcome to the landing page repository for Sage, a Christian self-care app designed to help people of all ages grow in faith, nurture healthy habits, and stay connected to a supportive community. This landing page is the public home for Sage where visitors can:
+- Learn what the app is and why it exists
+- Explore the features currently being built
+- Access a feedback forum to share thoughts and ideas
+- View the timeline/roadmap for upcoming milestones
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+<br />
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+<img width="1122" height="868" alt="image" src="https://github.com/user-attachments/assets/9ea25c13-4483-4e37-b6c6-f9b07887a598" />
 
-## Learn More
+🛠️ Tech Stack
+This landing page is built with:
+- TypeScript
+- Next.js
+- Tailwind CSS
+- Supabase (PostgreSQL)
 
-To learn more about Next.js, take a look at the following resources:
+<img width="962" height="819" alt="image" src="https://github.com/user-attachments/assets/1508f199-8ebd-4375-9ea2-76ffd479959f" />
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+<br />
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+🛠️ Tech Stack
 
-## Deploy on Vercel
+We welcome ideas, suggestions, and contributions!
+- Share feedback directly on the feedback forum
+- Or open a GitHub issue to report bugs or suggest improvements
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+For any questions, comments, or concerns, feel free to reach out to me at: julius.cecilia@sagefield.co
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
