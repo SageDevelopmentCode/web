@@ -75,7 +75,7 @@ export default function MobileComments({
     <>
       {/* Overlay */}
       <div
-        className="fixed inset-0 z-40 transition-opacity duration-300"
+        className="fixed inset-0 z-[100] transition-opacity duration-300"
         style={{
           backgroundColor: "rgba(0, 0, 0, 0.5)",
           opacity: showOverlay && !isClosing ? 1 : 0,
@@ -84,7 +84,7 @@ export default function MobileComments({
       />
 
       {/* Bottom Sheet */}
-      <div className="fixed inset-0 z-50 flex items-end pointer-events-none">
+      <div className="fixed inset-0 z-[101] flex items-end pointer-events-none">
         <div
           className={`w-full bg-[#1a1a1a] rounded-t-3xl pointer-events-auto ${
             isClosing ? "animate-slide-down" : "animate-slide-up"

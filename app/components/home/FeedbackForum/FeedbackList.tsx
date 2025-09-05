@@ -100,7 +100,7 @@ export default function FeedbackList({
       {/* Filter Tabs - Fixed position in mobile */}
       <div
         className={`flex rounded-xl p-0 flex-shrink-0 ${
-          isMobile ? "sticky top-0 z-10 mb-4" : "mb-6"
+          isMobile ? "sticky top-0 z-10 mb-4 mx-4" : "mb-6"
         }`}
         style={{ backgroundColor: "#4D5915" }}
       >
@@ -115,33 +115,45 @@ export default function FeedbackList({
         </button>
         <button
           onClick={() => setActiveFilter("top")}
-          className="px-4 py-3 rounded-xl text-sm font-medium transition-all text-white flex items-center justify-center gap-2 flex-1 cursor-pointer"
+          className={`px-4 ${
+            isMobile ? "py-2" : "py-3"
+          } rounded-xl text-sm font-medium transition-all text-white flex items-center justify-center ${
+            isMobile ? "" : "gap-2"
+          } flex-1 cursor-pointer`}
           style={{
             backgroundColor: activeFilter === "top" ? "#7A873D" : "transparent",
           }}
         >
-          <PresetEmoji type="TOP" size={20} />
+          {!isMobile && <PresetEmoji type="TOP" size={20} />}
           Top
         </button>
         <button
           onClick={() => setActiveFilter("new")}
-          className="px-4 py-3 rounded-xl text-sm font-medium transition-all text-white flex items-center justify-center gap-2 flex-1 cursor-pointer"
+          className={`px-4 ${
+            isMobile ? "py-2" : "py-3"
+          } rounded-xl text-sm font-medium transition-all text-white flex items-center justify-center ${
+            isMobile ? "" : "gap-2"
+          } flex-1 cursor-pointer`}
           style={{
             backgroundColor: activeFilter === "new" ? "#7A873D" : "transparent",
           }}
         >
-          <PresetEmoji type="NEW" size={20} />
+          {!isMobile && <PresetEmoji type="NEW" size={20} />}
           New
         </button>
         <button
           onClick={() => setActiveFilter("upcoming")}
-          className="px-4 py-3 rounded-xl text-sm font-medium transition-all text-white flex items-center justify-center gap-2 flex-1 cursor-pointer"
+          className={`px-4 ${
+            isMobile ? "py-2" : "py-3"
+          } rounded-xl text-sm font-medium transition-all text-white flex items-center justify-center ${
+            isMobile ? "" : "gap-2"
+          } flex-1 cursor-pointer`}
           style={{
             backgroundColor:
               activeFilter === "upcoming" ? "#7A873D" : "transparent",
           }}
         >
-          <PresetEmoji type="UPCOMING" size={20} />
+          {!isMobile && <PresetEmoji type="UPCOMING" size={20} />}
           Upcoming
         </button>
       </div>

@@ -11,6 +11,7 @@ interface FeedbackDetailsProps {
   onToggleCommentHeart: (commentId: number) => void;
   onToggleReplyHeart: (commentId: number, replyId: number) => void;
   onToggleReplies: (commentId: number) => void;
+  isMobile?: boolean;
 }
 
 interface FloatingEmoji {
@@ -29,6 +30,7 @@ export default function FeedbackDetails({
   onToggleCommentHeart,
   onToggleReplyHeart,
   onToggleReplies,
+  isMobile = false,
 }: FeedbackDetailsProps) {
   const [showScrollHint, setShowScrollHint] = useState(true);
   const [commentText, setCommentText] = useState("");
@@ -36,27 +38,53 @@ export default function FeedbackDetails({
   const [animatingHeart, setAnimatingHeart] = useState<string | null>(null);
   const [activeReplyInput, setActiveReplyInput] = useState<string | null>(null);
   const [replyText, setReplyText] = useState("");
+  const [isContentScrollable, setIsContentScrollable] = useState(false);
   const commentsContainerRef = useRef<HTMLDivElement>(null);
+  const mobileScrollContainerRef = useRef<HTMLDivElement>(null);
   const buttonRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
 
   // Check if scrolling is needed and handle scroll hint
   useEffect(() => {
     const checkScrollable = () => {
-      const container = commentsContainerRef.current;
-      if (container) {
-        const isScrollable = container.scrollHeight > container.clientHeight;
-        setShowScrollHint(isScrollable);
+      if (isMobile) {
+        const container = mobileScrollContainerRef.current;
+        if (container) {
+          const isScrollable = container.scrollHeight > container.clientHeight;
+          setIsContentScrollable(isScrollable);
+        }
+      } else {
+        const container = commentsContainerRef.current;
+        if (container) {
+          const isScrollable = container.scrollHeight > container.clientHeight;
+          setShowScrollHint(isScrollable);
+        }
       }
     };
 
     checkScrollable();
-  }, [post?.comments]);
+    // Add a small delay to ensure content is rendered
+    const timer = setTimeout(checkScrollable, 100);
+    return () => clearTimeout(timer);
+  }, [post?.comments, isMobile]);
 
   // Handle scroll to hide hint
   const handleScroll = () => {
     const container = commentsContainerRef.current;
     if (container && container.scrollTop > 20) {
       setShowScrollHint(false);
+    }
+  };
+
+  // Handle touch events to prevent scrolling when content doesn't need it
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!isContentScrollable) {
+      e.preventDefault();
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!isContentScrollable) {
+      e.preventDefault();
     }
   };
 
@@ -168,327 +196,357 @@ export default function FeedbackDetails({
 
   return (
     <div className="w-full h-full flex flex-col feedback-details-container relative">
-      {/* Post Header */}
-      <div className="mb-6 pb-6 border-b border-gray-700 flex-shrink-0">
-        {/* User Info Row */}
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
-            <span className="text-white text-sm font-semibold">
-              {post.username
-                .split(" ")
-                .map((n) => n[0])
-                .join("")}
-            </span>
-          </div>
-          <div>
-            <span className="text-white text-base font-medium">
-              {post.username}
-            </span>
-            <span className="text-gray-400 text-sm ml-2">{post.timestamp}</span>
-          </div>
-        </div>
-
-        <h1 className="text-white text-2xl font-bold mb-3">{post.title}</h1>
-        <p className="text-gray-300 text-base leading-relaxed mb-4">
-          {post.description}
-        </p>
-
-        {/* Post Actions */}
-        <div className="flex items-center gap-3">
-          <button
-            ref={(el) => {
-              buttonRefs.current[`post-${post.id}`] = el;
-            }}
-            onClick={handlePostHeartClick}
-            className="px-3 py-2 rounded-lg flex items-center gap-1.5 text-sm transition-all duration-300 cursor-pointer transform hover:scale-105 active:scale-95"
-            style={{
-              backgroundColor: post.isHearted ? "transparent" : "#282828",
-              background: post.isHearted
-                ? "linear-gradient(90.81deg, #9D638D 0.58%, #BF8EFF 99.31%)"
-                : "#282828",
-            }}
-          >
-            <PresetEmoji type="HEART" size={16} />
-            <span className="text-white font-medium">{post.heartsCount}</span>
-          </button>
-          <div
-            className="px-3 py-2 rounded-lg flex items-center gap-1.5 text-sm"
-            style={{ backgroundColor: "#282828" }}
-          >
-            <PresetEmoji type="SPEECH_BUBBLE" size={16} />
-            <span className="text-white font-medium">
-              {post.commentsCount} Comments
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Comments Header */}
-      <div className="mb-4 flex-shrink-0">
-        <h4 className="text-white font-semibold text-lg">
-          Comments ({post.comments.length})
-        </h4>
-      </div>
-
-      {/* Comments List */}
+      {/* Scrollable content wrapper for mobile, or normal layout for desktop */}
       <div
-        ref={commentsContainerRef}
-        onScroll={handleScroll}
-        className="flex-1 overflow-y-auto space-y-6 scrollbar-hide relative min-h-0"
+        ref={isMobile ? mobileScrollContainerRef : undefined}
+        onTouchStart={isMobile ? handleTouchStart : undefined}
+        onTouchMove={isMobile ? handleTouchMove : undefined}
+        className={
+          isMobile
+            ? "overflow-y-auto flex-1 scrollbar-hide"
+            : "flex flex-col h-full"
+        }
       >
-        {post.comments.map((comment) => (
-          <div key={comment.id} className="space-y-4">
-            {/* Main Comment */}
-            <div className="flex space-x-4">
-              <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
-                <span className="text-white text-xs font-semibold">
-                  {comment.username
-                    .split(" ")
-                    .map((n) => n[0])
-                    .join("")}
-                </span>
-              </div>
-              <div className="flex-1 space-y-2">
-                <div className="flex items-center space-x-2">
-                  <span className="text-gray-300 text-sm font-medium">
-                    {comment.username}
-                  </span>
-                  <span className="text-gray-500 text-xs">
-                    {comment.timestamp}
-                  </span>
-                </div>
-                <p className="text-white text-sm leading-relaxed">
-                  {comment.content}
-                </p>
-                <div className="flex items-center space-x-4 pt-2">
-                  <button
-                    ref={(el) => {
-                      buttonRefs.current[`comment-${comment.id}`] = el;
-                    }}
-                    onClick={() => handleCommentHeartClick(comment.id)}
-                    className="px-3 py-2 rounded-xl flex items-center gap-1.5 text-sm transition-all duration-300 cursor-pointer transform hover:scale-105 active:scale-95"
-                    style={{
-                      backgroundColor: comment.isHearted
-                        ? "transparent"
-                        : "#282828",
-                      background: comment.isHearted
-                        ? "linear-gradient(90.81deg, #9D638D 0.58%, #BF8EFF 99.31%)"
-                        : "#282828",
-                    }}
-                  >
-                    <PresetEmoji type="HEART" size={14} />
-                    <span className="text-white font-medium">
-                      {comment.heartsCount}
-                    </span>
-                  </button>
-                  <button
-                    onClick={() => handleReplyClick(`comment-${comment.id}`)}
-                    className="px-3 py-2 rounded-xl text-white text-sm transition-colors hover:bg-gray-600 cursor-pointer"
-                    style={{ backgroundColor: "#282828" }}
-                  >
-                    Reply
-                  </button>
-                  {comment.replies && comment.replies.length > 0 && (
-                    <button
-                      onClick={() => onToggleReplies(comment.id)}
-                      className="text-gray-400 hover:text-white transition-colors text-sm"
-                    >
-                      {comment.showReplies ? "Hide" : "View"}{" "}
-                      {comment.replies.length} Replies
-                    </button>
-                  )}
-                  <button
-                    onClick={() => {
-                      // Handle more options menu for comment
-                    }}
-                    className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-600 transition-all duration-200 cursor-pointer ml-auto"
-                    style={{ backgroundColor: "#282828" }}
-                  >
-                    <MoreHorizontal size={14} />
-                  </button>
-                </div>
-              </div>
+        {/* Post Header */}
+        <div
+          className={`mb-6 pb-6 border-b border-gray-700 ${
+            isMobile ? "" : "flex-shrink-0"
+          }`}
+        >
+          {/* User Info Row */}
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
+              <span className="text-white text-sm font-semibold">
+                {post.username
+                  .split(" ")
+                  .map((n) => n[0])
+                  .join("")}
+              </span>
             </div>
+            <div>
+              <span className="text-white text-base font-medium">
+                {post.username}
+              </span>
+              <span className="text-gray-400 text-sm ml-2">
+                {post.timestamp}
+              </span>
+            </div>
+          </div>
 
-            {/* Reply Input for Comment */}
-            {activeReplyInput === `comment-${comment.id}` && (
-              <div className="ml-12 mt-4">
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder={`Reply to ${comment.username}...`}
-                    value={replyText}
-                    onChange={(e) => setReplyText(e.target.value)}
-                    className="w-full text-white placeholder-gray-400 rounded-xl px-4 py-3 pr-24 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    style={{ backgroundColor: "#4B5563" }}
-                    onKeyPress={(e) => {
-                      if (e.key === "Enter") {
-                        handleReplySubmit(`comment-${comment.id}`);
-                      }
-                    }}
-                  />
-                  <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex gap-2">
+          <h1 className="text-white text-2xl font-bold mb-3">{post.title}</h1>
+          <p className="text-gray-300 text-base leading-relaxed mb-4">
+            {post.description}
+          </p>
+
+          {/* Post Actions */}
+          <div className="flex items-center gap-3">
+            <button
+              ref={(el) => {
+                buttonRefs.current[`post-${post.id}`] = el;
+              }}
+              onClick={handlePostHeartClick}
+              className="px-3 py-2 rounded-lg flex items-center gap-1.5 text-sm transition-all duration-300 cursor-pointer transform hover:scale-105 active:scale-95"
+              style={{
+                backgroundColor: post.isHearted ? "transparent" : "#282828",
+                background: post.isHearted
+                  ? "linear-gradient(90.81deg, #9D638D 0.58%, #BF8EFF 99.31%)"
+                  : "#282828",
+              }}
+            >
+              <PresetEmoji type="HEART" size={16} />
+              <span className="text-white font-medium">{post.heartsCount}</span>
+            </button>
+            <div
+              className="px-3 py-2 rounded-lg flex items-center gap-1.5 text-sm"
+              style={{ backgroundColor: "#282828" }}
+            >
+              <PresetEmoji type="SPEECH_BUBBLE" size={16} />
+              <span className="text-white font-medium">
+                {post.commentsCount} Comments
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Comments Header */}
+        <div className={`mb-4 ${isMobile ? "" : "flex-shrink-0"}`}>
+          <h4 className="text-white font-semibold text-lg">
+            Comments ({post.comments.length})
+          </h4>
+        </div>
+
+        {/* Comments List */}
+        <div
+          ref={commentsContainerRef}
+          onScroll={handleScroll}
+          className={`space-y-6 scrollbar-hide relative ${
+            isMobile ? "" : "flex-1 overflow-y-auto min-h-0"
+          }`}
+        >
+          {post.comments.map((comment) => (
+            <div key={comment.id} className="space-y-4">
+              {/* Main Comment */}
+              <div className="flex space-x-4">
+                <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-white text-xs font-semibold">
+                    {comment.username
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")}
+                  </span>
+                </div>
+                <div className="flex-1 space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-gray-300 text-sm font-medium">
+                      {comment.username}
+                    </span>
+                    <span className="text-gray-500 text-xs">
+                      {comment.timestamp}
+                    </span>
+                  </div>
+                  <p className="text-white text-sm leading-relaxed">
+                    {comment.content}
+                  </p>
+                  <div className="flex items-center space-x-4 pt-2">
                     <button
-                      onClick={() => handleReplySubmit(`comment-${comment.id}`)}
-                      className="text-white hover:text-purple-400 cursor-pointer transition-all duration-300 p-1"
+                      ref={(el) => {
+                        buttonRefs.current[`comment-${comment.id}`] = el;
+                      }}
+                      onClick={() => handleCommentHeartClick(comment.id)}
+                      className="px-3 py-2 rounded-xl flex items-center gap-1.5 text-sm transition-all duration-300 cursor-pointer transform hover:scale-105 active:scale-95"
+                      style={{
+                        backgroundColor: comment.isHearted
+                          ? "transparent"
+                          : "#282828",
+                        background: comment.isHearted
+                          ? "linear-gradient(90.81deg, #9D638D 0.58%, #BF8EFF 99.31%)"
+                          : "#282828",
+                      }}
                     >
-                      <Send size={16} />
+                      <PresetEmoji type="HEART" size={14} />
+                      <span className="text-white font-medium">
+                        {comment.heartsCount}
+                      </span>
                     </button>
                     <button
-                      onClick={handleReplyCancel}
-                      className="text-gray-400 hover:text-white cursor-pointer transition-all duration-300 p-1"
+                      onClick={() => handleReplyClick(`comment-${comment.id}`)}
+                      className="px-3 py-2 rounded-xl text-white text-sm transition-colors hover:bg-gray-600 cursor-pointer"
+                      style={{ backgroundColor: "#282828" }}
                     >
-                      ✕
+                      Reply
+                    </button>
+                    {comment.replies && comment.replies.length > 0 && (
+                      <button
+                        onClick={() => onToggleReplies(comment.id)}
+                        className="text-gray-400 hover:text-white transition-colors text-sm"
+                      >
+                        {comment.showReplies ? "Hide" : "View"}{" "}
+                        {comment.replies.length} Replies
+                      </button>
+                    )}
+                    <button
+                      onClick={() => {
+                        // Handle more options menu for comment
+                      }}
+                      className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-600 transition-all duration-200 cursor-pointer ml-auto"
+                      style={{ backgroundColor: "#282828" }}
+                    >
+                      <MoreHorizontal size={14} />
                     </button>
                   </div>
                 </div>
               </div>
-            )}
 
-            {/* Replies */}
-            {comment.showReplies &&
-              comment.replies &&
-              comment.replies.length > 0 && (
-                <div className="ml-12 space-y-4 border-l-2 border-gray-700 pl-6">
-                  {comment.replies.map((reply) => (
-                    <div key={reply.id} className="flex space-x-3">
-                      <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
-                        <span className="text-white text-xs font-semibold">
-                          {reply.username.charAt(0)}
-                        </span>
-                      </div>
-                      <div className="flex-1 space-y-1">
-                        <div className="flex items-center space-x-2">
-                          <span className="text-gray-300 text-sm font-medium">
-                            {reply.username}
-                          </span>
-                          <span className="text-gray-500 text-xs">
-                            {reply.timestamp}
-                          </span>
-                        </div>
-                        <p className="text-white text-sm leading-relaxed">
-                          {reply.content}
-                        </p>
-                        <div className="flex items-center space-x-4 pt-2">
-                          <button
-                            ref={(el) => {
-                              buttonRefs.current[
-                                `reply-${comment.id}-${reply.id}`
-                              ] = el;
-                            }}
-                            onClick={() =>
-                              handleReplyHeartClick(comment.id, reply.id)
-                            }
-                            className="px-3 py-2 rounded-xl flex items-center gap-1.5 text-sm transition-all duration-300 cursor-pointer transform hover:scale-105 active:scale-95"
-                            style={{
-                              backgroundColor: reply.isHearted
-                                ? "transparent"
-                                : "#282828",
-                              background: reply.isHearted
-                                ? "linear-gradient(90.81deg, #9D638D 0.58%, #BF8EFF 99.31%)"
-                                : "#282828",
-                            }}
-                          >
-                            <PresetEmoji type="HEART" size={12} />
-                            <span className="text-white font-medium">
-                              {reply.heartsCount}
-                            </span>
-                          </button>
-                          <button
-                            onClick={() =>
-                              handleReplyClick(
-                                `reply-${comment.id}-${reply.id}`
-                              )
-                            }
-                            className="px-3 py-2 rounded-xl text-white text-sm transition-colors hover:bg-gray-600 cursor-pointer"
-                            style={{ backgroundColor: "#282828" }}
-                          >
-                            Reply
-                          </button>
-                          <button
-                            onClick={() => {
-                              // Handle more options menu for reply
-                            }}
-                            className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-600 transition-all duration-200 cursor-pointer ml-auto"
-                            style={{ backgroundColor: "#282828" }}
-                          >
-                            <MoreHorizontal size={12} />
-                          </button>
-                        </div>
-                      </div>
+              {/* Reply Input for Comment */}
+              {activeReplyInput === `comment-${comment.id}` && (
+                <div className="ml-12 mt-4">
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder={`Reply to ${comment.username}...`}
+                      value={replyText}
+                      onChange={(e) => setReplyText(e.target.value)}
+                      className="w-full text-white placeholder-gray-400 rounded-xl px-4 py-3 pr-24 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      style={{ backgroundColor: "#4B5563" }}
+                      onKeyPress={(e) => {
+                        if (e.key === "Enter") {
+                          handleReplySubmit(`comment-${comment.id}`);
+                        }
+                      }}
+                    />
+                    <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex gap-2">
+                      <button
+                        onClick={() =>
+                          handleReplySubmit(`comment-${comment.id}`)
+                        }
+                        className="text-white hover:text-purple-400 cursor-pointer transition-all duration-300 p-1"
+                      >
+                        <Send size={16} />
+                      </button>
+                      <button
+                        onClick={handleReplyCancel}
+                        className="text-gray-400 hover:text-white cursor-pointer transition-all duration-300 p-1"
+                      >
+                        ✕
+                      </button>
                     </div>
-                  ))}
-
-                  {/* Reply Input for Nested Replies - appears at bottom of all replies */}
-                  {comment.replies?.some(
-                    (reply) =>
-                      activeReplyInput === `reply-${comment.id}-${reply.id}`
-                  ) && (
-                    <div className="mt-4">
-                      <div className="relative">
-                        <input
-                          type="text"
-                          placeholder={`Reply to ${
-                            comment.replies?.find(
-                              (reply) =>
-                                activeReplyInput ===
-                                `reply-${comment.id}-${reply.id}`
-                            )?.username
-                          }...`}
-                          value={replyText}
-                          onChange={(e) => setReplyText(e.target.value)}
-                          className="w-full text-white placeholder-gray-400 rounded-xl px-4 py-3 pr-24 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-                          style={{ backgroundColor: "#4B5563" }}
-                          onKeyPress={(e) => {
-                            if (e.key === "Enter") {
-                              handleReplySubmit(activeReplyInput!);
-                            }
-                          }}
-                        />
-                        <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex gap-2">
-                          <button
-                            onClick={() => handleReplySubmit(activeReplyInput!)}
-                            className="text-white hover:text-purple-400 cursor-pointer transition-all duration-300 p-1"
-                          >
-                            <Send size={16} />
-                          </button>
-                          <button
-                            onClick={handleReplyCancel}
-                            className="text-gray-400 hover:text-white cursor-pointer transition-all duration-300 p-1"
-                          >
-                            ✕
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                  </div>
                 </div>
               )}
-          </div>
-        ))}
-      </div>
 
-      {/* Scroll Hint */}
-      {showScrollHint && post.comments.length > 3 && (
-        <div className="text-center py-2">
-          <p className="text-gray-400 text-xs">Scroll to view more comments</p>
+              {/* Replies */}
+              {comment.showReplies &&
+                comment.replies &&
+                comment.replies.length > 0 && (
+                  <div className="ml-12 space-y-4 border-l-2 border-gray-700 pl-6">
+                    {comment.replies.map((reply) => (
+                      <div key={reply.id} className="flex space-x-3">
+                        <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
+                          <span className="text-white text-xs font-semibold">
+                            {reply.username.charAt(0)}
+                          </span>
+                        </div>
+                        <div className="flex-1 space-y-1">
+                          <div className="flex items-center space-x-2">
+                            <span className="text-gray-300 text-sm font-medium">
+                              {reply.username}
+                            </span>
+                            <span className="text-gray-500 text-xs">
+                              {reply.timestamp}
+                            </span>
+                          </div>
+                          <p className="text-white text-sm leading-relaxed">
+                            {reply.content}
+                          </p>
+                          <div className="flex items-center space-x-4 pt-2">
+                            <button
+                              ref={(el) => {
+                                buttonRefs.current[
+                                  `reply-${comment.id}-${reply.id}`
+                                ] = el;
+                              }}
+                              onClick={() =>
+                                handleReplyHeartClick(comment.id, reply.id)
+                              }
+                              className="px-3 py-2 rounded-xl flex items-center gap-1.5 text-sm transition-all duration-300 cursor-pointer transform hover:scale-105 active:scale-95"
+                              style={{
+                                backgroundColor: reply.isHearted
+                                  ? "transparent"
+                                  : "#282828",
+                                background: reply.isHearted
+                                  ? "linear-gradient(90.81deg, #9D638D 0.58%, #BF8EFF 99.31%)"
+                                  : "#282828",
+                              }}
+                            >
+                              <PresetEmoji type="HEART" size={12} />
+                              <span className="text-white font-medium">
+                                {reply.heartsCount}
+                              </span>
+                            </button>
+                            <button
+                              onClick={() =>
+                                handleReplyClick(
+                                  `reply-${comment.id}-${reply.id}`
+                                )
+                              }
+                              className="px-3 py-2 rounded-xl text-white text-sm transition-colors hover:bg-gray-600 cursor-pointer"
+                              style={{ backgroundColor: "#282828" }}
+                            >
+                              Reply
+                            </button>
+                            <button
+                              onClick={() => {
+                                // Handle more options menu for reply
+                              }}
+                              className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-600 transition-all duration-200 cursor-pointer ml-auto"
+                              style={{ backgroundColor: "#282828" }}
+                            >
+                              <MoreHorizontal size={12} />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+
+                    {/* Reply Input for Nested Replies - appears at bottom of all replies */}
+                    {comment.replies?.some(
+                      (reply) =>
+                        activeReplyInput === `reply-${comment.id}-${reply.id}`
+                    ) && (
+                      <div className="mt-4">
+                        <div className="relative">
+                          <input
+                            type="text"
+                            placeholder={`Reply to ${
+                              comment.replies?.find(
+                                (reply) =>
+                                  activeReplyInput ===
+                                  `reply-${comment.id}-${reply.id}`
+                              )?.username
+                            }...`}
+                            value={replyText}
+                            onChange={(e) => setReplyText(e.target.value)}
+                            className="w-full text-white placeholder-gray-400 rounded-xl px-4 py-3 pr-24 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            style={{ backgroundColor: "#4B5563" }}
+                            onKeyPress={(e) => {
+                              if (e.key === "Enter") {
+                                handleReplySubmit(activeReplyInput!);
+                              }
+                            }}
+                          />
+                          <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex gap-2">
+                            <button
+                              onClick={() =>
+                                handleReplySubmit(activeReplyInput!)
+                              }
+                              className="text-white hover:text-purple-400 cursor-pointer transition-all duration-300 p-1"
+                            >
+                              <Send size={16} />
+                            </button>
+                            <button
+                              onClick={handleReplyCancel}
+                              className="text-gray-400 hover:text-white cursor-pointer transition-all duration-300 p-1"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+            </div>
+          ))}
         </div>
-      )}
 
-      {/* Comment Input */}
-      <div className="mt-6 pt-4 border-t border-gray-700 flex-shrink-0">
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="Add a comment..."
-            value={commentText}
-            onChange={(e) => setCommentText(e.target.value)}
-            className="w-full text-white placeholder-gray-400 rounded-xl px-4 py-3 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-            style={{ backgroundColor: "#4B5563" }}
-          />
-          <button className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white hover:text-purple-400 cursor-pointer transition-all duration-300">
-            <Send size={20} />
-          </button>
+        {/* Scroll Hint */}
+        {!isMobile && showScrollHint && post.comments.length > 3 && (
+          <div className="text-center py-2">
+            <p className="text-gray-400 text-xs">
+              Scroll to view more comments
+            </p>
+          </div>
+        )}
+
+        {/* Comment Input */}
+        <div
+          className={`mt-6 pt-4 border-t border-gray-700 ${
+            isMobile ? "" : "flex-shrink-0"
+          }`}
+        >
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Add a comment..."
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              className="w-full text-white placeholder-gray-400 rounded-xl px-4 py-3 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+              style={{ backgroundColor: "#4B5563" }}
+            />
+            <button className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white hover:text-purple-400 cursor-pointer transition-all duration-300">
+              <Send size={20} />
+            </button>
+          </div>
         </div>
       </div>
 

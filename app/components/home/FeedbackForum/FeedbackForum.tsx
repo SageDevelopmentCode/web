@@ -12,6 +12,7 @@ export default function FeedbackForum() {
   const [selectedPostId, setSelectedPostId] = useState<number | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [showBottomSheet, setShowBottomSheet] = useState(false);
+  const [isClosingBottomSheet, setIsClosingBottomSheet] = useState(false);
   const [bottomSheetView, setBottomSheetView] = useState<"list" | "details">(
     "list"
   );
@@ -43,8 +44,12 @@ export default function FeedbackForum() {
   };
 
   const handleCloseBottomSheet = () => {
-    setShowBottomSheet(false);
-    setSelectedPostId(null);
+    setIsClosingBottomSheet(true);
+    setTimeout(() => {
+      setShowBottomSheet(false);
+      setIsClosingBottomSheet(false);
+      setSelectedPostId(null);
+    }, 300); // Match the animation duration
   };
 
   const handleBackToList = () => {
@@ -145,24 +150,24 @@ export default function FeedbackForum() {
 
         {/* Header Section */}
         <div
-          className="rounded-3xl px-4 sm:px-10 py-6 mb-8"
+          className={`rounded-3xl mb-8 ${
+            isMobile ? "px-4 py-4" : "px-10 py-6"
+          }`}
           style={{ backgroundColor: "#282828" }}
         >
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
-            {/* Left Content */}
-            <div className="flex-1 text-center sm:text-left">
-              <h3 className="text-white text-xl sm:text-2xl font-bold mb-2">
-                Share your feedback:
-              </h3>
-              <p className="text-gray-300 text-sm sm:text-base">
-                What could we improve to better meet your needs?
-              </p>
-            </div>
-
-            {/* Right Content - Create Button */}
-            <div className="flex-shrink-0">
+          {isMobile ? (
+            /* Mobile Layout - Compact */
+            <div className="space-y-4">
+              <div className="text-center">
+                <h3 className="text-white text-lg font-bold mb-1">
+                  Share your feedback:
+                </h3>
+                <p className="text-gray-300 text-sm">
+                  What could we improve to better meet your needs?
+                </p>
+              </div>
               <button
-                className="px-8 py-3 text-white font-semibold rounded-full text-base cursor-pointer transition-opacity hover:opacity-90 flex items-center gap-2"
+                className="w-full py-3 text-white font-semibold rounded-full text-base cursor-pointer transition-opacity hover:opacity-90 flex items-center justify-center gap-2"
                 style={{
                   background:
                     "linear-gradient(90.81deg, #9D638D 0.58%, #BF8EFF 99.31%)",
@@ -173,7 +178,35 @@ export default function FeedbackForum() {
                 Create
               </button>
             </div>
-          </div>
+          ) : (
+            /* Desktop Layout */
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+              {/* Left Content */}
+              <div className="flex-1 text-center sm:text-left">
+                <h3 className="text-white text-xl sm:text-2xl font-bold mb-2">
+                  Share your feedback:
+                </h3>
+                <p className="text-gray-300 text-sm sm:text-base">
+                  What could we improve to better meet your needs?
+                </p>
+              </div>
+
+              {/* Right Content - Create Button */}
+              <div className="flex-shrink-0">
+                <button
+                  className="px-8 py-3 text-white font-semibold rounded-full text-base cursor-pointer transition-opacity hover:opacity-90 flex items-center gap-2"
+                  style={{
+                    background:
+                      "linear-gradient(90.81deg, #9D638D 0.58%, #BF8EFF 99.31%)",
+                  }}
+                  type="button"
+                >
+                  <Plus size={20} />
+                  Create
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Desktop Layout */}
@@ -205,10 +238,10 @@ export default function FeedbackForum() {
           </div>
         )}
 
-        {/* Mobile Layout - Top 5 Posts */}
+        {/* Mobile Layout - Top 3 Posts */}
         {isMobile && (
           <div className="space-y-4">
-            {posts.slice(0, 5).map((post) => (
+            {posts.slice(0, 3).map((post) => (
               <div
                 key={post.id}
                 onClick={() => handleSelectPost(post.id)}
@@ -297,19 +330,25 @@ export default function FeedbackForum() {
         {/* Mobile Bottom Sheet */}
         {isMobile && showBottomSheet && (
           <>
-            {/* Backdrop */}
+            {/* Backdrop Overlay */}
             <div
-              className="fixed inset-0 bg-black bg-opacity-50 z-40"
+              className="fixed inset-0 z-[100] transition-opacity duration-300"
+              style={{
+                backgroundColor: "rgba(0, 0, 0, 0.6)",
+                opacity: showBottomSheet && !isClosingBottomSheet ? 1 : 0,
+              }}
               onClick={handleCloseBottomSheet}
             />
 
             {/* Bottom Sheet */}
             <div
-              className="fixed bottom-0 left-0 right-0 bg-gray-900 rounded-t-3xl z-50 transform transition-transform duration-300"
-              style={{ height: "85vh" }}
+              className={`fixed bottom-0 left-0 right-0 rounded-t-3xl z-[101] ${
+                isClosingBottomSheet ? "animate-slide-down" : "animate-slide-up"
+              }`}
+              style={{ height: "90vh", backgroundColor: "#3C4806" }}
             >
               {/* Header */}
-              <div className="flex items-center justify-between p-4 border-b border-gray-700">
+              <div className="flex items-center justify-between p-4 ">
                 {bottomSheetView === "details" && (
                   <button
                     onClick={handleBackToList}
@@ -342,13 +381,14 @@ export default function FeedbackForum() {
                     isMobile={true}
                   />
                 ) : (
-                  <div className="p-4 h-full overflow-y-auto">
+                  <div className="p-4 h-full">
                     <FeedbackDetails
                       post={selectedPost}
                       onTogglePostHeart={handleTogglePostHeart}
                       onToggleCommentHeart={handleToggleCommentHeart}
                       onToggleReplyHeart={handleToggleReplyHeart}
                       onToggleReplies={handleToggleReplies}
+                      isMobile={true}
                     />
                   </div>
                 )}
@@ -371,6 +411,32 @@ export default function FeedbackForum() {
           -webkit-line-clamp: 3;
           -webkit-box-orient: vertical;
           overflow: hidden;
+        }
+
+        @keyframes slideUp {
+          0% {
+            transform: translateY(100%);
+          }
+          100% {
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes slideDown {
+          0% {
+            transform: translateY(0);
+          }
+          100% {
+            transform: translateY(100%);
+          }
+        }
+
+        .animate-slide-up {
+          animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        .animate-slide-down {
+          animation: slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
         }
       `}</style>
     </section>
