@@ -345,7 +345,7 @@ export default function FeedbackForum() {
               className={`fixed bottom-0 left-0 right-0 rounded-t-3xl z-[101] ${
                 isClosingBottomSheet ? "animate-slide-down" : "animate-slide-up"
               }`}
-              style={{ height: "90vh", backgroundColor: "#3C4806" }}
+              style={{ height: "95vh", backgroundColor: "#3C4806" }}
             >
               {/* Header */}
               <div className="flex items-center justify-between p-4 ">

@@ -206,13 +206,10 @@ export default function FeedbackDetails({
             ? "overflow-y-auto flex-1 scrollbar-hide"
             : "flex flex-col h-full"
         }
+        style={{}}
       >
         {/* Post Header */}
-        <div
-          className={`mb-6 pb-6 border-b border-gray-700 ${
-            isMobile ? "" : "flex-shrink-0"
-          }`}
-        >
+        <div className={`mb-6 pb-6  ${isMobile ? "" : "flex-shrink-0"}`}>
           {/* User Info Row */}
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
@@ -274,6 +271,25 @@ export default function FeedbackDetails({
             Comments ({post.comments.length})
           </h4>
         </div>
+
+        {/* Mobile Comment Input - Below Comments Header */}
+        {isMobile && (
+          <div className="mb-6 border-gray-700">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Add a comment..."
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
+                className="w-full text-white placeholder-gray-400 rounded-xl px-4 py-3 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                style={{ backgroundColor: "#4B5563" }}
+              />
+              <button className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white hover:text-purple-400 cursor-pointer transition-all duration-300">
+                <Send size={20} />
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Comments List */}
         <div
@@ -528,26 +544,24 @@ export default function FeedbackDetails({
           </div>
         )}
 
-        {/* Comment Input */}
-        <div
-          className={`mt-6 pt-4 border-t border-gray-700 ${
-            isMobile ? "" : "flex-shrink-0"
-          }`}
-        >
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Add a comment..."
-              value={commentText}
-              onChange={(e) => setCommentText(e.target.value)}
-              className="w-full text-white placeholder-gray-400 rounded-xl px-4 py-3 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-              style={{ backgroundColor: "#4B5563" }}
-            />
-            <button className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white hover:text-purple-400 cursor-pointer transition-all duration-300">
-              <Send size={20} />
-            </button>
+        {/* Comment Input - Desktop only (mobile version is positioned fixed below) */}
+        {!isMobile && (
+          <div className="mt-2 pt-2 flex-shrink-0">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Add a comment..."
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
+                className="w-full text-white placeholder-gray-400 rounded-xl px-4 py-3 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                style={{ backgroundColor: "#4B5563" }}
+              />
+              <button className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white hover:text-purple-400 cursor-pointer transition-all duration-300">
+                <Send size={20} />
+              </button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Floating Emoji Animation */}
