@@ -5,6 +5,7 @@ import Characters from "./components/home/Hero/Characters";
 import Starters from "./components/home/Starters/Starters";
 import Features from "./components/home/Features/Features";
 import FeedbackForum from "./components/home/FeedbackForum/FeedbackForum";
+import Timeline from "./components/home/Timeline/Timeline";
 import HeroSection from "./components/home/Hero/HeroSection";
 import BottomText from "./components/home/Hero/BottomText";
 
@@ -85,6 +86,9 @@ export default function Home() {
 
       {/* Feedback Forum Section */}
       <FeedbackForum />
+
+      {/* Timeline Section */}
+      <Timeline />
     </div>
   );
 }
