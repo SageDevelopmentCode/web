@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { Twemoji, EmojiMap } from "../../Twemoji";
 
 interface TimelineEntry {
   id: string;
@@ -8,32 +9,54 @@ interface TimelineEntry {
   month: string;
   title: string;
   description: string;
+  emoji?: string; // Optional emoji hex code for Twemoji
 }
 
 const timelineData: TimelineEntry[] = [
   {
     id: "1",
     year: "2024",
-    month: "May 2024",
-    title: "Start of Sage 🌱",
+    month: "October 2024",
+    title: "The idea was born.",
     description:
-      "We would onboard our first team member of the group, Detergent!",
+      "I teamed up with my co-founder, Sabrina Grace Obnamia, to create a Christian educational app/game designed for classrooms—something that could integrate faith-based learning into the daily lives of young students.",
+    emoji: EmojiMap.NEW, // 🌱 seedling
   },
   {
     id: "2",
     year: "2024",
-    month: "May 2024",
-    title: "Start of Sage 🌱",
+    month: "December 2024",
+    title: "Our first teammate joined",
     description:
-      "We would onboard our first team member of the group, Detergent!",
+      "We welcomed Lydia Cha, our illustrator and designer, who brought our vision to life by drawing all the biblical characters featured in the game.",
+    emoji: "1f3a8", // � artist palette
   },
   {
     id: "3",
     year: "2025",
     month: "January 2025",
-    title: "Start of Sage 🌱",
+    title: "A pivotal shift",
     description:
-      "We would onboard our first team member of the group, Detergent!",
+      "After facing the challenges of entering the education sector, we decided to pivot. Instead of building strictly for classrooms, we shifted our focus toward teenagers and young adults. That’s when the vision for what we’re building today came to life: a Christian self-care app that helps believers integrate their faith into everyday life—whether at school, at work, or at home—not just in church on Sundays.",
+    emoji: "1f504", // � counterclockwise arrows button
+  },
+  {
+    id: "4",
+    year: "2025",
+    month: "April 2025",
+    title: "First Pitch",
+    description:
+      "After a few months of building, we pitched at Biola University’s 2025 Startup Competition. We reached the final round and gained valuable feedback that shaped the next stage of development.",
+    emoji: "1f680", // 🚀 rocket
+  },
+  {
+    id: "5",
+    year: "2025",
+    month: "Augustl 2025",
+    title: "Gathering real-world feedback",
+    description:
+      "To better understand our users, we went beyond surveys and social media (Reddit, Instagram) and built this landing page to both showcase the app and collect feedback from the community.",
+    emoji: "1f310", // 🌐 globe with meridians
   },
 ];
 
@@ -101,8 +124,15 @@ export default function Timeline() {
                     <h3 className="text-[#FFF1B6] text-xl md:text-3xl font-bold mb-2">
                       {entry.month}
                     </h3>
-                    <h4 className="text-white text-lg md:text-xl font-semibold mb-2">
+                    <h4 className="text-white text-lg md:text-xl font-semibold mb-2 flex items-center gap-2">
                       {entry.title}
+                      {entry.emoji && (
+                        <Twemoji
+                          hex={entry.emoji}
+                          size={20}
+                          className="inline-block"
+                        />
+                      )}
                     </h4>
                   </div>
                   <p className="text-gray-300 text-sm md:text-base leading-relaxed">

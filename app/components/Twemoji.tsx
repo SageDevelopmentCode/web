@@ -17,6 +17,10 @@ const emojiAssets: { [key: string]: string } = {
   "1f4c8": "/assets/emojis/1f4c8.png", // 📈 trending up (for Top)
   "1f304": "/assets/emojis/1f304.png", // 🌄 sunrise over mountains (for New)
   "1f331": "/assets/emojis/1f331.png", // 🌱 seedling (for Upcoming)
+  "1f310": "/assets/emojis/1f310.png", // 🌐 globe with meridians
+  "1f3a8": "/assets/emojis/1f3a8.png", // 🎨 artist palette
+  "1f504": "/assets/emojis/1f504.png", // 🔄 counterclockwise arrows button
+  "1f680": "/assets/emojis/1f680.png", // 🚀 rocket
 };
 
 interface TwemojiProps {
@@ -125,6 +129,10 @@ export const EmojiMap = {
   TOP: "1f4c8", // 📈 trending up
   NEW: "1f331", // 🌱 seedling
   UPCOMING: "1f304", // 🌄 sunrise over mountains
+  GLOBE: "1f310", // 🌐 globe with meridians
+  PALETTE: "1f3a8", // 🎨 artist palette
+  REFRESH: "1f504", // 🔄 counterclockwise arrows button
+  ROCKET: "1f680", // 🚀 rocket
 } as const;
 
 /**
