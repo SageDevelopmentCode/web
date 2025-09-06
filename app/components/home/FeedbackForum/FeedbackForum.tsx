@@ -34,6 +34,7 @@ export default function FeedbackForum() {
   const handleSelectPost = (postId: number) => {
     setSelectedPostId(postId);
     if (isMobile) {
+      setShowBottomSheet(true);
       setBottomSheetView("details");
     }
   };

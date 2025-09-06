@@ -94,7 +94,7 @@ export default function FeedbackList({
   return (
     <div
       className={`w-full h-full flex flex-col feedback-list-container relative ${
-        isMobile ? "pb-4" : ""
+        isMobile ? "pb-8" : ""
       }`}
     >
       {/* Filter Tabs - Fixed position in mobile */}
@@ -161,7 +161,7 @@ export default function FeedbackList({
       {/* Posts List */}
       <div
         className={`flex-1 overflow-y-auto space-y-4 scrollbar-hide min-h-0 ${
-          isMobile ? "px-4" : ""
+          isMobile ? "px-4 pb-16" : ""
         }`}
       >
         {filteredPosts.map((post) => (
