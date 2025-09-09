@@ -10,6 +10,7 @@ interface TimelineEntry {
   title: string;
   description: string;
   emoji?: string; // Optional emoji hex code for Twemoji
+  links?: { [name: string]: string }; // Optional links for names in description
 }
 
 const timelineData: TimelineEntry[] = [
@@ -21,6 +22,9 @@ const timelineData: TimelineEntry[] = [
     description:
       "I teamed up with my co-founder, Sabrina Grace Obnamia, to create a Christian educational app/game designed for classrooms—something that could integrate faith-based learning into the daily lives of young students.",
     emoji: EmojiMap.NEW, // 🌱 seedling
+    links: {
+      "Sabrina Grace Obnamia": "https://www.linkedin.com/in/sabrinaobnamia/",
+    },
   },
   {
     id: "2",
@@ -29,7 +33,10 @@ const timelineData: TimelineEntry[] = [
     title: "Our first teammate joined",
     description:
       "We welcomed Lydia Cha, our illustrator and designer, who brought our vision to life by drawing all the biblical characters featured in the game.",
-    emoji: "1f3a8", // � artist palette
+    emoji: "1f3a8", // 🎨 artist palette
+    links: {
+      "Lydia Cha": "https://www.linkedin.com/in/lydia-cha/",
+    },
   },
   {
     id: "3",
@@ -46,19 +53,74 @@ const timelineData: TimelineEntry[] = [
     month: "April 2025",
     title: "First Pitch",
     description:
-      "After a few months of building, we pitched at Biola University’s 2025 Startup Competition. We reached the final round and gained valuable feedback that shaped the next stage of development.",
+      "After a few months of building, we pitched at Biola University's 2025 Startup Competition. We reached the final round and gained valuable feedback that shaped the next stage of development.",
     emoji: "1f680", // 🚀 rocket
+    links: {
+      "Biola University":
+        "https://www.linkedin.com/pulse/biola-startup-competition-18-teams-building-competing-mah-phd-mba-kg7ic/?trackingId=3lz11kYdSai9o1yKM4mD2Q%3D%3D",
+    },
   },
   {
     id: "5",
     year: "2025",
-    month: "Augustl 2025",
+    month: "August 2025",
     title: "Gathering real-world feedback",
     description:
       "To better understand our users, we went beyond surveys and social media (Reddit, Instagram) and built this landing page to both showcase the app and collect feedback from the community.",
     emoji: "1f310", // 🌐 globe with meridians
   },
 ];
+
+// Helper function to render descriptions with clickable links
+const renderDescriptionWithLinks = (
+  description: string,
+  links?: { [name: string]: string }
+) => {
+  if (!links || Object.keys(links).length === 0) {
+    return description;
+  }
+
+  const elements: React.ReactNode[] = [];
+  let remainingText = description;
+  let keyCounter = 0;
+
+  // Sort names by length (longest first) to avoid partial matches
+  const sortedNames = Object.keys(links).sort((a, b) => b.length - a.length);
+
+  for (const name of sortedNames) {
+    const nameIndex = remainingText.indexOf(name);
+    if (nameIndex !== -1) {
+      // Add text before the name
+      if (nameIndex > 0) {
+        elements.push(remainingText.substring(0, nameIndex));
+      }
+
+      // Add the clickable name
+      elements.push(
+        <a
+          key={`link-${keyCounter++}`}
+          href={links[name]}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[#FFF1B6] hover:text-white underline underline-offset-2 transition-colors duration-200"
+        >
+          {name}
+        </a>
+      );
+
+      // Update remaining text to process
+      remainingText = remainingText.substring(nameIndex + name.length);
+      break; // Process one name at a time to avoid conflicts
+    }
+  }
+
+  // Add any remaining text
+  if (remainingText) {
+    elements.push(remainingText);
+  }
+
+  return elements.length > 0 ? elements : description;
+};
 
 export default function Timeline() {
   const [isMobile, setIsMobile] = useState(false);
@@ -124,7 +186,7 @@ export default function Timeline() {
                     <h3 className="text-[#FFF1B6] text-xl md:text-3xl font-bold mb-2">
                       {entry.month}
                     </h3>
-                    <h4 className="text-white text-lg md:text-xl font-semibold mb-2 flex items-center gap-2">
+                    <h4 className="text-white text-lg md:text-xl font-bold mb-2 flex items-center gap-2">
                       {entry.title}
                       {entry.emoji && (
                         <Twemoji
@@ -136,7 +198,7 @@ export default function Timeline() {
                     </h4>
                   </div>
                   <p className="text-gray-300 text-sm md:text-base leading-relaxed">
-                    {entry.description}
+                    {renderDescriptionWithLinks(entry.description, entry.links)}
                   </p>
                 </div>
               </div>
