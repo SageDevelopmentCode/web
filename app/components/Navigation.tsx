@@ -26,7 +26,7 @@ export default function Navigation() {
   const menuItems = [
     { name: "Home", isActive: true },
     { name: "About", isActive: false },
-    { name: "Characters", isActive: false },
+    { name: "CharacterDex", isActive: false },
     { name: "Features", isActive: false },
   ];
 
