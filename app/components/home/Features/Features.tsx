@@ -20,6 +20,7 @@ export default function Features() {
 
   const featureCards = [
     {
+      id: "f47ac10b-58cc-4372-a567-0e02b2c3d479",
       title: "Get Started Easily",
       description:
         "Simple sign-up process to begin your spiritual journey with personalized guidance.",
@@ -35,6 +36,7 @@ export default function Features() {
       ],
     },
     {
+      id: "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
       title: "Set Meaningful Goals",
       description:
         "Create and track spiritual goals with inspiring ideas to grow your faith.",
@@ -50,6 +52,7 @@ export default function Features() {
       ],
     },
     {
+      id: "6ba7b811-9dad-11d1-80b4-00c04fd430c8",
       title: "Navigate Daily Challenges",
       description:
         "Balance your workday priorities while staying connected to your spiritual struggles.",
@@ -65,6 +68,7 @@ export default function Features() {
       ],
     },
     {
+      id: "6ba7b812-9dad-11d1-80b4-00c04fd430c8",
       title: "Daily Check-ins",
       description:
         "Regular spiritual check-ins to maintain accountability and track your progress.",
@@ -80,6 +84,7 @@ export default function Features() {
       ],
     },
     {
+      id: "6ba7b813-9dad-11d1-80b4-00c04fd430c8",
       title: "Immersive Bible Reading",
       description:
         "Engage with Scripture through interactive reading experiences and detailed insights.",
@@ -95,6 +100,7 @@ export default function Features() {
       ],
     },
     {
+      id: "6ba7b814-9dad-11d1-80b4-00c04fd430c8",
       title: "Community Discussions",
       description:
         "Connect with others through verse comments and meaningful conversation threads.",
@@ -110,6 +116,7 @@ export default function Features() {
       ],
     },
     {
+      id: "6ba7b815-9dad-11d1-80b4-00c04fd430c8",
       title: "Spiritual Battles",
       description:
         "Engage in spiritual warfare through interactive battles that strengthen your faith.",
@@ -125,6 +132,7 @@ export default function Features() {
       ],
     },
     {
+      id: "6ba7b816-9dad-11d1-80b4-00c04fd430c8",
       title: "Challenge Selection",
       description:
         "Choose your difficulty level and answer questions to test your biblical knowledge.",
@@ -243,7 +251,7 @@ export default function Features() {
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
           {featureCards.map((card, index) => (
-            <div key={index} className="flex-none">
+            <div key={card.id} className="flex-none">
               <FeatureCard
                 title={card.title}
                 description={card.description}
