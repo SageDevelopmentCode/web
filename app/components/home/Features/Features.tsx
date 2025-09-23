@@ -20,46 +20,122 @@ export default function Features() {
 
   const featureCards = [
     {
-      title: "Set goals with purpose",
-      description: "Stay close to God throughout your busy day.",
+      title: "Get Started Easily",
+      description:
+        "Simple sign-up process to begin your spiritual journey with personalized guidance.",
       images: [
         {
-          src: "/assets/feature_mockups/BibleReading.png",
-          alt: "Goals Interface",
+          src: "/assets/feature_mockups/SignUp.png",
+          alt: "Sign Up Interface",
         },
         {
-          src: "/assets/feature_mockups/BibleReadingCharacterPopup.png",
-          alt: "Goals Tracking",
+          src: "/assets/feature_mockups/Dashboard.png",
+          alt: "Dashboard Overview",
         },
       ],
     },
     {
-      title: "See what others are saying",
+      title: "Set Meaningful Goals",
       description:
-        "Connect with your community through shared experiences and insights.",
+        "Create and track spiritual goals with inspiring ideas to grow your faith.",
       images: [
         {
-          src: "/assets/feature_mockups/BibleReading.png",
-          alt: "Community Interface",
+          src: "/assets/feature_mockups/GoalsList.png",
+          alt: "Goals List",
         },
         {
-          src: "/assets/feature_mockups/BibleReadingCharacterPopup.png",
-          alt: "Community Comments",
+          src: "/assets/feature_mockups/GoalsIdeas.png",
+          alt: "Goal Ideas",
         },
       ],
     },
     {
-      title: "Deeper Bible Reading",
+      title: "Navigate Daily Challenges",
       description:
-        "Tap anything in Scripture for immediate context, character backgrounds, and historical details",
+        "Balance your workday priorities while staying connected to your spiritual struggles.",
       images: [
         {
-          src: "/assets/feature_mockups/BibleReading.png",
-          alt: "Bible Reading Interface",
+          src: "/assets/feature_mockups/Workday.png",
+          alt: "Workday Planning",
         },
         {
-          src: "/assets/feature_mockups/BibleReadingCharacterPopup.png",
-          alt: "Character Information Popup",
+          src: "/assets/feature_mockups/Struggles.png",
+          alt: "Spiritual Struggles",
+        },
+      ],
+    },
+    {
+      title: "Daily Check-ins",
+      description:
+        "Regular spiritual check-ins to maintain accountability and track your progress.",
+      images: [
+        {
+          src: "/assets/feature_mockups/CheckInOne.png",
+          alt: "Check-in Step One",
+        },
+        {
+          src: "/assets/feature_mockups/CheckInTwo.png",
+          alt: "Check-in Step Two",
+        },
+      ],
+    },
+    {
+      title: "Immersive Bible Reading",
+      description:
+        "Engage with Scripture through interactive reading experiences and detailed insights.",
+      images: [
+        {
+          src: "/assets/feature_mockups/Reading.png",
+          alt: "Bible Reading",
+        },
+        {
+          src: "/assets/feature_mockups/ReadingDetails.png",
+          alt: "Reading Details",
+        },
+      ],
+    },
+    {
+      title: "Community Discussions",
+      description:
+        "Connect with others through verse comments and meaningful conversation threads.",
+      images: [
+        {
+          src: "/assets/feature_mockups/VerseComments.png",
+          alt: "Verse Comments",
+        },
+        {
+          src: "/assets/feature_mockups/VerseThreads.png",
+          alt: "Discussion Threads",
+        },
+      ],
+    },
+    {
+      title: "Spiritual Battles",
+      description:
+        "Engage in spiritual warfare through interactive battles that strengthen your faith.",
+      images: [
+        {
+          src: "/assets/feature_mockups/Battle.png",
+          alt: "Battle Interface",
+        },
+        {
+          src: "/assets/feature_mockups/Battling.png",
+          alt: "Active Battle",
+        },
+      ],
+    },
+    {
+      title: "Challenge Selection",
+      description:
+        "Choose your difficulty level and answer questions to test your biblical knowledge.",
+      images: [
+        {
+          src: "/assets/feature_mockups/DifficultySelection.png",
+          alt: "Difficulty Selection",
+        },
+        {
+          src: "/assets/feature_mockups/AnswerSelection.png",
+          alt: "Answer Selection",
         },
       ],
     },
