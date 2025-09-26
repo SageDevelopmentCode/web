@@ -14,7 +14,10 @@ interface FeatureCardProps {
     alt: string;
   }[];
   gradient?: string;
-  onCommentToggle?: (isOpen: boolean) => void;
+  onCommentToggle?: (
+    isOpen: boolean,
+    featureData?: { title: string; images: { src: string; alt: string }[] }
+  ) => void;
   isMobile?: boolean;
   isCommentSidebarOpen?: boolean;
 }
@@ -352,7 +355,7 @@ export default function FeatureCard({
                   const newState = !isCommentPressed;
                   setIsCommentPressed(newState);
                   if (onCommentToggle) {
-                    onCommentToggle(newState);
+                    onCommentToggle(newState, { title, images });
                   }
                 }}
                 className={`rounded-full flex items-center justify-center transition-all duration-200 cursor-pointer flex-shrink-0 ${

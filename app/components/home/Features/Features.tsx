@@ -27,6 +27,10 @@ interface Reply {
 export default function Features() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isCommentsPopupOpen, setIsCommentsPopupOpen] = useState(false);
+  const [currentFeatureForComments, setCurrentFeatureForComments] = useState<{
+    title: string;
+    images: { src: string; alt: string }[];
+  } | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -116,16 +120,25 @@ export default function Features() {
   }, [isMobile, isCommentsPopupOpen]);
 
   // Handle comment popup toggle
-  const handleCommentToggle = (isOpen: boolean) => {
+  const handleCommentToggle = (
+    isOpen: boolean,
+    featureData?: { title: string; images: { src: string; alt: string }[] }
+  ) => {
     // Only show popup on desktop
     if (!isMobile) {
       setIsCommentsPopupOpen(isOpen);
+      if (isOpen && featureData) {
+        setCurrentFeatureForComments(featureData);
+      } else if (!isOpen) {
+        setCurrentFeatureForComments(null);
+      }
     }
   };
 
   // Handle popup close
   const handlePopupClose = () => {
     setIsCommentsPopupOpen(false);
+    setCurrentFeatureForComments(null);
   };
 
   // Toggle replies visibility
@@ -474,6 +487,7 @@ export default function Features() {
           isOpen={isCommentsPopupOpen && !isMobile}
           onClose={handlePopupClose}
           comments={comments}
+          featureData={currentFeatureForComments}
           onToggleReplies={toggleReplies}
           onToggleCommentHeart={toggleCommentHeart}
           onToggleReplyHeart={toggleReplyHeart}
