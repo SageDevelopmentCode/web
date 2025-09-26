@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import FeatureCard from "./FeatureCard";
-import DesktopComments from "./DesktopComments";
+import DesktopCommentsPopup from "./DesktopCommentsPopup";
 
 // Comment and Reply interfaces
 interface Comment {
@@ -26,7 +26,7 @@ interface Reply {
 
 export default function Features() {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isCommentsPopupOpen, setIsCommentsPopupOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -108,19 +108,24 @@ export default function Features() {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  // Handle sidebar toggle
+  // Handle mobile state changes - close popup if switching to mobile
+  useEffect(() => {
+    if (isMobile && isCommentsPopupOpen) {
+      setIsCommentsPopupOpen(false);
+    }
+  }, [isMobile, isCommentsPopupOpen]);
+
+  // Handle comment popup toggle
   const handleCommentToggle = (isOpen: boolean) => {
-    // Only show sidebar on desktop
+    // Only show popup on desktop
     if (!isMobile) {
-      setIsSidebarOpen(isOpen);
+      setIsCommentsPopupOpen(isOpen);
     }
   };
 
-  // Handle sidebar close
-  const handleSidebarClose = () => {
-    setIsSidebarOpen(false);
-    // Also notify all cards to deselect their comment buttons
-    // This will be handled by passing the sidebar state to cards
+  // Handle popup close
+  const handlePopupClose = () => {
+    setIsCommentsPopupOpen(false);
   };
 
   // Toggle replies visibility
@@ -393,14 +398,6 @@ export default function Features() {
       style={{ backgroundColor: "#3C4806" }}
     >
       <div className="max-w-none mx-auto px-4 relative">
-        {/* Overlay for sidebar */}
-        {isSidebarOpen && (
-          <div
-            className="fixed inset-0 z-40"
-            style={{ backgroundColor: "rgba(0, 0, 0, 0.4)" }}
-            onClick={handleSidebarClose}
-          />
-        )}
         {/* Section Title */}
         <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-white text-center mb-8">
           Features
@@ -409,9 +406,7 @@ export default function Features() {
         {/* Feature Cards Carousel */}
         <div
           ref={scrollContainerRef}
-          className={`flex gap-8 overflow-x-auto overflow-y-visible scrollbar-hide scroll-smooth mb-6 transition-all duration-300 ${
-            isSidebarOpen ? "pr-80" : ""
-          }`}
+          className="flex gap-8 overflow-x-auto overflow-y-visible scrollbar-hide scroll-smooth mb-6"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
           {featureCards.map((card, index) => (
@@ -423,7 +418,7 @@ export default function Features() {
                 gradient={gradientOptions[index % gradientOptions.length]}
                 onCommentToggle={handleCommentToggle}
                 isMobile={isMobile}
-                isCommentSidebarOpen={isSidebarOpen}
+                isCommentSidebarOpen={isCommentsPopupOpen}
               />
             </div>
           ))}
@@ -474,47 +469,15 @@ export default function Features() {
           </button>
         </div>
 
-        {/* Desktop Sidebar */}
-        {isSidebarOpen && !isMobile && (
-          <div
-            className="fixed top-0 right-0 h-full w-80 bg-[#1a1a1a] z-50 transform transition-transform duration-300"
-            style={{
-              transform: isSidebarOpen ? "translateX(0)" : "translateX(100%)",
-            }}
-          >
-            <div className="h-full flex flex-col">
-              {/* Header */}
-              <div className="flex items-center justify-between p-6 border-b border-gray-700">
-                <h4 className="text-white font-semibold text-lg">
-                  See what others are saying
-                </h4>
-                <button
-                  onClick={handleSidebarClose}
-                  className="text-gray-400 hover:text-white p-2 transition-colors"
-                >
-                  <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                  >
-                    <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
-                  </svg>
-                </button>
-              </div>
-
-              {/* Comments Content */}
-              <div className="flex-1 p-6">
-                <DesktopComments
-                  comments={comments}
-                  onToggleReplies={toggleReplies}
-                  onToggleCommentHeart={toggleCommentHeart}
-                  onToggleReplyHeart={toggleReplyHeart}
-                />
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Desktop Comments Popup */}
+        <DesktopCommentsPopup
+          isOpen={isCommentsPopupOpen && !isMobile}
+          onClose={handlePopupClose}
+          comments={comments}
+          onToggleReplies={toggleReplies}
+          onToggleCommentHeart={toggleCommentHeart}
+          onToggleReplyHeart={toggleReplyHeart}
+        />
       </div>
     </section>
   );
