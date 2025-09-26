@@ -11,9 +11,19 @@ interface SignupModalProps {
 export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
   const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
   const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isVisible, setIsVisible] = useState(false);
   const [showAvatars, setShowAvatars] = useState(false);
+  const [isVerificationStep, setIsVerificationStep] = useState(false);
+  const [verificationCode, setVerificationCode] = useState([
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+  ]);
 
   const characters = [
     "Daniel.PNG",
@@ -49,10 +59,45 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
   const handleClose = () => {
     setIsVisible(false);
     setShowAvatars(false);
+    // Reset states when closing
+    setIsVerificationStep(false);
+    setVerificationCode(["", "", "", "", "", ""]);
     // Delay the actual close to allow exit animation
     setTimeout(() => {
       onClose();
     }, 300);
+  };
+
+  const handleSignUp = () => {
+    if (!isVerificationStep) {
+      // Move to verification step
+      setIsVerificationStep(true);
+    } else {
+      // Handle verification (placeholder for now)
+      console.log("Verification code:", verificationCode.join(""));
+      // Could close modal or show success message here
+    }
+  };
+
+  const handleVerificationCodeChange = (index: number, value: string) => {
+    if (value.length <= 1 && /^\d*$/.test(value)) {
+      const newCode = [...verificationCode];
+      newCode[index] = value;
+      setVerificationCode(newCode);
+
+      // Auto-focus next input
+      if (value && index < 5) {
+        const nextInput = document.getElementById(`verification-${index + 1}`);
+        nextInput?.focus();
+      }
+    }
+  };
+
+  const handleVerificationKeyDown = (index: number, e: React.KeyboardEvent) => {
+    if (e.key === "Backspace" && !verificationCode[index] && index > 0) {
+      const prevInput = document.getElementById(`verification-${index - 1}`);
+      prevInput?.focus();
+    }
   };
 
   if (!isOpen) return null;
@@ -84,7 +129,7 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
         {/* Close button */}
         <button
           onClick={handleClose}
-          className="absolute top-4 right-4 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-white bg-opacity-20 hover:bg-opacity-30 transition-all"
+          className="absolute top-4 right-4 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-white bg-opacity-20 hover:bg-opacity-30 transition-all cursor-pointer"
         >
           <svg
             className="w-5 h-5 text-gray-600"
@@ -110,114 +155,184 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
             Sign Up to Provide Feedback or Comment
           </h2>
 
-          {/* Email Input */}
-          <div className="mb-6">
-            <input
-              type="email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-6 py-3 rounded-full border-none outline-none placeholder-gray-500"
-              style={{
-                backgroundColor: "#D6E5E2",
-                color: "#2F4A5D",
-              }}
-            />
-          </div>
-
-          {/* Password Input */}
-          <div className="mb-8">
-            <input
-              type="password"
-              placeholder="Create a Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-6 py-3 rounded-full border-none outline-none placeholder-gray-500"
-              style={{
-                backgroundColor: "#D6E5E2",
-                color: "#2F4A5D",
-              }}
-            />
-          </div>
-
-          {/* Avatar Selection */}
-          <div className="mb-8">
-            <p className="text-sm font-bold mb-4" style={{ color: "#2F4A5D" }}>
-              Select an Avatar
-            </p>
-            <div className="grid grid-cols-7 gap-3">
-              {characters.map((character, index) => (
-                <button
-                  key={character}
-                  onClick={() => setSelectedAvatar(character)}
-                  className={`w-12 h-12 cursor-pointer rounded-full overflow-hidden border-2 transition-all duration-300 transform ${
-                    showAvatars
-                      ? "opacity-100 scale-100 translate-y-0"
-                      : "opacity-0 scale-75 translate-y-2"
-                  } ${
-                    selectedAvatar === character
-                      ? "border-gray-600 scale-110"
-                      : "border-gray-300 hover:border-gray-400"
-                  }`}
+          {!isVerificationStep ? (
+            <>
+              {/* Email Input */}
+              <div className="mb-4">
+                <input
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full px-6 py-3 rounded-full border-none outline-none placeholder-gray-500"
                   style={{
                     backgroundColor: "#D6E5E2",
-                    transitionDelay: showAvatars ? `${index * 50}ms` : "0ms",
+                    color: "#2F4A5D",
                   }}
+                />
+              </div>
+
+              <div className="mb-4">
+                <input
+                  type="text"
+                  placeholder="Enter a Username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="w-full px-6 py-3 rounded-full border-none outline-none placeholder-gray-500"
+                  style={{
+                    backgroundColor: "#D6E5E2",
+                    color: "#2F4A5D",
+                  }}
+                />
+              </div>
+
+              {/* Password Input */}
+              <div className="mb-6">
+                <input
+                  type="password"
+                  placeholder="Create a Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full px-6 py-3 rounded-full border-none outline-none placeholder-gray-500"
+                  style={{
+                    backgroundColor: "#D6E5E2",
+                    color: "#2F4A5D",
+                  }}
+                />
+              </div>
+
+              {/* Avatar Selection */}
+              <div className="mb-8">
+                <p
+                  className="text-sm font-bold mb-4"
+                  style={{ color: "#2F4A5D" }}
                 >
-                  <Image
-                    src={`/assets/Characters/${character}`}
-                    alt={character.split(".")[0]}
-                    width={200}
-                    height={200}
-                    className="w-auto h-full object-cover"
-                    style={{
-                      transform:
-                        character === "Ruth.png"
-                          ? "scale(3.5) translateY(30%) translateX(10%)"
-                          : character === "Samson.png"
-                          ? "scale(3.5) translateY(28%) translateX(4%)"
-                          : character === "Deborah.png"
-                          ? "scale(3.5) translateY(30%) translateX(4%)"
-                          : character === "Noah.png"
-                          ? "scale(3.5) translateY(26%) translateX(4%)"
-                          : "scale(3.5) translateY(33%) translateX(4%)",
-                      objectPosition: "center 30%",
-                    }}
-                    quality={100}
-                  />
-                </button>
-              ))}
-            </div>
-          </div>
+                  Select an Avatar
+                </p>
+                <div className="grid grid-cols-7 gap-3">
+                  {characters.map((character, index) => (
+                    <button
+                      key={character}
+                      onClick={() => setSelectedAvatar(character)}
+                      className={`w-12 h-12 cursor-pointer rounded-full overflow-hidden border-2 transition-all duration-150 transform ${
+                        showAvatars
+                          ? "opacity-100 scale-100 translate-y-0"
+                          : "opacity-0 scale-75 translate-y-2"
+                      } ${
+                        selectedAvatar === character
+                          ? "border-gray-600"
+                          : "border-gray-300 hover:border-gray-400"
+                      }`}
+                      style={{
+                        backgroundColor: "#D6E5E2",
+                        transitionDelay: showAvatars
+                          ? `${index * 50}ms`
+                          : "0ms",
+                      }}
+                    >
+                      <Image
+                        src={`/assets/Characters/${character}`}
+                        alt={character.split(".")[0]}
+                        width={200}
+                        height={200}
+                        className={`w-auto h-full object-cover transition-all duration-150 ${
+                          selectedAvatar === character
+                            ? "opacity-100 grayscale-0"
+                            : "opacity-60 grayscale"
+                        }`}
+                        style={{
+                          transform:
+                            character === "Ruth.png"
+                              ? "scale(3.5) translateY(30%) translateX(10%)"
+                              : character === "Samson.png"
+                              ? "scale(3.5) translateY(28%) translateX(4%)"
+                              : character === "Deborah.png"
+                              ? "scale(3.5) translateY(30%) translateX(4%)"
+                              : character === "Noah.png"
+                              ? "scale(3.5) translateY(26%) translateX(4%)"
+                              : "scale(3.5) translateY(33%) translateX(4%)",
+                          objectPosition: "center 30%",
+                        }}
+                        quality={100}
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              {/* Verification Step */}
+              <div className="mb-8">
+                <p
+                  className="text-sm text-center mb-6"
+                  style={{ color: "#2F4A5D" }}
+                >
+                  We've sent a verification code to{" "}
+                  <strong>{email || "example@email.com"}</strong>
+                </p>
+
+                {/* 6-Digit Verification Code Input */}
+                <div className="flex justify-center gap-3 mb-6">
+                  {verificationCode.map((digit, index) => (
+                    <input
+                      key={index}
+                      id={`verification-${index}`}
+                      type="text"
+                      maxLength={1}
+                      value={digit}
+                      onChange={(e) =>
+                        handleVerificationCodeChange(index, e.target.value)
+                      }
+                      onKeyDown={(e) => handleVerificationKeyDown(index, e)}
+                      className="w-12 h-12 text-center text-lg font-bold rounded-lg border-none outline-none"
+                      style={{
+                        backgroundColor: "#D6E5E2",
+                        color: "#2F4A5D",
+                      }}
+                    />
+                  ))}
+                </div>
+
+                <p className="text-xs text-center" style={{ color: "#6B764C" }}>
+                  Didn't receive the code?{" "}
+                  <span className="underline cursor-pointer">Resend</span>
+                </p>
+              </div>
+            </>
+          )}
 
           {/* Sign Up Button */}
           <button
-            className="w-full py-3 text-white font-bold transition-all hover:opacity-90 cursor-pointer"
+            onClick={handleSignUp}
+            className="w-full py-3 text-white font-bold transition-all hover:opacity-90 cursor-pointer mb-12"
             style={{
               backgroundColor: "#778554",
               boxShadow: "0px 4px 0px 1px #57613B",
               borderRadius: "15px",
             }}
           >
-            Sign Up
+            {isVerificationStep ? "Verify Code" : "Sign Up"}
           </button>
 
-          {/* Login Link */}
-          <button
-            onClick={handleClose}
-            className="w-full items-center justify-center cursor-pointer"
-          >
-            <p
-              className="text-center text-sm mt-6 mb-6"
-              style={{ color: "#6B764C" }}
+          {!isVerificationStep && (
+            /* Login Link */
+            <button
+              onClick={handleClose}
+              className="w-full items-center justify-center cursor-pointer"
             >
-              Login with existing account
-            </p>
-          </button>
+              <p
+                className="text-center text-sm mt-6 mb-6"
+                style={{ color: "#6B764C" }}
+              >
+                Login with existing account
+              </p>
+            </button>
+          )}
         </div>
 
         {/* Background Image */}
-        <div className="relative h-28 overflow-hidden">
+        <div className="relative h-36 overflow-hidden">
           <Image
             src="/assets/AuthBackground.jpg"
             alt="Background"
