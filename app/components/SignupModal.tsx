@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 
 interface SignupModalProps {
@@ -12,6 +12,8 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
   const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isVisible, setIsVisible] = useState(false);
+  const [showAvatars, setShowAvatars] = useState(false);
 
   const characters = [
     "Daniel.PNG",
@@ -30,25 +32,58 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
     "Solomon.PNG",
   ];
 
+  useEffect(() => {
+    if (isOpen) {
+      setIsVisible(true);
+      // Start showing avatars with a slight delay after modal appears
+      const timer = setTimeout(() => {
+        setShowAvatars(true);
+      }, 200);
+      return () => clearTimeout(timer);
+    } else {
+      setIsVisible(false);
+      setShowAvatars(false);
+    }
+  }, [isOpen]);
+
+  const handleClose = () => {
+    setIsVisible(false);
+    setShowAvatars(false);
+    // Delay the actual close to allow exit animation
+    setTimeout(() => {
+      onClose();
+    }, 300);
+  };
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center">
+    <div
+      className={`fixed inset-0 z-[100] flex items-center justify-center transition-all duration-300 ${
+        isVisible ? "opacity-100" : "opacity-0"
+      }`}
+    >
       {/* Black overlay */}
       <div
-        className="absolute inset-0"
+        className={`absolute inset-0 transition-all duration-300 ${
+          isVisible ? "opacity-100" : "opacity-0"
+        }`}
         style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
-        onClick={onClose}
+        onClick={handleClose}
       />
 
       {/* Modal content */}
       <div
-        className="relative w-[90vw] max-w-lg mx-4 rounded-3xl overflow-hidden"
+        className={`relative w-[90vw] max-w-lg mx-4 rounded-3xl overflow-hidden transition-all duration-300 transform ${
+          isVisible
+            ? "opacity-100 scale-100 translate-y-0"
+            : "opacity-0 scale-95 translate-y-4"
+        }`}
         style={{ backgroundColor: "#CBE2D8" }}
       >
         {/* Close button */}
         <button
-          onClick={onClose}
+          onClick={handleClose}
           className="absolute top-4 right-4 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-white bg-opacity-20 hover:bg-opacity-30 transition-all"
         >
           <svg
@@ -115,12 +150,19 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
                 <button
                   key={character}
                   onClick={() => setSelectedAvatar(character)}
-                  className={`w-12 h-12 cursor-pointer rounded-full overflow-hidden border-2 transition-all ${
+                  className={`w-12 h-12 cursor-pointer rounded-full overflow-hidden border-2 transition-all duration-300 transform ${
+                    showAvatars
+                      ? "opacity-100 scale-100 translate-y-0"
+                      : "opacity-0 scale-75 translate-y-2"
+                  } ${
                     selectedAvatar === character
                       ? "border-gray-600 scale-110"
                       : "border-gray-300 hover:border-gray-400"
                   }`}
-                  style={{ backgroundColor: "#D6E5E2" }}
+                  style={{
+                    backgroundColor: "#D6E5E2",
+                    transitionDelay: showAvatars ? `${index * 50}ms` : "0ms",
+                  }}
                 >
                   <Image
                     src={`/assets/Characters/${character}`}
@@ -162,7 +204,7 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
 
           {/* Login Link */}
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="w-full items-center justify-center cursor-pointer"
           >
             <p
