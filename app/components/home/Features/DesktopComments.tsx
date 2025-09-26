@@ -62,16 +62,8 @@ export default function DesktopComments({
   };
 
   return (
-    <div
-      className="w-[300px] flex-shrink-0 bg-[#1a1a1a] rounded-3xl py-4 px-5 flex flex-col animate-slide-in"
-      style={{ height: "100%" }}
-    >
-      {/* Comments Header */}
-      <div className="flex items-center justify-between mb-4 pb-3">
-        <h4 className="text-white font-semibold text-lg">
-          See what others are saying
-        </h4>
-      </div>
+    <div className="flex-1 flex flex-col" style={{ height: "100%" }}>
+      {/* Comments Header - removed since it's now in the sidebar header */}
 
       {/* Comments List */}
       <div
@@ -183,7 +175,7 @@ export default function DesktopComments({
       )}
 
       {/* Comment Input */}
-      <div className="mt-4">
+      <div className="mt-4 border-t border-gray-700 pt-4">
         <div className="relative">
           <input
             type="text"
@@ -199,21 +191,6 @@ export default function DesktopComments({
 
       {/* CSS Styles */}
       <style jsx>{`
-        @keyframes slideIn {
-          0% {
-            opacity: 0;
-            transform: translateX(8px);
-          }
-          100% {
-            opacity: 1;
-            transform: translateX(0);
-          }
-        }
-
-        .animate-slide-in {
-          animation: slideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-        }
-
         /* Hide scrollbar while keeping scroll functionality */
         .scrollbar-hide {
           -ms-overflow-style: none; /* IE and Edge */

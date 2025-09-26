@@ -3,10 +3,164 @@
 import { useState, useRef, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import FeatureCard from "./FeatureCard";
+import DesktopComments from "./DesktopComments";
+
+// Comment and Reply interfaces
+interface Comment {
+  id: number;
+  username: string;
+  content: string;
+  timestamp: string;
+  replies?: Reply[];
+  showReplies?: boolean;
+  isHearted?: boolean;
+}
+
+interface Reply {
+  id: number;
+  username: string;
+  content: string;
+  timestamp: string;
+  isHearted?: boolean;
+}
 
 export default function Features() {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // Mock comments data
+  const [comments, setComments] = useState<Comment[]>([
+    {
+      id: 1,
+      username: "Tristan Kelly • 5d",
+      content:
+        "This was a very good verse that challenged me and spoke to my heart.",
+      timestamp: "5d",
+      showReplies: false,
+      isHearted: false,
+      replies: [
+        {
+          id: 1,
+          username: "Sarah M • 4d",
+          content: "I completely agree! This verse really touched me too.",
+          timestamp: "4d",
+          isHearted: false,
+        },
+        {
+          id: 2,
+          username: "David L • 3d",
+          content: "Such a powerful message. Thanks for sharing your thoughts!",
+          timestamp: "3d",
+          isHearted: false,
+        },
+      ],
+    },
+    {
+      id: 2,
+      username: "Tristan Kelly • 5d",
+      content:
+        "This was a very good verse that challenged me and spoke to my heart.",
+      timestamp: "5d",
+      showReplies: false,
+      isHearted: false,
+      replies: [
+        {
+          id: 3,
+          username: "Mary J • 2d",
+          content: "Beautiful reflection. God bless!",
+          timestamp: "2d",
+          isHearted: false,
+        },
+      ],
+    },
+    {
+      id: 3,
+      username: "Tristan Kelly • 5d",
+      content:
+        "This was a very good verse that challenged me and spoke to my heart.",
+      timestamp: "5d",
+      showReplies: false,
+      isHearted: false,
+      replies: [],
+    },
+    {
+      id: 4,
+      username: "Tristan Kelly • 5d",
+      content:
+        "This was a very good verse that challenged me and spoke to my heart.",
+      timestamp: "5d",
+      showReplies: false,
+      isHearted: false,
+      replies: [],
+    },
+  ]);
+
+  // Detect mobile screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  // Handle sidebar toggle
+  const handleCommentToggle = (isOpen: boolean) => {
+    // Only show sidebar on desktop
+    if (!isMobile) {
+      setIsSidebarOpen(isOpen);
+    }
+  };
+
+  // Handle sidebar close
+  const handleSidebarClose = () => {
+    setIsSidebarOpen(false);
+    // Also notify all cards to deselect their comment buttons
+    // This will be handled by passing the sidebar state to cards
+  };
+
+  // Toggle replies visibility
+  const toggleReplies = (commentId: number) => {
+    setComments((prevComments) =>
+      prevComments.map((comment) =>
+        comment.id === commentId
+          ? { ...comment, showReplies: !comment.showReplies }
+          : comment
+      )
+    );
+  };
+
+  // Toggle heart for comments
+  const toggleCommentHeart = (commentId: number) => {
+    setComments((prevComments) =>
+      prevComments.map((comment) =>
+        comment.id === commentId
+          ? { ...comment, isHearted: !comment.isHearted }
+          : comment
+      )
+    );
+  };
+
+  // Toggle heart for replies
+  const toggleReplyHeart = (commentId: number, replyId: number) => {
+    setComments((prevComments) =>
+      prevComments.map((comment) => {
+        if (comment.id === commentId && comment.replies) {
+          const updatedReplies = comment.replies.map((reply) =>
+            reply.id === replyId
+              ? { ...reply, isHearted: !reply.isHearted }
+              : reply
+          );
+          return { ...comment, replies: updatedReplies };
+        }
+        return comment;
+      })
+    );
+  };
 
   // Define gradient options for alternating cards
   const gradientOptions = [
@@ -235,10 +389,18 @@ export default function Features() {
 
   return (
     <section
-      className="pt-10 pb-16 sm:px-6 md:px-50 w-full max-w-full overflow-x-visible"
+      className="pt-10 pb-16 sm:px-6 md:px-50 w-full max-w-full overflow-x-visible relative"
       style={{ backgroundColor: "#3C4806" }}
     >
-      <div className="max-w-none mx-auto px-4">
+      <div className="max-w-none mx-auto px-4 relative">
+        {/* Overlay for sidebar */}
+        {isSidebarOpen && (
+          <div
+            className="fixed inset-0 z-40"
+            style={{ backgroundColor: "rgba(0, 0, 0, 0.4)" }}
+            onClick={handleSidebarClose}
+          />
+        )}
         {/* Section Title */}
         <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-white text-center mb-8">
           Features
@@ -247,7 +409,9 @@ export default function Features() {
         {/* Feature Cards Carousel */}
         <div
           ref={scrollContainerRef}
-          className="flex gap-8 overflow-x-auto overflow-y-visible scrollbar-hide scroll-smooth mb-6"
+          className={`flex gap-8 overflow-x-auto overflow-y-visible scrollbar-hide scroll-smooth mb-6 transition-all duration-300 ${
+            isSidebarOpen ? "pr-80" : ""
+          }`}
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
           {featureCards.map((card, index) => (
@@ -257,6 +421,9 @@ export default function Features() {
                 description={card.description}
                 images={card.images}
                 gradient={gradientOptions[index % gradientOptions.length]}
+                onCommentToggle={handleCommentToggle}
+                isMobile={isMobile}
+                isCommentSidebarOpen={isSidebarOpen}
               />
             </div>
           ))}
@@ -306,6 +473,48 @@ export default function Features() {
             />
           </button>
         </div>
+
+        {/* Desktop Sidebar */}
+        {isSidebarOpen && !isMobile && (
+          <div
+            className="fixed top-0 right-0 h-full w-80 bg-[#1a1a1a] z-50 transform transition-transform duration-300"
+            style={{
+              transform: isSidebarOpen ? "translateX(0)" : "translateX(100%)",
+            }}
+          >
+            <div className="h-full flex flex-col">
+              {/* Header */}
+              <div className="flex items-center justify-between p-6 border-b border-gray-700">
+                <h4 className="text-white font-semibold text-lg">
+                  See what others are saying
+                </h4>
+                <button
+                  onClick={handleSidebarClose}
+                  className="text-gray-400 hover:text-white p-2 transition-colors"
+                >
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
+                    <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Comments Content */}
+              <div className="flex-1 p-6">
+                <DesktopComments
+                  comments={comments}
+                  onToggleReplies={toggleReplies}
+                  onToggleCommentHeart={toggleCommentHeart}
+                  onToggleReplyHeart={toggleReplyHeart}
+                />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </section>
   );

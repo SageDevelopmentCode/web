@@ -217,7 +217,7 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
         </div>
 
         {/* Background Image */}
-        <div className="relative h-32 overflow-hidden">
+        <div className="relative h-28 overflow-hidden">
           <Image
             src="/assets/AuthBackground.jpg"
             alt="Background"

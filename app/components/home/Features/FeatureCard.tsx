@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Twemoji } from "../../Twemoji";
-import DesktopComments from "./DesktopComments";
 import MobileComments from "./MobileComments";
 
 type ReactionType = "dislike" | "meh" | "neutral" | "like" | "love";
@@ -15,6 +14,9 @@ interface FeatureCardProps {
     alt: string;
   }[];
   gradient?: string;
+  onCommentToggle?: (isOpen: boolean) => void;
+  isMobile?: boolean;
+  isCommentSidebarOpen?: boolean;
 }
 
 interface FloatingEmoji {
@@ -90,6 +92,9 @@ export default function FeatureCard({
   description,
   images,
   gradient = "linear-gradient(90.81deg, #4AA78B 0.58%, #68AFFF 99.31%)",
+  onCommentToggle,
+  isMobile = false,
+  isCommentSidebarOpen = false,
 }: FeatureCardProps) {
   const [selectedReaction, setSelectedReaction] = useState<ReactionType | null>(
     null
@@ -99,7 +104,6 @@ export default function FeatureCard({
   const [animatingReaction, setAnimatingReaction] =
     useState<ReactionType | null>(null);
   const [showReactionCounts, setShowReactionCounts] = useState<boolean>(false);
-  const [isMobile, setIsMobile] = useState<boolean>(false);
   const [isClosingBottomSheet, setIsClosingBottomSheet] =
     useState<boolean>(false);
   const [showOverlay, setShowOverlay] = useState<boolean>(false);
@@ -178,16 +182,12 @@ export default function FeatureCard({
   ]);
   const buttonRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
 
-  // Detect mobile screen size
+  // Sync comment button state with sidebar state
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
+    if (!isMobile && !isCommentSidebarOpen && isCommentPressed) {
+      setIsCommentPressed(false);
+    }
+  }, [isCommentSidebarOpen, isMobile, isCommentPressed]);
 
   // Handle overlay timing for bottom sheet
   useEffect(() => {
@@ -299,32 +299,20 @@ export default function FeatureCard({
   return (
     <div className="flex justify-center">
       <div
-        className={`feature-card-container rounded-3xl flex relative transition-all duration-400 ${
-          isMobile
-            ? "flex-col gap-4 p-4"
-            : isCommentPressed
-            ? "flex-row gap-6 p-6"
-            : "flex-col gap-6 p-6"
+        className={`feature-card-container rounded-3xl flex flex-col gap-6 relative ${
+          isMobile ? "p-4" : "p-6"
         }`}
         style={{
           backgroundColor: "#323817",
-          width: isMobile ? "340px" : isCommentPressed ? "900px" : "540px",
+          width: isMobile ? "340px" : "540px",
           height: isMobile ? "520px" : "590px",
-          transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
         }}
       >
         {/* Main Content Container */}
         <div
-          className={`flex flex-col flex-shrink-0 transition-all duration-400 ${
-            isMobile
-              ? "gap-4 w-full"
-              : isCommentPressed
-              ? "gap-6 w-[540px]"
-              : "gap-6 w-full"
-          }`}
+          className="flex flex-col flex-shrink-0 gap-6 w-full"
           style={{
             height: "100%",
-            transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
           }}
         >
           {/* Inner Gradient Rectangle */}
@@ -360,7 +348,13 @@ export default function FeatureCard({
               style={{ width: "10%" }}
             >
               <button
-                onClick={() => setIsCommentPressed(!isCommentPressed)}
+                onClick={() => {
+                  const newState = !isCommentPressed;
+                  setIsCommentPressed(newState);
+                  if (onCommentToggle) {
+                    onCommentToggle(newState);
+                  }
+                }}
                 className={`rounded-full flex items-center justify-center transition-all duration-200 cursor-pointer flex-shrink-0 ${
                   isMobile ? "px-3 py-3" : "px-4 py-4"
                 }`}
@@ -506,15 +500,7 @@ export default function FeatureCard({
           </div>
         </div>
 
-        {/* Comments Section - Desktop */}
-        {isCommentPressed && !isMobile && (
-          <DesktopComments
-            comments={comments}
-            onToggleReplies={toggleReplies}
-            onToggleCommentHeart={toggleCommentHeart}
-            onToggleReplyHeart={toggleReplyHeart}
-          />
-        )}
+        {/* Desktop comments are now handled by sidebar in Features component */}
 
         {/* Mobile Bottom Sheet - Comments */}
         <MobileComments
