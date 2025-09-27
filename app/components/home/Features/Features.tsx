@@ -4,6 +4,8 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import FeatureCard from "./FeatureCard";
 import DesktopCommentsPopup from "./DesktopCommentsPopup";
+import SignupModal from "../../navigation/SignupModal";
+import { useAuth } from "../../../../contexts/auth-context";
 
 // Comment and Reply interfaces
 interface Comment {
@@ -25,6 +27,7 @@ interface Reply {
 }
 
 export default function Features() {
+  const { user } = useAuth();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isCommentsPopupOpen, setIsCommentsPopupOpen] = useState(false);
   const [currentFeatureForComments, setCurrentFeatureForComments] = useState<{
@@ -32,6 +35,7 @@ export default function Features() {
     images: { src: string; alt: string }[];
   } | null>(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [isSignupModalOpen, setIsSignupModalOpen] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Mock comments data
@@ -139,6 +143,22 @@ export default function Features() {
   const handlePopupClose = () => {
     setIsCommentsPopupOpen(false);
     setCurrentFeatureForComments(null);
+  };
+
+  // Handle opening signup modal
+  const handleOpenSignupModal = () => {
+    setIsSignupModalOpen(true);
+  };
+
+  // Handle closing signup modal
+  const handleCloseSignupModal = () => {
+    setIsSignupModalOpen(false);
+  };
+
+  // Handle successful signup/login
+  const handleSignupSuccess = () => {
+    setIsSignupModalOpen(false);
+    // Optionally show a success message or refresh user data
   };
 
   // Toggle replies visibility
@@ -432,6 +452,8 @@ export default function Features() {
                 onCommentToggle={handleCommentToggle}
                 isMobile={isMobile}
                 isCommentSidebarOpen={isCommentsPopupOpen}
+                isUserSignedIn={!!user}
+                onOpenSignupModal={handleOpenSignupModal}
               />
             </div>
           ))}
@@ -491,6 +513,15 @@ export default function Features() {
           onToggleReplies={toggleReplies}
           onToggleCommentHeart={toggleCommentHeart}
           onToggleReplyHeart={toggleReplyHeart}
+          isUserSignedIn={!!user}
+          onOpenSignupModal={handleOpenSignupModal}
+        />
+
+        {/* Signup Modal */}
+        <SignupModal
+          isOpen={isSignupModalOpen}
+          onClose={handleCloseSignupModal}
+          onSignupSuccess={handleSignupSuccess}
         />
       </div>
     </section>

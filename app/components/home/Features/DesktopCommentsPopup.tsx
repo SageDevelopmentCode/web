@@ -31,6 +31,8 @@ interface DesktopCommentsPopupProps {
   onToggleReplies: (commentId: number) => void;
   onToggleCommentHeart: (commentId: number) => void;
   onToggleReplyHeart: (commentId: number, replyId: number) => void;
+  isUserSignedIn: boolean;
+  onOpenSignupModal: () => void;
 }
 
 export default function DesktopCommentsPopup({
@@ -41,6 +43,8 @@ export default function DesktopCommentsPopup({
   onToggleReplies,
   onToggleCommentHeart,
   onToggleReplyHeart,
+  isUserSignedIn,
+  onOpenSignupModal,
 }: DesktopCommentsPopupProps) {
   const [showScrollHint, setShowScrollHint] = useState(true);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -326,19 +330,36 @@ export default function DesktopCommentsPopup({
                 </div>
               )}
 
-              {/* Comment Input */}
+              {/* Comment Input or Signup Button */}
               <div className="mt-4 border-t border-gray-700 pt-4">
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="Say Something..."
-                    className="w-full text-white placeholder-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    style={{ backgroundColor: "#4B5563" }}
-                  />
-                  <button className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white hover:text-purple-400 cursor-pointer transition-all duration-300">
-                    <Send size={20} />
+                {isUserSignedIn ? (
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="Say Something..."
+                      className="w-full text-white placeholder-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      style={{ backgroundColor: "#4B5563" }}
+                    />
+                    <button className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white hover:text-purple-400 cursor-pointer transition-all duration-300">
+                      <Send size={20} />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => {
+                      onClose();
+                      onOpenSignupModal();
+                    }}
+                    className="w-full py-3 text-white font-bold transition-all hover:opacity-90 cursor-pointer"
+                    style={{
+                      backgroundColor: "#778554",
+                      boxShadow: "0px 4px 0px 1px #57613B",
+                      borderRadius: "15px",
+                    }}
+                  >
+                    Sign up or login to comment
                   </button>
-                </div>
+                )}
               </div>
             </div>
           </div>

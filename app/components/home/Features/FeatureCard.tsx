@@ -20,6 +20,8 @@ interface FeatureCardProps {
   ) => void;
   isMobile?: boolean;
   isCommentSidebarOpen?: boolean;
+  isUserSignedIn?: boolean;
+  onOpenSignupModal?: () => void;
 }
 
 interface FloatingEmoji {
@@ -98,6 +100,8 @@ export default function FeatureCard({
   onCommentToggle,
   isMobile = false,
   isCommentSidebarOpen = false,
+  isUserSignedIn = false,
+  onOpenSignupModal,
 }: FeatureCardProps) {
   const [selectedReaction, setSelectedReaction] = useState<ReactionType | null>(
     null
@@ -515,6 +519,8 @@ export default function FeatureCard({
           onToggleReplies={toggleReplies}
           onToggleCommentHeart={toggleCommentHeart}
           onToggleReplyHeart={toggleReplyHeart}
+          isUserSignedIn={isUserSignedIn}
+          onOpenSignupModal={onOpenSignupModal || (() => {})}
         />
 
         {/* Floating Emoji Animation */}
