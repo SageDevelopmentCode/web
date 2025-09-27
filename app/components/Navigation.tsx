@@ -132,7 +132,7 @@ export default function Navigation() {
               <button
                 onClick={toggleUserDropdown}
                 disabled={isLoading}
-                className={`w-12 h-12 cursor-pointer rounded-full overflow-hidden border-2 transition-all duration-150 transform hover:border-gray-400 ${
+                className={`w-10 h-10 cursor-pointer rounded-full overflow-hidden border-2 transition-all duration-150 transform hover:border-gray-400 ${
                   isLoading
                     ? "opacity-50 cursor-not-allowed"
                     : "border-gray-300"

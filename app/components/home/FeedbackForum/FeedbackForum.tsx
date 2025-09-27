@@ -140,6 +140,7 @@ export default function FeedbackForum() {
 
   return (
     <section
+      id="feedback-forum"
       className="pt-10 pb-16 px-4 sm:px-6 md:px-8 w-full"
       style={{ backgroundColor: "#3C4806" }}
     >

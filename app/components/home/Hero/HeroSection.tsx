@@ -1,13 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import { useAuth } from "../../../../contexts/auth-context";
 
 export default function HeroSection() {
   const [email, setEmail] = useState("");
+  const { user } = useAuth();
 
   const handleSubscribe = () => {
     // Handle subscription logic here
-    console.log("Subscribing email:", email);
+    const emailToSubscribe = user?.email || email;
+    console.log("Subscribing email:", emailToSubscribe);
   };
 
   return (
@@ -41,16 +44,18 @@ export default function HeroSection() {
 
       {/* Mobile Layout - Separated Components */}
       <div className="mt-8 sm:hidden w-full max-w-xs fade-in-up delay-4 px-0 flex flex-col gap-3">
-        <input
-          type="email"
-          placeholder="Enter your email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full text-white placeholder-gray-400 px-6 py-4 rounded-full focus:outline-none text-sm"
-          style={{
-            backgroundColor: "#282828",
-          }}
-        />
+        {!user && (
+          <input
+            type="email"
+            placeholder="Enter your email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full text-white placeholder-gray-400 px-6 py-4 rounded-full focus:outline-none text-sm"
+            style={{
+              backgroundColor: "#282828",
+            }}
+          />
+        )}
         <button
           onClick={handleSubscribe}
           className="w-full px-6 py-3 text-white font-semibold rounded-full text-sm cursor-pointer"
@@ -58,6 +63,7 @@ export default function HeroSection() {
             background:
               "linear-gradient(90.81deg, #9D638D 0.58%, #BF8EFF 99.31%)",
             pointerEvents: "auto",
+            boxShadow: "0px 4px 0px 1px #764B6F",
           }}
           type="button"
         >
@@ -67,32 +73,50 @@ export default function HeroSection() {
 
       {/* Desktop Layout - Connected Components */}
       <div className="hidden sm:block mt-12 w-full max-w-md fade-in-up delay-4 px-4">
-        <div
-          className="relative flex items-center rounded-full p-2"
-          style={{
-            backgroundColor: "#282828",
-          }}
-        >
-          <input
-            type="email"
-            placeholder="Enter your email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="flex-1 bg-transparent text-white placeholder-gray-400 px-4 py-2 rounded-full focus:outline-none text-base"
-          />
+        {user ? (
+          // Logged in user - just show the subscribe button
           <button
             onClick={handleSubscribe}
-            className="px-6 py-2 text-white font-semibold rounded-full text-base cursor-pointer"
+            className="w-full px-6 py-3 text-white font-semibold rounded-full text-base cursor-pointer"
             style={{
               background:
                 "linear-gradient(90.81deg, #9D638D 0.58%, #BF8EFF 99.31%)",
               pointerEvents: "auto",
+              boxShadow: "0px 4px 0px 1px #764B6F",
             }}
             type="button"
           >
             Subscribe
           </button>
-        </div>
+        ) : (
+          // Not logged in - show email input with subscribe button
+          <div
+            className="relative flex items-center rounded-full p-2"
+            style={{
+              backgroundColor: "#282828",
+            }}
+          >
+            <input
+              type="email"
+              placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="flex-1 bg-transparent text-white placeholder-gray-400 px-4 py-2 rounded-full focus:outline-none text-base"
+            />
+            <button
+              onClick={handleSubscribe}
+              className="px-6 py-2 text-white font-semibold rounded-full text-base cursor-pointer"
+              style={{
+                background:
+                  "linear-gradient(90.81deg, #9D638D 0.58%, #BF8EFF 99.31%)",
+                pointerEvents: "auto",
+              }}
+              type="button"
+            >
+              Subscribe
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
