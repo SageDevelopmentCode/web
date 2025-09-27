@@ -79,6 +79,7 @@ export default function Navigation() {
           {/* User Avatar Dropdown - Desktop */}
           {user && userProfile?.profile_picture && (
             <UserAvatar
+              user={user}
               userProfile={{ profile_picture: userProfile.profile_picture }}
               isLoading={isLoading}
               onSignOut={signOut}
@@ -104,6 +105,7 @@ export default function Navigation() {
           {/* User Avatar as Logo on Left - Mobile */}
           {user && userProfile?.profile_picture && (
             <UserAvatar
+              user={user}
               userProfile={{ profile_picture: userProfile.profile_picture }}
               isLoading={isLoading}
               onSignOut={signOut}

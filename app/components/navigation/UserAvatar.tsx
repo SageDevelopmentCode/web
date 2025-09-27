@@ -4,6 +4,12 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 
 interface UserAvatarProps {
+  user: {
+    email?: string;
+    user_metadata?: {
+      display_name?: string;
+    };
+  };
   userProfile: {
     profile_picture: string;
   };
@@ -33,6 +39,7 @@ const characterExtensions: Record<string, string> = {
 };
 
 export default function UserAvatar({
+  user,
   userProfile,
   isLoading,
   onSignOut,
@@ -144,24 +151,112 @@ export default function UserAvatar({
         {/* Desktop Dropdown Menu */}
         {!isMobile && isUserDropdownOpen && (
           <div
-            className={`absolute ${dropdownPositionClass} top-full mt-2 py-2 ${config.dropdownWidth} rounded-lg shadow-lg transition-all duration-200 z-50`}
+            className={`absolute ${dropdownPositionClass} top-full mt-2 py-5 px-1 w-72 rounded-lg shadow-lg transition-all duration-200 z-50`}
             style={{
               backgroundColor: "#CBE2D8",
               border: "1px solid rgba(0, 0, 0, 0.1)",
             }}
           >
-            <button
-              onClick={handleSignOut}
-              disabled={isLoading}
-              className={`w-full text-left ${config.padding} ${
-                config.textSize
-              } font-bold transition-all hover:bg-black hover:bg-opacity-10 ${
-                isLoading ? "opacity-50 cursor-not-allowed" : ""
-              }`}
-              style={{ color: "#2F4A5D" }}
-            >
-              Sign Out
-            </button>
+            {/* User Info Section */}
+            <div className="px-4 pb-3 border-b border-gray-300">
+              {/* Avatar */}
+              <div className="flex justify-center mb-3">
+                <div
+                  className="w-16 h-16 rounded-full overflow-hidden border-2 border-gray-300"
+                  style={{ backgroundColor: "#D6E5E2" }}
+                >
+                  <Image
+                    src={`/assets/Characters/${userProfile.profile_picture}${
+                      characterExtensions[userProfile.profile_picture] || ".png"
+                    }`}
+                    alt={userProfile.profile_picture}
+                    width={200}
+                    height={200}
+                    className="w-auto h-full object-cover opacity-100 grayscale-0"
+                    style={{
+                      transform:
+                        userProfile.profile_picture === "Ruth"
+                          ? "scale(3.5) translateY(30%) translateX(10%)"
+                          : userProfile.profile_picture === "Samson"
+                          ? "scale(3.5) translateY(28%) translateX(4%)"
+                          : userProfile.profile_picture === "Deborah"
+                          ? "scale(3.5) translateY(30%) translateX(4%)"
+                          : userProfile.profile_picture === "Noah"
+                          ? "scale(3.5) translateY(26%) translateX(4%)"
+                          : "scale(3.5) translateY(33%) translateX(4%)",
+                      objectPosition: "center 30%",
+                    }}
+                    quality={100}
+                  />
+                </div>
+              </div>
+
+              {/* Display Name */}
+              <div className="text-center mb-1">
+                <div className="font-bold text-lg" style={{ color: "#2F4A5D" }}>
+                  {user.user_metadata?.display_name || "User"}
+                </div>
+              </div>
+
+              {/* Email */}
+              <div className="text-center">
+                <div
+                  className="text-sm opacity-75"
+                  style={{ color: "#2F4A5D" }}
+                >
+                  {user.email}
+                </div>
+              </div>
+            </div>
+
+            {/* Options Section */}
+            <div className="py-2">
+              <button
+                className="w-full text-left px-4 py-2 text-sm font-medium rounded-lg transition-all hover:bg-white hover:bg-opacity-30 cursor-pointer"
+                style={{ color: "#2F4A5D" }}
+                onClick={() => {
+                  /* TODO: Change Email */
+                }}
+              >
+                Change Email
+              </button>
+              <button
+                className="w-full text-left px-4 py-2 text-sm font-medium rounded-lg transition-all hover:bg-white hover:bg-opacity-30 cursor-pointer"
+                style={{ color: "#2F4A5D" }}
+                onClick={() => {
+                  /* TODO: Change Display Name */
+                }}
+              >
+                Change Display Name
+              </button>
+              <button
+                className="w-full text-left px-4 py-2 text-sm font-medium rounded-lg transition-all hover:bg-white hover:bg-opacity-30 cursor-pointer"
+                style={{ color: "#2F4A5D" }}
+                onClick={() => {
+                  /* TODO: Change Avatar */
+                }}
+              >
+                Change Avatar
+              </button>
+            </div>
+
+            {/* Sign Out Button */}
+            <div className="px-4 pt-2 border-t border-gray-300">
+              <button
+                onClick={handleSignOut}
+                disabled={isLoading}
+                className={`w-full py-3 text-white font-bold transition-all hover:opacity-90 cursor-pointer ${
+                  isLoading ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+                style={{
+                  backgroundColor: "#778554",
+                  boxShadow: "0px 4px 0px 1px #57613B",
+                  borderRadius: "15px",
+                }}
+              >
+                {isLoading ? "Signing Out..." : "Sign Out"}
+              </button>
+            </div>
           </div>
         )}
 
@@ -197,17 +292,109 @@ export default function UserAvatar({
 
               {/* Content */}
               <div className="px-6 pb-8">
+                {/* User Info Section */}
+                <div className="pb-6 border-b border-gray-300 mb-6">
+                  {/* Avatar */}
+                  <div className="flex justify-center mb-4">
+                    <div
+                      className="w-20 h-20 rounded-full overflow-hidden border-2 border-gray-300"
+                      style={{ backgroundColor: "#D6E5E2" }}
+                    >
+                      <Image
+                        src={`/assets/Characters/${
+                          userProfile.profile_picture
+                        }${
+                          characterExtensions[userProfile.profile_picture] ||
+                          ".png"
+                        }`}
+                        alt={userProfile.profile_picture}
+                        width={200}
+                        height={200}
+                        className="w-auto h-full object-cover opacity-100 grayscale-0"
+                        style={{
+                          transform:
+                            userProfile.profile_picture === "Ruth"
+                              ? "scale(3.5) translateY(30%) translateX(10%)"
+                              : userProfile.profile_picture === "Samson"
+                              ? "scale(3.5) translateY(28%) translateX(4%)"
+                              : userProfile.profile_picture === "Deborah"
+                              ? "scale(3.5) translateY(30%) translateX(4%)"
+                              : userProfile.profile_picture === "Noah"
+                              ? "scale(3.5) translateY(26%) translateX(4%)"
+                              : "scale(3.5) translateY(33%) translateX(4%)",
+                          objectPosition: "center 30%",
+                        }}
+                        quality={100}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Display Name */}
+                  <div className="text-center mb-2">
+                    <div
+                      className="font-bold text-xl"
+                      style={{ color: "#2F4A5D" }}
+                    >
+                      {user.user_metadata?.display_name || "User"}
+                    </div>
+                  </div>
+
+                  {/* Email */}
+                  <div className="text-center">
+                    <div
+                      className="text-base opacity-75"
+                      style={{ color: "#2F4A5D" }}
+                    >
+                      {user.email}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Options Section */}
+                <div className="space-y-3 mb-6">
+                  <button
+                    className="w-full text-center py-3 text-base font-medium rounded-lg transition-all hover:bg-white hover:bg-opacity-30"
+                    style={{ color: "#2F4A5D" }}
+                    onClick={() => {
+                      /* TODO: Change Email */
+                    }}
+                  >
+                    Change Email
+                  </button>
+                  <button
+                    className="w-full text-center py-3 text-base font-medium rounded-lg transition-all hover:bg-white hover:bg-opacity-30"
+                    style={{ color: "#2F4A5D" }}
+                    onClick={() => {
+                      /* TODO: Change Display Name */
+                    }}
+                  >
+                    Change Display Name
+                  </button>
+                  <button
+                    className="w-full text-center py-3 text-base font-medium rounded-lg transition-all hover:bg-white hover:bg-opacity-30"
+                    style={{ color: "#2F4A5D" }}
+                    onClick={() => {
+                      /* TODO: Change Avatar */
+                    }}
+                  >
+                    Change Avatar
+                  </button>
+                </div>
+
+                {/* Sign Out Button */}
                 <button
                   onClick={handleSignOut}
                   disabled={isLoading}
-                  className={`w-full text-center py-4 text-lg font-bold rounded-lg transition-all ${
-                    isLoading
-                      ? "opacity-50 cursor-not-allowed"
-                      : "hover:bg-black hover:bg-opacity-10"
+                  className={`w-full py-4 text-white font-bold text-lg transition-all hover:opacity-90 cursor-pointer ${
+                    isLoading ? "opacity-50 cursor-not-allowed" : ""
                   }`}
-                  style={{ color: "#2F4A5D" }}
+                  style={{
+                    backgroundColor: "#778554",
+                    boxShadow: "0px 4px 0px 1px #57613B",
+                    borderRadius: "15px",
+                  }}
                 >
-                  Sign Out
+                  {isLoading ? "Signing Out..." : "Sign Out"}
                 </button>
               </div>
             </div>
