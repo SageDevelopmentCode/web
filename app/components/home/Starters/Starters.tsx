@@ -208,9 +208,9 @@ export default function Starters() {
                       alt={character.name}
                       width={288}
                       height={288}
-                      className="object-cover w-full h-full"
+                      className="object-cover w-full h-auto"
                       style={{
-                        objectPosition: "center -50%",
+                        transform: "translateY(10%)",
                       }}
                     />
                   </div>
