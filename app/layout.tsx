@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Nunito } from "next/font/google";
 import "./globals.css";
+import { AuthProvider } from "../contexts/auth-context";
 
 const nunito = Nunito({
   variable: "--font-nunito",
@@ -24,7 +25,7 @@ export default function RootLayout({
         className={`${nunito.variable} antialiased`}
         style={{ overflowX: "hidden" }}
       >
-        {children}
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );

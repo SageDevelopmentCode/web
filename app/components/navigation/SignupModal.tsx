@@ -9,9 +9,14 @@ import { supabase } from "../../../lib/supabase";
 interface SignupModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSignupSuccess?: () => void;
 }
 
-export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
+export default function SignupModal({
+  isOpen,
+  onClose,
+  onSignupSuccess,
+}: SignupModalProps) {
   const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
@@ -202,8 +207,9 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
 
         setSuccessMessage("Email verified successfully! Welcome!");
 
-        // Close modal after a short delay
+        // Call success callback and close modal after a short delay
         setTimeout(() => {
+          onSignupSuccess?.();
           handleClose();
         }, 2000);
       } catch (error) {

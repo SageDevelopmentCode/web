@@ -3,11 +3,15 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import SignupModal from "./navigation/SignupModal";
+import { useAuth } from "../../contexts/auth-context";
 
 export default function Navigation() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isSignupModalOpen, setIsSignupModalOpen] = useState(false);
+
+  // Get auth state from context
+  const { user, isLoading, signOut } = useAuth();
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -30,12 +34,25 @@ export default function Navigation() {
     { name: "About", isActive: false },
     { name: "CharacterDex", isActive: false },
     // { name: "Features", isActive: false },
-    { name: "Sign In / Sign Up", isActive: false },
+    {
+      name: user ? "Sign Out" : "Sign In / Sign Up",
+      isActive: false,
+    },
   ];
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
+  };
 
   const handleMenuClick = (itemName: string) => {
     if (itemName === "Sign In / Sign Up") {
       setIsSignupModalOpen(true);
+    } else if (itemName === "Sign Out") {
+      handleSignOut();
     }
   };
 
@@ -48,7 +65,10 @@ export default function Navigation() {
             <button
               key={item.name}
               onClick={() => handleMenuClick(item.name)}
-              className="px-3 lg:px-5 py-2 rounded-xl text-white font-bold transition-all hover:opacity-80 cursor-pointer text-sm lg:text-base"
+              disabled={isLoading}
+              className={`px-3 lg:px-5 py-2 rounded-xl text-white font-bold transition-all hover:opacity-80 cursor-pointer text-sm lg:text-base ${
+                isLoading ? "opacity-50 cursor-not-allowed" : ""
+              }`}
               style={{
                 background: item.isActive
                   ? "linear-gradient(90.81deg, #9D638D 0.58%, #BF8EFF 99.31%)"
@@ -143,7 +163,10 @@ export default function Navigation() {
                     handleMenuClick(item.name);
                     setIsMobileMenuOpen(false);
                   }}
-                  className="w-full text-left px-6 py-4 text-white font-bold transition-all hover:bg-black hover:bg-opacity-10 border-b last:border-b-0"
+                  disabled={isLoading}
+                  className={`w-full text-left px-6 py-4 text-white font-bold transition-all hover:bg-black hover:bg-opacity-10 border-b last:border-b-0 ${
+                    isLoading ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
                   style={{
                     background: item.isActive
                       ? "rgba(0, 0, 0, 0.15)"
@@ -163,6 +186,10 @@ export default function Navigation() {
       <SignupModal
         isOpen={isSignupModalOpen}
         onClose={() => setIsSignupModalOpen(false)}
+        onSignupSuccess={() => {
+          setIsSignupModalOpen(false);
+          // User state will be updated automatically through auth state listener
+        }}
       />
 
       {/* Add animation styles */}
