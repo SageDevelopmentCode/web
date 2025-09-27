@@ -24,6 +24,12 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
     "",
     "",
   ]);
+  const [validationErrors, setValidationErrors] = useState({
+    email: false,
+    username: false,
+    password: false,
+    avatar: false,
+  });
 
   const characters = [
     "Daniel.PNG",
@@ -62,16 +68,47 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
     // Reset states when closing
     setIsVerificationStep(false);
     setVerificationCode(["", "", "", "", "", ""]);
+    setValidationErrors({
+      email: false,
+      username: false,
+      password: false,
+      avatar: false,
+    });
     // Delay the actual close to allow exit animation
     setTimeout(() => {
       onClose();
     }, 300);
   };
 
+  const clearFieldError = (field: keyof typeof validationErrors) => {
+    if (validationErrors[field]) {
+      setValidationErrors((prev) => ({
+        ...prev,
+        [field]: false,
+      }));
+    }
+  };
+
+  const validateForm = () => {
+    const errors = {
+      email: !email.trim(),
+      username: !username.trim(),
+      password: !password.trim(),
+      avatar: !selectedAvatar,
+    };
+
+    setValidationErrors(errors);
+
+    // Return true if no errors
+    return !Object.values(errors).some((error) => error);
+  };
+
   const handleSignUp = () => {
     if (!isVerificationStep) {
-      // Move to verification step
-      setIsVerificationStep(true);
+      // Validate form before moving to verification step
+      if (validateForm()) {
+        setIsVerificationStep(true);
+      }
     } else {
       // Handle verification (placeholder for now)
       console.log("Verification code:", verificationCode.join(""));
@@ -163,8 +200,15 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
                   type="email"
                   placeholder="Enter your email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-6 py-3 rounded-full border-none outline-none placeholder-gray-500"
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    clearFieldError("email");
+                  }}
+                  className={`w-full px-6 py-3 rounded-full border-2 outline-none placeholder-gray-500 ${
+                    validationErrors.email
+                      ? "border-red-500"
+                      : "border-transparent"
+                  }`}
                   style={{
                     backgroundColor: "#D6E5E2",
                     color: "#2F4A5D",
@@ -177,8 +221,15 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
                   type="text"
                   placeholder="Enter a Username"
                   value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="w-full px-6 py-3 rounded-full border-none outline-none placeholder-gray-500"
+                  onChange={(e) => {
+                    setUsername(e.target.value);
+                    clearFieldError("username");
+                  }}
+                  className={`w-full px-6 py-3 rounded-full border-2 outline-none placeholder-gray-500 ${
+                    validationErrors.username
+                      ? "border-red-500"
+                      : "border-transparent"
+                  }`}
                   style={{
                     backgroundColor: "#D6E5E2",
                     color: "#2F4A5D",
@@ -192,8 +243,15 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
                   type="password"
                   placeholder="Create a Password"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-6 py-3 rounded-full border-none outline-none placeholder-gray-500"
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    clearFieldError("password");
+                  }}
+                  className={`w-full px-6 py-3 rounded-full border-2 outline-none placeholder-gray-500 ${
+                    validationErrors.password
+                      ? "border-red-500"
+                      : "border-transparent"
+                  }`}
                   style={{
                     backgroundColor: "#D6E5E2",
                     color: "#2F4A5D",
@@ -204,16 +262,27 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
               {/* Avatar Selection */}
               <div className="mb-8">
                 <p
-                  className="text-sm font-bold mb-4"
-                  style={{ color: "#2F4A5D" }}
+                  className={`text-sm font-bold mb-4 ${
+                    validationErrors.avatar ? "text-red-500" : ""
+                  }`}
+                  style={{
+                    color: validationErrors.avatar ? "#ef4444" : "#2F4A5D",
+                  }}
                 >
-                  Select an Avatar
+                  Select an Avatar {validationErrors.avatar && "(Required)"}
                 </p>
-                <div className="grid grid-cols-7 gap-3">
+                <div
+                  className={`grid grid-cols-7 gap-3 p-3 rounded-xl ${
+                    validationErrors.avatar ? "border-2 border-red-500" : ""
+                  }`}
+                >
                   {characters.map((character, index) => (
                     <button
                       key={character}
-                      onClick={() => setSelectedAvatar(character)}
+                      onClick={() => {
+                        setSelectedAvatar(character);
+                        clearFieldError("avatar");
+                      }}
                       className={`w-12 h-12 cursor-pointer rounded-full overflow-hidden border-2 transition-all duration-150 transform ${
                         showAvatars
                           ? "opacity-100 scale-100 translate-y-0"
@@ -334,7 +403,7 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
         </div>
 
         {/* Background Image */}
-        <div className="relative h-36 overflow-hidden">
+        <div className="relative h-32 overflow-hidden">
           <Image
             src="/assets/AuthBackground.jpg"
             alt="Background"
