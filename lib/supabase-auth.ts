@@ -65,10 +65,26 @@ export class SupabaseAuth {
         data: { user },
         error,
       } = await supabase.auth.getUser();
-      if (error) throw error;
+      if (error) {
+        // Only log errors that aren't related to missing sessions
+        if (
+          !error.message.includes("session") &&
+          !error.message.includes("Auth session missing")
+        ) {
+          console.error("Error getting current user:", error);
+        }
+        throw error;
+      }
       return user;
     } catch (error) {
-      console.error("Error getting current user:", error);
+      // Don't log session-related errors when user is simply not authenticated
+      const errorMessage = error instanceof Error ? error.message : "";
+      if (
+        !errorMessage.includes("session") &&
+        !errorMessage.includes("Auth session missing")
+      ) {
+        console.error("Error getting current user:", error);
+      }
       return null;
     }
   }
@@ -80,10 +96,26 @@ export class SupabaseAuth {
         data: { session },
         error,
       } = await supabase.auth.getSession();
-      if (error) throw error;
+      if (error) {
+        // Only log errors that aren't related to missing sessions
+        if (
+          !error.message.includes("session") &&
+          !error.message.includes("Auth session missing")
+        ) {
+          console.error("Error getting current session:", error);
+        }
+        throw error;
+      }
       return session;
     } catch (error) {
-      console.error("Error getting current session:", error);
+      // Don't log session-related errors when user is simply not authenticated
+      const errorMessage = error instanceof Error ? error.message : "";
+      if (
+        !errorMessage.includes("session") &&
+        !errorMessage.includes("Auth session missing")
+      ) {
+        console.error("Error getting current session:", error);
+      }
       return null;
     }
   }

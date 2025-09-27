@@ -24,6 +24,7 @@ export default function SignupModal({
   const [isVisible, setIsVisible] = useState(false);
   const [showAvatars, setShowAvatars] = useState(false);
   const [isVerificationStep, setIsVerificationStep] = useState(false);
+  const [isLoginMode, setIsLoginMode] = useState(false);
   const [verificationCode, setVerificationCode] = useState([
     "",
     "",
@@ -78,6 +79,7 @@ export default function SignupModal({
     setShowAvatars(false);
     // Reset states when closing
     setIsVerificationStep(false);
+    setIsLoginMode(false);
     setVerificationCode(["", "", "", "", "", ""]);
     setValidationErrors({
       email: false,
@@ -88,6 +90,10 @@ export default function SignupModal({
     setIsLoading(false);
     setErrorMessage("");
     setSuccessMessage("");
+    setEmail("");
+    setUsername("");
+    setPassword("");
+    setSelectedAvatar(null);
     // Delay the actual close to allow exit animation
     setTimeout(() => {
       onClose();
@@ -110,15 +116,58 @@ export default function SignupModal({
   const validateForm = () => {
     const errors = {
       email: !email.trim(),
-      username: !username.trim(),
+      username: isLoginMode ? false : !username.trim(), // Username not required for login
       password: !password.trim(),
-      avatar: !selectedAvatar,
+      avatar: isLoginMode ? false : !selectedAvatar, // Avatar not required for login
     };
 
     setValidationErrors(errors);
 
     // Return true if no errors
     return !Object.values(errors).some((error) => error);
+  };
+
+  const handleLogin = async () => {
+    // Validate form before login
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsLoading(true);
+    setErrorMessage("");
+
+    try {
+      const {
+        user,
+        session,
+        error: authError,
+      } = await SupabaseAuth.signIn(email, password);
+
+      if (authError) {
+        throw new Error(authError.message);
+      }
+
+      if (user && session) {
+        setSuccessMessage("Successfully logged in!");
+
+        // Call success callback and close modal after a short delay
+        setTimeout(() => {
+          onSignupSuccess?.();
+          handleClose();
+        }, 1500);
+      } else {
+        throw new Error("Login failed. Please try again.");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "An error occurred during login. Please try again."
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleSignUp = async () => {
@@ -298,7 +347,9 @@ export default function SignupModal({
             className="text-xl font-bold text-center mb-8"
             style={{ color: "#2F4A5D" }}
           >
-            Sign Up to Provide Feedback or Comment
+            {isLoginMode
+              ? "Login to Your Account"
+              : "Sign Up to Provide Feedback or Comment"}
           </h2>
 
           {/* Error Message */}
@@ -341,32 +392,37 @@ export default function SignupModal({
                 />
               </div>
 
-              <div className="mb-4">
-                <input
-                  type="text"
-                  placeholder="Enter a Username"
-                  value={username}
-                  onChange={(e) => {
-                    setUsername(e.target.value);
-                    clearFieldError("username");
-                  }}
-                  className={`w-full px-6 py-3 rounded-full border-2 outline-none placeholder-gray-500 ${
-                    validationErrors.username
-                      ? "border-red-500"
-                      : "border-transparent"
-                  }`}
-                  style={{
-                    backgroundColor: "#D6E5E2",
-                    color: "#2F4A5D",
-                  }}
-                />
-              </div>
+              {/* Username Input - Only show for signup */}
+              {!isLoginMode && (
+                <div className="mb-4">
+                  <input
+                    type="text"
+                    placeholder="Enter a Username"
+                    value={username}
+                    onChange={(e) => {
+                      setUsername(e.target.value);
+                      clearFieldError("username");
+                    }}
+                    className={`w-full px-6 py-3 rounded-full border-2 outline-none placeholder-gray-500 ${
+                      validationErrors.username
+                        ? "border-red-500"
+                        : "border-transparent"
+                    }`}
+                    style={{
+                      backgroundColor: "#D6E5E2",
+                      color: "#2F4A5D",
+                    }}
+                  />
+                </div>
+              )}
 
               {/* Password Input */}
-              <div className="mb-6">
+              <div className={isLoginMode ? "mb-8" : "mb-6"}>
                 <input
                   type="password"
-                  placeholder="Create a Password"
+                  placeholder={
+                    isLoginMode ? "Enter your Password" : "Create a Password"
+                  }
                   value={password}
                   onChange={(e) => {
                     setPassword(e.target.value);
@@ -384,75 +440,77 @@ export default function SignupModal({
                 />
               </div>
 
-              {/* Avatar Selection */}
-              <div className="mb-8">
-                <p
-                  className={`text-sm font-bold mb-4 ${
-                    validationErrors.avatar ? "text-red-500" : ""
-                  }`}
-                  style={{
-                    color: validationErrors.avatar ? "#ef4444" : "#2F4A5D",
-                  }}
-                >
-                  Select an Avatar {validationErrors.avatar && "(Required)"}
-                </p>
-                <div
-                  className={`grid grid-cols-7 gap-3 p-3 rounded-xl ${
-                    validationErrors.avatar ? "border-2 border-red-500" : ""
-                  }`}
-                >
-                  {characters.map((character, index) => (
-                    <button
-                      key={character}
-                      onClick={() => {
-                        setSelectedAvatar(character);
-                        clearFieldError("avatar");
-                      }}
-                      className={`w-12 h-12 cursor-pointer rounded-full overflow-hidden border-2 transition-all duration-150 transform ${
-                        showAvatars
-                          ? "opacity-100 scale-100 translate-y-0"
-                          : "opacity-0 scale-75 translate-y-2"
-                      } ${
-                        selectedAvatar === character
-                          ? "border-gray-600"
-                          : "border-gray-300 hover:border-gray-400"
-                      }`}
-                      style={{
-                        backgroundColor: "#D6E5E2",
-                        transitionDelay: showAvatars
-                          ? `${index * 50}ms`
-                          : "0ms",
-                      }}
-                    >
-                      <Image
-                        src={`/assets/Characters/${character}`}
-                        alt={character.split(".")[0]}
-                        width={200}
-                        height={200}
-                        className={`w-auto h-full object-cover transition-all duration-150 ${
+              {/* Avatar Selection - Only show for signup */}
+              {!isLoginMode && (
+                <div className="mb-8">
+                  <p
+                    className={`text-sm font-bold mb-4 ${
+                      validationErrors.avatar ? "text-red-500" : ""
+                    }`}
+                    style={{
+                      color: validationErrors.avatar ? "#ef4444" : "#2F4A5D",
+                    }}
+                  >
+                    Select an Avatar {validationErrors.avatar && "(Required)"}
+                  </p>
+                  <div
+                    className={`grid grid-cols-7 gap-3 p-3 rounded-xl ${
+                      validationErrors.avatar ? "border-2 border-red-500" : ""
+                    }`}
+                  >
+                    {characters.map((character, index) => (
+                      <button
+                        key={character}
+                        onClick={() => {
+                          setSelectedAvatar(character);
+                          clearFieldError("avatar");
+                        }}
+                        className={`w-12 h-12 cursor-pointer rounded-full overflow-hidden border-2 transition-all duration-150 transform ${
+                          showAvatars
+                            ? "opacity-100 scale-100 translate-y-0"
+                            : "opacity-0 scale-75 translate-y-2"
+                        } ${
                           selectedAvatar === character
-                            ? "opacity-100 grayscale-0"
-                            : "opacity-60 grayscale"
+                            ? "border-gray-600"
+                            : "border-gray-300 hover:border-gray-400"
                         }`}
                         style={{
-                          transform:
-                            character === "Ruth.png"
-                              ? "scale(3.5) translateY(30%) translateX(10%)"
-                              : character === "Samson.png"
-                              ? "scale(3.5) translateY(28%) translateX(4%)"
-                              : character === "Deborah.png"
-                              ? "scale(3.5) translateY(30%) translateX(4%)"
-                              : character === "Noah.png"
-                              ? "scale(3.5) translateY(26%) translateX(4%)"
-                              : "scale(3.5) translateY(33%) translateX(4%)",
-                          objectPosition: "center 30%",
+                          backgroundColor: "#D6E5E2",
+                          transitionDelay: showAvatars
+                            ? `${index * 50}ms`
+                            : "0ms",
                         }}
-                        quality={100}
-                      />
-                    </button>
-                  ))}
+                      >
+                        <Image
+                          src={`/assets/Characters/${character}`}
+                          alt={character.split(".")[0]}
+                          width={200}
+                          height={200}
+                          className={`w-auto h-full object-cover transition-all duration-150 ${
+                            selectedAvatar === character
+                              ? "opacity-100 grayscale-0"
+                              : "opacity-60 grayscale"
+                          }`}
+                          style={{
+                            transform:
+                              character === "Ruth.png"
+                                ? "scale(3.5) translateY(30%) translateX(10%)"
+                                : character === "Samson.png"
+                                ? "scale(3.5) translateY(28%) translateX(4%)"
+                                : character === "Deborah.png"
+                                ? "scale(3.5) translateY(30%) translateX(4%)"
+                                : character === "Noah.png"
+                                ? "scale(3.5) translateY(26%) translateX(4%)"
+                                : "scale(3.5) translateY(33%) translateX(4%)",
+                            objectPosition: "center 30%",
+                          }}
+                          quality={100}
+                        />
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
             </>
           ) : (
             <>
@@ -496,9 +554,9 @@ export default function SignupModal({
             </>
           )}
 
-          {/* Sign Up Button */}
+          {/* Sign Up/Login Button */}
           <button
-            onClick={handleSignUp}
+            onClick={isLoginMode ? handleLogin : handleSignUp}
             disabled={isLoading}
             className={`w-full py-3 text-white font-bold transition-all hover:opacity-90 cursor-pointer ${
               isVerificationStep ? "mb-12" : ""
@@ -512,24 +570,51 @@ export default function SignupModal({
             {isLoading ? (
               <div className="flex items-center justify-center">
                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                {isVerificationStep ? "Verifying..." : "Signing Up..."}
+                {isVerificationStep
+                  ? "Verifying..."
+                  : isLoginMode
+                  ? "Logging In..."
+                  : "Signing Up..."}
               </div>
             ) : (
-              <>{isVerificationStep ? "Verify Code" : "Sign Up"}</>
+              <>
+                {isVerificationStep
+                  ? "Verify Code"
+                  : isLoginMode
+                  ? "Login"
+                  : "Sign Up"}
+              </>
             )}
           </button>
 
           {!isVerificationStep && (
-            /* Login Link */
+            /* Toggle between Login/Signup */
             <button
-              onClick={handleClose}
+              onClick={() => {
+                setIsLoginMode(!isLoginMode);
+                // Clear form and errors when toggling
+                setEmail("");
+                setUsername("");
+                setPassword("");
+                setSelectedAvatar(null);
+                setValidationErrors({
+                  email: false,
+                  username: false,
+                  password: false,
+                  avatar: false,
+                });
+                setErrorMessage("");
+                setSuccessMessage("");
+              }}
               className="w-full items-center justify-center cursor-pointer"
             >
               <p
                 className="text-center text-sm mt-6 mb-6"
                 style={{ color: "#6B764C" }}
               >
-                Login with existing account
+                {isLoginMode
+                  ? "Don't have an account? Sign up"
+                  : "Already have an account? Login"}
               </p>
             </button>
           )}

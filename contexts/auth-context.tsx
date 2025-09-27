@@ -28,7 +28,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
         const currentUser = await SupabaseAuth.getCurrentUser();
         setUser(currentUser);
       } catch (error) {
-        console.error("Error checking user session:", error);
+        // Don't log errors for missing sessions - this is expected when no one is signed in
+        const errorMessage = error instanceof Error ? error.message : "";
+        if (
+          !errorMessage.includes("session") &&
+          !errorMessage.includes("Auth session missing")
+        ) {
+          console.error("Error checking user session:", error);
+        }
+        // User remains null, which is correct for unsigned users
+        setUser(null);
       } finally {
         setIsLoading(false);
       }
@@ -66,8 +75,23 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const currentUser = await SupabaseAuth.getCurrentUser();
       setUser(currentUser);
     } catch (error) {
-      console.error("Error refreshing user:", error);
-      throw error;
+      // Don't log errors for missing sessions - this is expected when no one is signed in
+      const errorMessage = error instanceof Error ? error.message : "";
+      if (
+        !errorMessage.includes("session") &&
+        !errorMessage.includes("Auth session missing")
+      ) {
+        console.error("Error refreshing user:", error);
+      }
+      // Set user to null for session-related errors
+      if (
+        errorMessage.includes("session") ||
+        errorMessage.includes("Auth session missing")
+      ) {
+        setUser(null);
+      } else {
+        throw error;
+      }
     }
   };
 
