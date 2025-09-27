@@ -389,7 +389,7 @@ export default function SignupModal({
 
   return (
     <div
-      className={`fixed inset-0 z-[100] flex items-center justify-center transition-all duration-300 ${
+      className={`fixed inset-0 z-[100] transition-all duration-300 ${
         isVisible ? "opacity-100" : "opacity-0"
       }`}
     >
@@ -402,13 +402,16 @@ export default function SignupModal({
         onClick={handleClose}
       />
 
-      {/* Modal content */}
+      {/* Modal content - Desktop centered, Mobile bottom sheet */}
       <div
-        className={`relative w-[90vw] max-w-lg mx-4 rounded-3xl overflow-hidden transition-all duration-300 transform ${
-          isVisible
-            ? "opacity-100 scale-100 translate-y-0"
-            : "opacity-0 scale-95 translate-y-4"
-        }`}
+        className={`transition-all duration-300 transform overflow-hidden
+          md:absolute md:top-1/2 md:left-1/2 md:w-[90vw] md:max-w-lg md:rounded-3xl
+          fixed bottom-0 left-0 right-0 rounded-t-3xl md:rounded-b-3xl
+          ${
+            isVisible
+              ? "opacity-100 scale-100 translate-y-0 md:translate-y-[-50%] md:translate-x-[-50%]"
+              : "opacity-0 scale-95 translate-y-full md:translate-y-[-46%] md:translate-x-[-50%] md:scale-95"
+          }`}
         style={{ backgroundColor: "#CBE2D8" }}
       >
         {/* Close button */}
@@ -431,10 +434,10 @@ export default function SignupModal({
           </svg>
         </button>
 
-        <div className="p-10 pb-0">
+        <div className="p-6 md:p-10 pb-0">
           {/* Title */}
           <h2
-            className="text-xl font-bold text-center mb-8"
+            className="text-lg md:text-xl font-bold text-center mb-6 md:mb-8"
             style={{ color: "#2F4A5D" }}
           >
             {isLoginMode
@@ -565,7 +568,7 @@ export default function SignupModal({
 
               {/* Avatar Selection - Only show for signup */}
               {!isLoginMode && (
-                <div className="mb-8">
+                <div className="mb-6 md:mb-8">
                   <p
                     className={`text-sm font-bold mb-4 ${
                       validationErrors.avatar ? "text-red-500" : ""
@@ -576,61 +579,121 @@ export default function SignupModal({
                   >
                     Select an Avatar {validationErrors.avatar && "(Required)"}
                   </p>
+                  {/* Desktop: Grid layout, Mobile: Horizontal scroll */}
                   <div
-                    className={`grid grid-cols-7 gap-3 p-3 rounded-xl ${
+                    className={`p-3 rounded-xl ${
                       validationErrors.avatar ? "border-2 border-red-500" : ""
                     }`}
                   >
-                    {characters.map((character, index) => (
-                      <button
-                        key={character}
-                        onClick={() => {
-                          setSelectedAvatar(character);
-                          clearFieldError("avatar");
-                        }}
-                        className={`w-12 h-12 cursor-pointer rounded-full overflow-hidden border-2 transition-all duration-150 transform ${
-                          showAvatars
-                            ? "opacity-100 scale-100 translate-y-0"
-                            : "opacity-0 scale-75 translate-y-2"
-                        } ${
-                          selectedAvatar === character
-                            ? "border-gray-600"
-                            : "border-gray-300 hover:border-gray-400"
-                        }`}
-                        style={{
-                          backgroundColor: "#D6E5E2",
-                          transitionDelay: showAvatars
-                            ? `${index * 50}ms`
-                            : "0ms",
-                        }}
-                      >
-                        <Image
-                          src={`/assets/Characters/${character}`}
-                          alt={character.split(".")[0]}
-                          width={200}
-                          height={200}
-                          className={`w-auto h-full object-cover transition-all duration-150 ${
+                    {/* Desktop grid (hidden on mobile) */}
+                    <div className="hidden md:grid grid-cols-7 gap-3">
+                      {characters.map((character, index) => (
+                        <button
+                          key={character}
+                          onClick={() => {
+                            setSelectedAvatar(character);
+                            clearFieldError("avatar");
+                          }}
+                          className={`w-12 h-12 cursor-pointer rounded-full overflow-hidden border-2 transition-all duration-150 transform ${
+                            showAvatars
+                              ? "opacity-100 scale-100 translate-y-0"
+                              : "opacity-0 scale-75 translate-y-2"
+                          } ${
                             selectedAvatar === character
-                              ? "opacity-100 grayscale-0"
-                              : "opacity-60 grayscale"
+                              ? "border-gray-600"
+                              : "border-gray-300 hover:border-gray-400"
                           }`}
                           style={{
-                            transform:
-                              character === "Ruth.png"
-                                ? "scale(3.5) translateY(30%) translateX(10%)"
-                                : character === "Samson.png"
-                                ? "scale(3.5) translateY(28%) translateX(4%)"
-                                : character === "Deborah.png"
-                                ? "scale(3.5) translateY(30%) translateX(4%)"
-                                : character === "Noah.png"
-                                ? "scale(3.5) translateY(26%) translateX(4%)"
-                                : "scale(3.5) translateY(33%) translateX(4%)",
-                            objectPosition: "center 30%",
+                            backgroundColor: "#D6E5E2",
+                            transitionDelay: showAvatars
+                              ? `${index * 50}ms`
+                              : "0ms",
                           }}
-                          quality={100}
-                        />
-                      </button>
-                    ))}
+                        >
+                          <Image
+                            src={`/assets/Characters/${character}`}
+                            alt={character.split(".")[0]}
+                            width={200}
+                            height={200}
+                            className={`w-auto h-full object-cover transition-all duration-150 ${
+                              selectedAvatar === character
+                                ? "opacity-100 grayscale-0"
+                                : "opacity-60 grayscale"
+                            }`}
+                            style={{
+                              transform:
+                                character === "Ruth.png"
+                                  ? "scale(3.5) translateY(30%) translateX(10%)"
+                                  : character === "Samson.png"
+                                  ? "scale(3.5) translateY(28%) translateX(4%)"
+                                  : character === "Deborah.png"
+                                  ? "scale(3.5) translateY(30%) translateX(4%)"
+                                  : character === "Noah.png"
+                                  ? "scale(3.5) translateY(26%) translateX(4%)"
+                                  : "scale(3.5) translateY(33%) translateX(4%)",
+                              objectPosition: "center 30%",
+                            }}
+                            quality={100}
+                          />
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Mobile horizontal scroll (hidden on desktop) */}
+                    <div className="md:hidden overflow-x-auto scrollbar-hide">
+                      <div className="flex gap-2 pb-2 min-w-max">
+                        {characters.map((character, index) => (
+                          <button
+                            key={character}
+                            onClick={() => {
+                              setSelectedAvatar(character);
+                              clearFieldError("avatar");
+                            }}
+                            className={`w-16 h-16 flex-shrink-0 cursor-pointer rounded-full overflow-hidden border-2 transition-all duration-150 transform ${
+                              showAvatars
+                                ? "opacity-100 scale-100 translate-y-0"
+                                : "opacity-0 scale-75 translate-y-2"
+                            } ${
+                              selectedAvatar === character
+                                ? "border-gray-600"
+                                : "border-gray-300 hover:border-gray-400"
+                            }`}
+                            style={{
+                              backgroundColor: "#D6E5E2",
+                              transitionDelay: showAvatars
+                                ? `${index * 50}ms`
+                                : "0ms",
+                            }}
+                          >
+                            <Image
+                              src={`/assets/Characters/${character}`}
+                              alt={character.split(".")[0]}
+                              width={200}
+                              height={200}
+                              className={`w-auto h-full object-cover transition-all duration-150 ${
+                                selectedAvatar === character
+                                  ? "opacity-100 grayscale-0"
+                                  : "opacity-60 grayscale"
+                              }`}
+                              style={{
+                                transform:
+                                  character === "Ruth.png"
+                                    ? "scale(3.5) translateY(30%) translateX(10%)"
+                                    : character === "Samson.png"
+                                    ? "scale(3.5) translateY(28%) translateX(4%)"
+                                    : character === "Deborah.png"
+                                    ? "scale(3.5) translateY(30%) translateX(4%)"
+                                    : character === "Noah.png"
+                                    ? "scale(3.5) translateY(26%) translateX(4%)"
+                                    : "scale(3.5) translateY(33%) translateX(4%)",
+                                objectPosition: "center 30%",
+                              }}
+                              quality={100}
+                            />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
@@ -747,7 +810,7 @@ export default function SignupModal({
         </div>
 
         {/* Background Image */}
-        <div className="relative h-32 overflow-hidden">
+        <div className="relative h-24 md:h-32 overflow-hidden">
           <Image
             src="/assets/AuthBackground.jpg"
             alt="Background"
