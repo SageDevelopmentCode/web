@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import { Eye, EyeOff } from "lucide-react";
 import SupabaseAuth from "../../../lib/supabase-auth";
 import { UserService } from "../../../lib/users";
 import { supabase } from "../../../lib/supabase";
@@ -25,6 +26,7 @@ export default function SignupModal({
   const [showAvatars, setShowAvatars] = useState(false);
   const [isVerificationStep, setIsVerificationStep] = useState(false);
   const [isLoginMode, setIsLoginMode] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [verificationCode, setVerificationCode] = useState([
     "",
     "",
@@ -94,6 +96,7 @@ export default function SignupModal({
     setUsername("");
     setPassword("");
     setSelectedAvatar(null);
+    setShowPassword(false);
     // Delay the actual close to allow exit animation
     setTimeout(() => {
       onClose();
@@ -295,6 +298,10 @@ export default function SignupModal({
     }
   };
 
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -418,26 +425,40 @@ export default function SignupModal({
 
               {/* Password Input */}
               <div className={isLoginMode ? "mb-8" : "mb-6"}>
-                <input
-                  type="password"
-                  placeholder={
-                    isLoginMode ? "Enter your Password" : "Create a Password"
-                  }
-                  value={password}
-                  onChange={(e) => {
-                    setPassword(e.target.value);
-                    clearFieldError("password");
-                  }}
-                  className={`w-full px-6 py-3 rounded-full border-2 outline-none placeholder-gray-500 ${
-                    validationErrors.password
-                      ? "border-red-500"
-                      : "border-transparent"
-                  }`}
-                  style={{
-                    backgroundColor: "#D6E5E2",
-                    color: "#2F4A5D",
-                  }}
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    placeholder={
+                      isLoginMode ? "Enter your Password" : "Create a Password"
+                    }
+                    value={password}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      clearFieldError("password");
+                    }}
+                    className={`w-full px-6 py-3 pr-12 rounded-full border-2 outline-none placeholder-gray-500 ${
+                      validationErrors.password
+                        ? "border-red-500"
+                        : "border-transparent"
+                    }`}
+                    style={{
+                      backgroundColor: "#D6E5E2",
+                      color: "#2F4A5D",
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={togglePasswordVisibility}
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors focus:outline-none cursor-pointer"
+                    style={{ color: "#6B764C" }}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="w-5 h-5" />
+                    ) : (
+                      <Eye className="w-5 h-5" />
+                    )}
+                  </button>
+                </div>
               </div>
 
               {/* Avatar Selection - Only show for signup */}
@@ -597,6 +618,7 @@ export default function SignupModal({
                 setUsername("");
                 setPassword("");
                 setSelectedAvatar(null);
+                setShowPassword(false);
                 setValidationErrors({
                   email: false,
                   username: false,
