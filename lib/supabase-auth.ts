@@ -184,6 +184,149 @@ export class SupabaseAuth {
     const displayName = this.getUserDisplayName(user);
     return { user, displayName };
   }
+
+  // Check if email already exists (requires admin access)
+  static async checkEmailExists(email: string): Promise<{
+    exists: boolean;
+    error: AuthError | null;
+  }> {
+    try {
+      // Import supabaseAdmin only when needed
+      const { supabaseAdmin } = await import("./supabase-server");
+
+      // Get all users and filter for the email
+      const { data, error } = await supabaseAdmin.auth.admin.listUsers();
+
+      if (error) throw error;
+
+      // Check if any user has the same email
+      const exists = data.users.some(
+        (user) => user.email && user.email.toLowerCase() === email.toLowerCase()
+      );
+
+      return {
+        exists,
+        error: null,
+      };
+    } catch (error) {
+      console.error("Error checking email existence:", error);
+      return {
+        exists: false,
+        error: error as AuthError,
+      };
+    }
+  }
+
+  // Check if display name already exists by querying user metadata
+  static async checkDisplayNameExists(displayName: string): Promise<{
+    exists: boolean;
+    error: AuthError | null;
+  }> {
+    try {
+      // Import supabaseAdmin only when needed
+      const { supabaseAdmin } = await import("./supabase-server");
+
+      // Get all users and check their display names
+      const { data, error } = await supabaseAdmin.auth.admin.listUsers();
+
+      if (error) throw error;
+
+      // Check if any user has the same display name (case-insensitive)
+      const exists = data.users.some((user) => {
+        const userDisplayName = user.user_metadata?.display_name;
+        return (
+          userDisplayName &&
+          userDisplayName.toLowerCase() === displayName.toLowerCase()
+        );
+      });
+
+      return {
+        exists,
+        error: null,
+      };
+    } catch (error) {
+      console.error("Error checking display name existence:", error);
+      return {
+        exists: false,
+        error: error as AuthError,
+      };
+    }
+  }
+
+  // Get all user emails and display names (admin only)
+  static async getAllUserEmailsAndDisplayNames(): Promise<{
+    users: Array<{
+      id: string;
+      email: string;
+      displayName: string | null;
+      createdAt: string;
+    }>;
+    error: AuthError | null;
+  }> {
+    try {
+      // Import supabaseAdmin only when needed
+      const { supabaseAdmin } = await import("./supabase-server");
+
+      const { data, error } = await supabaseAdmin.auth.admin.listUsers();
+
+      if (error) throw error;
+
+      const users = data.users.map((user) => ({
+        id: user.id,
+        email: user.email || "",
+        displayName: user.user_metadata?.display_name || null,
+        createdAt: user.created_at,
+      }));
+
+      return {
+        users,
+        error: null,
+      };
+    } catch (error) {
+      console.error("Error fetching all users:", error);
+      return {
+        users: [],
+        error: error as AuthError,
+      };
+    }
+  }
+
+  // Combined validation function for signup
+  static async validateSignupData(
+    email: string,
+    displayName?: string
+  ): Promise<{
+    isValid: boolean;
+    errors: {
+      email?: string;
+      displayName?: string;
+    };
+  }> {
+    const errors: { email?: string; displayName?: string } = {};
+
+    // Check email
+    const emailCheck = await this.checkEmailExists(email);
+    if (emailCheck.error) {
+      errors.email = "Unable to verify email availability";
+    } else if (emailCheck.exists) {
+      errors.email = "An account with this email already exists";
+    }
+
+    // Check display name if provided
+    if (displayName) {
+      const displayNameCheck = await this.checkDisplayNameExists(displayName);
+      if (displayNameCheck.error) {
+        errors.displayName = "Unable to verify username availability";
+      } else if (displayNameCheck.exists) {
+        errors.displayName = "This username is already taken";
+      }
+    }
+
+    return {
+      isValid: Object.keys(errors).length === 0,
+      errors,
+    };
+  }
 }
 
 export default SupabaseAuth;

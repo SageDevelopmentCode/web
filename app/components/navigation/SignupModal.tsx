@@ -6,6 +6,7 @@ import { Eye, EyeOff } from "lucide-react";
 import SupabaseAuth from "../../../lib/supabase-auth";
 import { UserService } from "../../../lib/users";
 import { supabase } from "../../../lib/supabase";
+import { validateSignupData } from "../../../lib/auth-validation";
 
 interface SignupModalProps {
   isOpen: boolean;
@@ -40,6 +41,10 @@ export default function SignupModal({
     username: false,
     password: false,
     avatar: false,
+  });
+  const [validationMessages, setValidationMessages] = useState({
+    email: "",
+    username: "",
   });
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -96,6 +101,7 @@ export default function SignupModal({
     setUsername("");
     setPassword("");
     setSelectedAvatar(null);
+    setValidationMessages({ email: "", username: "" });
     setShowPassword(false);
     // Delay the actual close to allow exit animation
     setTimeout(() => {
@@ -128,6 +134,45 @@ export default function SignupModal({
 
     // Return true if no errors
     return !Object.values(errors).some((error) => error);
+  };
+
+  // Server-side validation for signup
+  const validateSignupForm = async () => {
+    // First do basic validation
+    if (!validateForm()) {
+      return false;
+    }
+
+    // Skip server validation for login mode
+    if (isLoginMode) {
+      return true;
+    }
+
+    setErrorMessage("");
+
+    try {
+      const result = await validateSignupData(email, username);
+
+      if (!result.isValid) {
+        setValidationMessages({
+          email: result.errors.email || "",
+          username: result.errors.displayName || "",
+        });
+        setValidationErrors((prev) => ({
+          ...prev,
+          email: !!result.errors.email,
+          username: !!result.errors.displayName,
+        }));
+        return false;
+      }
+
+      setValidationMessages({ email: "", username: "" });
+      return true;
+    } catch (error) {
+      console.error("Validation error:", error);
+      setErrorMessage("Unable to verify account details. Please try again.");
+      return false;
+    }
   };
 
   const handleLogin = async () => {
@@ -175,8 +220,8 @@ export default function SignupModal({
 
   const handleSignUp = async () => {
     if (!isVerificationStep) {
-      // Validate form before signup
-      if (!validateForm()) {
+      // Validate form before signup (includes server-side validation)
+      if (!(await validateSignupForm())) {
         return;
       }
 
@@ -298,6 +343,44 @@ export default function SignupModal({
     }
   };
 
+  const handleVerificationPaste = (index: number, e: React.ClipboardEvent) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData("text");
+
+    // Check if pasted data is exactly 6 digits
+    if (/^\d{6}$/.test(pastedData)) {
+      const digits = pastedData.split("");
+      const newCode = [...verificationCode];
+
+      // Fill all 6 inputs with the pasted digits
+      for (let i = 0; i < 6; i++) {
+        newCode[i] = digits[i] || "";
+      }
+
+      setVerificationCode(newCode);
+
+      // Focus the last input
+      const lastInput = document.getElementById(`verification-5`);
+      lastInput?.focus();
+    } else if (/^\d+$/.test(pastedData) && pastedData.length <= 6) {
+      // Handle partial digit pasting (less than 6 digits)
+      const digits = pastedData.split("");
+      const newCode = [...verificationCode];
+
+      // Fill from current index onwards
+      for (let i = 0; i < digits.length && index + i < 6; i++) {
+        newCode[index + i] = digits[i];
+      }
+
+      setVerificationCode(newCode);
+
+      // Focus the next empty input or the last filled input
+      const nextIndex = Math.min(index + digits.length, 5);
+      const nextInput = document.getElementById(`verification-${nextIndex}`);
+      nextInput?.focus();
+    }
+  };
+
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
@@ -386,6 +469,8 @@ export default function SignupModal({
                   onChange={(e) => {
                     setEmail(e.target.value);
                     clearFieldError("email");
+                    // Clear validation message when user starts typing
+                    setValidationMessages((prev) => ({ ...prev, email: "" }));
                   }}
                   className={`w-full px-6 py-3 rounded-full border-2 outline-none placeholder-gray-500 ${
                     validationErrors.email
@@ -397,6 +482,12 @@ export default function SignupModal({
                     color: "#2F4A5D",
                   }}
                 />
+                {/* Email validation message */}
+                {validationMessages.email && (
+                  <p className="text-red-500 text-sm mt-1 px-2">
+                    {validationMessages.email}
+                  </p>
+                )}
               </div>
 
               {/* Username Input - Only show for signup */}
@@ -409,6 +500,11 @@ export default function SignupModal({
                     onChange={(e) => {
                       setUsername(e.target.value);
                       clearFieldError("username");
+                      // Clear validation message when user starts typing
+                      setValidationMessages((prev) => ({
+                        ...prev,
+                        username: "",
+                      }));
                     }}
                     className={`w-full px-6 py-3 rounded-full border-2 outline-none placeholder-gray-500 ${
                       validationErrors.username
@@ -420,6 +516,12 @@ export default function SignupModal({
                       color: "#2F4A5D",
                     }}
                   />
+                  {/* Username validation message */}
+                  {validationMessages.username && (
+                    <p className="text-red-500 text-sm mt-1 px-2">
+                      {validationMessages.username}
+                    </p>
+                  )}
                 </div>
               )}
 
@@ -558,6 +660,7 @@ export default function SignupModal({
                         handleVerificationCodeChange(index, e.target.value)
                       }
                       onKeyDown={(e) => handleVerificationKeyDown(index, e)}
+                      onPaste={(e) => handleVerificationPaste(index, e)}
                       className="w-12 h-12 text-center text-lg font-bold rounded-lg border-none outline-none"
                       style={{
                         backgroundColor: "#D6E5E2",
@@ -618,6 +721,7 @@ export default function SignupModal({
                 setUsername("");
                 setPassword("");
                 setSelectedAvatar(null);
+                setValidationMessages({ email: "", username: "" });
                 setShowPassword(false);
                 setValidationErrors({
                   email: false,
