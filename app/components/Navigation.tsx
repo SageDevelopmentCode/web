@@ -3,41 +3,18 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import SignupModal from "./navigation/SignupModal";
+import UserAvatar from "./navigation/UserAvatar";
 import { useAuth } from "../../contexts/auth-context";
 
 export default function Navigation() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isSignupModalOpen, setIsSignupModalOpen] = useState(false);
-  const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
-
   // Get auth state from context
   const { user, userProfile, isLoading, signOut } = useAuth();
 
-  // Character file extension mapping
-  const characterExtensions: Record<string, string> = {
-    Daniel: ".PNG",
-    David: ".png",
-    Deborah: ".png",
-    Elijah: ".png",
-    Esther: ".PNG",
-    Gabriel: ".png",
-    Job: ".PNG",
-    JohnTheBaptist: ".PNG",
-    Moses: ".PNG",
-    Noah: ".png",
-    Paul: ".png",
-    Ruth: ".png",
-    Samson: ".png",
-    Solomon: ".PNG",
-  };
-
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
-  };
-
-  const toggleUserDropdown = () => {
-    setIsUserDropdownOpen(!isUserDropdownOpen);
   };
 
   useEffect(() => {
@@ -51,24 +28,6 @@ export default function Navigation() {
       window.removeEventListener("scroll", handleScroll);
     };
   }, []);
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Element;
-      if (!target.closest(".user-dropdown-container")) {
-        setIsUserDropdownOpen(false);
-      }
-    };
-
-    if (isUserDropdownOpen) {
-      document.addEventListener("click", handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener("click", handleClickOutside);
-    };
-  }, [isUserDropdownOpen]);
 
   const menuItems = [
     { name: "Home", isActive: true },
@@ -85,15 +44,6 @@ export default function Navigation() {
         ]
       : []),
   ];
-
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-      setIsUserDropdownOpen(false);
-    } catch (error) {
-      console.error("Error signing out:", error);
-    }
-  };
 
   const handleMenuClick = (itemName: string) => {
     if (itemName === "Sign In / Sign Up") {
@@ -128,68 +78,14 @@ export default function Navigation() {
 
           {/* User Avatar Dropdown - Desktop */}
           {user && userProfile?.profile_picture && (
-            <div className="relative user-dropdown-container">
-              <button
-                onClick={toggleUserDropdown}
-                disabled={isLoading}
-                className={`w-10 h-10 cursor-pointer rounded-full overflow-hidden border-2 transition-all duration-150 transform hover:border-gray-400 ${
-                  isLoading
-                    ? "opacity-50 cursor-not-allowed"
-                    : "border-gray-300"
-                }`}
-                style={{
-                  backgroundColor: "#D6E5E2",
-                  pointerEvents: "auto",
-                }}
-                type="button"
-              >
-                <Image
-                  src={`/assets/Characters/${userProfile.profile_picture}${
-                    characterExtensions[userProfile.profile_picture] || ".png"
-                  }`}
-                  alt={userProfile.profile_picture}
-                  width={200}
-                  height={200}
-                  className="w-auto h-full object-cover opacity-100 grayscale-0"
-                  style={{
-                    transform:
-                      userProfile.profile_picture === "Ruth"
-                        ? "scale(3.5) translateY(30%) translateX(10%)"
-                        : userProfile.profile_picture === "Samson"
-                        ? "scale(3.5) translateY(28%) translateX(4%)"
-                        : userProfile.profile_picture === "Deborah"
-                        ? "scale(3.5) translateY(30%) translateX(4%)"
-                        : userProfile.profile_picture === "Noah"
-                        ? "scale(3.5) translateY(26%) translateX(4%)"
-                        : "scale(3.5) translateY(33%) translateX(4%)",
-                    objectPosition: "center 30%",
-                  }}
-                  quality={100}
-                />
-              </button>
-
-              {/* Dropdown Menu */}
-              {isUserDropdownOpen && (
-                <div
-                  className="absolute right-0 top-full mt-2 py-2 w-40 rounded-lg shadow-lg transition-all duration-200"
-                  style={{
-                    backgroundColor: "#CBE2D8",
-                    border: "1px solid rgba(0, 0, 0, 0.1)",
-                  }}
-                >
-                  <button
-                    onClick={handleSignOut}
-                    disabled={isLoading}
-                    className={`w-full text-left px-4 py-2 font-bold transition-all hover:bg-black hover:bg-opacity-10 ${
-                      isLoading ? "opacity-50 cursor-not-allowed" : ""
-                    }`}
-                    style={{ color: "#2F4A5D" }}
-                  >
-                    Sign Out
-                  </button>
-                </div>
-              )}
-            </div>
+            <UserAvatar
+              userProfile={{ profile_picture: userProfile.profile_picture }}
+              isLoading={isLoading}
+              onSignOut={signOut}
+              size="medium"
+              dropdownPosition="right"
+              isMobile={false}
+            />
           )}
         </div>
       </nav>
@@ -205,85 +101,20 @@ export default function Navigation() {
             backdropFilter: isScrolled ? "blur(10px)" : "none",
           }}
         >
-          {/* Logo */}
-          <Image
-            src="/assets/LogoWBG.png"
-            alt="Sage Logo"
-            width={32}
-            height={32}
-            quality={95}
-            className="h-8 w-8 rounded-full object-cover"
-            priority
-          />
+          {/* User Avatar as Logo on Left - Mobile */}
+          {user && userProfile?.profile_picture && (
+            <UserAvatar
+              userProfile={{ profile_picture: userProfile.profile_picture }}
+              isLoading={isLoading}
+              onSignOut={signOut}
+              size="medium"
+              dropdownPosition="left"
+              isMobile={true}
+            />
+          )}
 
-          {/* Right side - Avatar and/or Hamburger */}
+          {/* Right side - Hamburger */}
           <div className="flex items-center gap-3">
-            {/* User Avatar - Mobile */}
-            {user && userProfile?.profile_picture && (
-              <div className="relative user-dropdown-container">
-                <button
-                  onClick={toggleUserDropdown}
-                  disabled={isLoading}
-                  className={`w-8 h-8 cursor-pointer rounded-full overflow-hidden border-2 transition-all duration-150 transform hover:border-gray-400 ${
-                    isLoading
-                      ? "opacity-50 cursor-not-allowed"
-                      : "border-gray-300"
-                  }`}
-                  style={{
-                    backgroundColor: "#D6E5E2",
-                    pointerEvents: "auto",
-                  }}
-                  type="button"
-                >
-                  <Image
-                    src={`/assets/Characters/${userProfile.profile_picture}${
-                      characterExtensions[userProfile.profile_picture] || ".png"
-                    }`}
-                    alt={userProfile.profile_picture}
-                    width={200}
-                    height={200}
-                    className="w-auto h-full object-cover opacity-100 grayscale-0"
-                    style={{
-                      transform:
-                        userProfile.profile_picture === "Ruth"
-                          ? "scale(3.5) translateY(30%) translateX(10%)"
-                          : userProfile.profile_picture === "Samson"
-                          ? "scale(3.5) translateY(28%) translateX(4%)"
-                          : userProfile.profile_picture === "Deborah"
-                          ? "scale(3.5) translateY(30%) translateX(4%)"
-                          : userProfile.profile_picture === "Noah"
-                          ? "scale(3.5) translateY(26%) translateX(4%)"
-                          : "scale(3.5) translateY(33%) translateX(4%)",
-                      objectPosition: "center 30%",
-                    }}
-                    quality={100}
-                  />
-                </button>
-
-                {/* Mobile Dropdown Menu */}
-                {isUserDropdownOpen && (
-                  <div
-                    className="absolute right-0 top-full mt-2 py-2 w-32 rounded-lg shadow-lg transition-all duration-200"
-                    style={{
-                      backgroundColor: "#CBE2D8",
-                      border: "1px solid rgba(0, 0, 0, 0.1)",
-                    }}
-                  >
-                    <button
-                      onClick={handleSignOut}
-                      disabled={isLoading}
-                      className={`w-full text-left px-3 py-2 text-sm font-bold transition-all hover:bg-black hover:bg-opacity-10 ${
-                        isLoading ? "opacity-50 cursor-not-allowed" : ""
-                      }`}
-                      style={{ color: "#2F4A5D" }}
-                    >
-                      Sign Out
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
-
             {/* Hamburger Button */}
             <button
               onClick={toggleMobileMenu}
