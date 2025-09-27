@@ -305,7 +305,9 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
           {/* Sign Up Button */}
           <button
             onClick={handleSignUp}
-            className="w-full py-3 text-white font-bold transition-all hover:opacity-90 cursor-pointer mb-12"
+            className={`w-full py-3 text-white font-bold transition-all hover:opacity-90 cursor-pointer ${
+              isVerificationStep ? "mb-12" : ""
+            }`}
             style={{
               backgroundColor: "#778554",
               boxShadow: "0px 4px 0px 1px #57613B",
