@@ -2,6 +2,9 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import SupabaseAuth from "../../../lib/supabase-auth";
+import { UserService } from "../../../lib/users";
+import { supabase } from "../../../lib/supabase";
 
 interface SignupModalProps {
   isOpen: boolean;
@@ -30,6 +33,9 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
     password: false,
     avatar: false,
   });
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   const characters = [
     "Daniel.PNG",
@@ -74,6 +80,9 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
       password: false,
       avatar: false,
     });
+    setIsLoading(false);
+    setErrorMessage("");
+    setSuccessMessage("");
     // Delay the actual close to allow exit animation
     setTimeout(() => {
       onClose();
@@ -86,6 +95,10 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
         ...prev,
         [field]: false,
       }));
+    }
+    // Clear error message when user starts interacting
+    if (errorMessage) {
+      setErrorMessage("");
     }
   };
 
@@ -103,16 +116,106 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
     return !Object.values(errors).some((error) => error);
   };
 
-  const handleSignUp = () => {
+  const handleSignUp = async () => {
     if (!isVerificationStep) {
-      // Validate form before moving to verification step
-      if (validateForm()) {
-        setIsVerificationStep(true);
+      // Validate form before signup
+      if (!validateForm()) {
+        return;
+      }
+
+      setIsLoading(true);
+      setErrorMessage("");
+
+      try {
+        // Step 1: Sign up with Supabase Auth
+        const {
+          user,
+          session,
+          error: authError,
+        } = await SupabaseAuth.signUp(
+          email,
+          password,
+          username // This becomes the display_name in auth metadata
+        );
+
+        if (authError) {
+          throw new Error(authError.message);
+        }
+
+        if (user?.id) {
+          // Step 2: Create user record in users table
+          const profilePicture =
+            selectedAvatar?.replace(/\.(png|PNG)$/, "") || "";
+
+          const { user: dbUser, error: dbError } = await UserService.createUser(
+            {
+              user_id: user.id,
+              profile_picture: profilePicture,
+            }
+          );
+
+          if (dbError) {
+            console.error("Error creating user record:", dbError);
+            // Note: Auth user was created but DB record failed
+            // You might want to handle this case differently
+          }
+
+          // Step 3: Move to verification step
+          setIsVerificationStep(true);
+          setSuccessMessage("Check your email for a verification code!");
+        } else {
+          throw new Error("No user ID returned from signup");
+        }
+      } catch (error) {
+        console.error("Signup error:", error);
+        setErrorMessage(
+          error instanceof Error
+            ? error.message
+            : "An error occurred during signup. Please try again."
+        );
+      } finally {
+        setIsLoading(false);
       }
     } else {
-      // Handle verification (placeholder for now)
-      console.log("Verification code:", verificationCode.join(""));
-      // Could close modal or show success message here
+      // Handle verification code
+      const verificationCodeString = verificationCode.join("");
+
+      if (verificationCodeString.length !== 6) {
+        setErrorMessage("Please enter a complete 6-digit verification code.");
+        return;
+      }
+
+      setIsLoading(true);
+      setErrorMessage("");
+
+      try {
+        // Verify the email with the code
+        const { data, error } = await supabase.auth.verifyOtp({
+          email,
+          token: verificationCodeString,
+          type: "signup",
+        });
+
+        if (error) {
+          throw new Error(error.message);
+        }
+
+        setSuccessMessage("Email verified successfully! Welcome!");
+
+        // Close modal after a short delay
+        setTimeout(() => {
+          handleClose();
+        }, 2000);
+      } catch (error) {
+        console.error("Verification error:", error);
+        setErrorMessage(
+          error instanceof Error
+            ? error.message
+            : "Invalid verification code. Please try again."
+        );
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -191,6 +294,22 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
           >
             Sign Up to Provide Feedback or Comment
           </h2>
+
+          {/* Error Message */}
+          {errorMessage && (
+            <div className="mb-4 p-3 rounded-lg bg-red-100 border border-red-300">
+              <p className="text-red-700 text-sm text-center">{errorMessage}</p>
+            </div>
+          )}
+
+          {/* Success Message */}
+          {successMessage && (
+            <div className="mb-4 p-3 rounded-lg bg-green-100 border border-green-300">
+              <p className="text-green-700 text-sm text-center">
+                {successMessage}
+              </p>
+            </div>
+          )}
 
           {!isVerificationStep ? (
             <>
@@ -374,16 +493,24 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
           {/* Sign Up Button */}
           <button
             onClick={handleSignUp}
+            disabled={isLoading}
             className={`w-full py-3 text-white font-bold transition-all hover:opacity-90 cursor-pointer ${
               isVerificationStep ? "mb-12" : ""
-            }`}
+            } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
             style={{
               backgroundColor: "#778554",
               boxShadow: "0px 4px 0px 1px #57613B",
               borderRadius: "15px",
             }}
           >
-            {isVerificationStep ? "Verify Code" : "Sign Up"}
+            {isLoading ? (
+              <div className="flex items-center justify-center">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                {isVerificationStep ? "Verifying..." : "Signing Up..."}
+              </div>
+            ) : (
+              <>{isVerificationStep ? "Verify Code" : "Sign Up"}</>
+            )}
           </button>
 
           {!isVerificationStep && (

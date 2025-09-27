@@ -7,14 +7,21 @@ export class SupabaseAuth {
   static async signUp(
     email: string,
     password: string,
+    displayName?: string,
     metadata?: Record<string, any>
   ) {
     try {
+      const userMetadata = {
+        display_name: displayName,
+        ...metadata,
+      };
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: metadata,
+          data: userMetadata,
+          emailRedirectTo: undefined, // Disable magic link redirect
         },
       });
 
@@ -106,15 +113,44 @@ export class SupabaseAuth {
   static async updateUser(updates: {
     email?: string;
     password?: string;
+    displayName?: string;
     data?: Record<string, any>;
   }) {
     try {
-      const { data, error } = await supabase.auth.updateUser(updates);
+      const userUpdates: any = {};
+
+      if (updates.email) userUpdates.email = updates.email;
+      if (updates.password) userUpdates.password = updates.password;
+
+      if (updates.displayName || updates.data) {
+        userUpdates.data = {
+          ...(updates.data || {}),
+          ...(updates.displayName && { display_name: updates.displayName }),
+        };
+      }
+
+      const { data, error } = await supabase.auth.updateUser(userUpdates);
       if (error) throw error;
       return { user: data.user, error: null };
     } catch (error) {
       return { user: null, error: error as AuthError };
     }
+  }
+
+  // Get user's display name from metadata
+  static getUserDisplayName(user: User | null): string | null {
+    if (!user || !user.user_metadata) return null;
+    return user.user_metadata.display_name || null;
+  }
+
+  // Get current user with display name helper
+  static async getCurrentUserWithDisplayName(): Promise<{
+    user: User | null;
+    displayName: string | null;
+  }> {
+    const user = await this.getCurrentUser();
+    const displayName = this.getUserDisplayName(user);
+    return { user, displayName };
   }
 }
 
