@@ -39,7 +39,7 @@ export default function HeroSection() {
         >
           Christian Self-Care
         </span>{" "}
-        App. Sign up for early access and updates before launch.
+        Game. Sign up for early access and updates before launch.
       </p>
 
       {/* Mobile Layout - Separated Components */}

@@ -12,6 +12,8 @@ interface FeedbackDetailsProps {
   onToggleReplyHeart: (commentId: number, replyId: number) => void;
   onToggleReplies: (commentId: number) => void;
   isMobile?: boolean;
+  isUserSignedIn?: boolean;
+  onOpenSignupModal?: () => void;
 }
 
 interface FloatingEmoji {
@@ -31,6 +33,8 @@ export default function FeedbackDetails({
   onToggleReplyHeart,
   onToggleReplies,
   isMobile = false,
+  isUserSignedIn = false,
+  onOpenSignupModal = () => {},
 }: FeedbackDetailsProps) {
   const [showScrollHint, setShowScrollHint] = useState(true);
   const [commentText, setCommentText] = useState("");
@@ -275,19 +279,33 @@ export default function FeedbackDetails({
         {/* Mobile Comment Input - Below Comments Header */}
         {isMobile && (
           <div className="mb-6 border-gray-700">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Add a comment..."
-                value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
-                className="w-full text-white placeholder-gray-400 rounded-xl px-4 py-3 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-                style={{ backgroundColor: "#4B5563" }}
-              />
-              <button className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white hover:text-purple-400 cursor-pointer transition-all duration-300">
-                <Send size={20} />
+            {isUserSignedIn ? (
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Add a comment..."
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  className="w-full text-white placeholder-gray-400 rounded-xl px-4 py-3 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  style={{ backgroundColor: "#4B5563" }}
+                />
+                <button className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white hover:text-purple-400 cursor-pointer transition-all duration-300">
+                  <Send size={20} />
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={onOpenSignupModal}
+                className="w-full py-3 text-white font-bold transition-all hover:opacity-90 cursor-pointer"
+                style={{
+                  backgroundColor: "#778554",
+                  boxShadow: "0px 4px 0px 1px #57613B",
+                  borderRadius: "15px",
+                }}
+              >
+                Sign up or login to comment
               </button>
-            </div>
+            )}
           </div>
         )}
 
@@ -547,19 +565,33 @@ export default function FeedbackDetails({
         {/* Comment Input - Desktop only (mobile version is positioned fixed below) */}
         {!isMobile && (
           <div className="mt-2 pt-2 flex-shrink-0">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Add a comment..."
-                value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
-                className="w-full text-white placeholder-gray-400 rounded-xl px-4 py-3 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-                style={{ backgroundColor: "#4B5563" }}
-              />
-              <button className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white hover:text-purple-400 cursor-pointer transition-all duration-300">
-                <Send size={20} />
+            {isUserSignedIn ? (
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Add a comment..."
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  className="w-full text-white placeholder-gray-400 rounded-xl px-4 py-3 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  style={{ backgroundColor: "#4B5563" }}
+                />
+                <button className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white hover:text-purple-400 cursor-pointer transition-all duration-300">
+                  <Send size={20} />
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={onOpenSignupModal}
+                className="w-full py-3 text-white font-bold transition-all hover:opacity-90 cursor-pointer"
+                style={{
+                  backgroundColor: "#778554",
+                  boxShadow: "0px 4px 0px 1px #57613B",
+                  borderRadius: "15px",
+                }}
+              >
+                Sign up or login to comment
               </button>
-            </div>
+            )}
           </div>
         )}
       </div>

@@ -7,7 +7,17 @@ import FeedbackList from "./FeedbackList";
 import FeedbackDetails from "./FeedbackDetails";
 import { mockFeedbackPosts, FeedbackPost } from "./types";
 
-export default function FeedbackForum() {
+interface FeedbackForumProps {
+  isUserSignedIn?: boolean;
+  onOpenSignupModal?: () => void;
+  onCloseFeedbackForum?: () => void;
+}
+
+export default function FeedbackForum({
+  isUserSignedIn = false,
+  onOpenSignupModal = () => {},
+  onCloseFeedbackForum = () => {},
+}: FeedbackForumProps) {
   const [posts, setPosts] = useState<FeedbackPost[]>(mockFeedbackPosts);
   const [selectedPostId, setSelectedPostId] = useState<number | null>(null);
   const [isMobile, setIsMobile] = useState(false);
@@ -235,6 +245,11 @@ export default function FeedbackForum() {
                 onToggleCommentHeart={handleToggleCommentHeart}
                 onToggleReplyHeart={handleToggleReplyHeart}
                 onToggleReplies={handleToggleReplies}
+                isUserSignedIn={isUserSignedIn}
+                onOpenSignupModal={() => {
+                  onCloseFeedbackForum();
+                  onOpenSignupModal();
+                }}
               />
             </div>
           </div>
@@ -391,6 +406,11 @@ export default function FeedbackForum() {
                       onToggleReplyHeart={handleToggleReplyHeart}
                       onToggleReplies={handleToggleReplies}
                       isMobile={true}
+                      isUserSignedIn={isUserSignedIn}
+                      onOpenSignupModal={() => {
+                        handleCloseBottomSheet();
+                        onOpenSignupModal();
+                      }}
                     />
                   </div>
                 )}

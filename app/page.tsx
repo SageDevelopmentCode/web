@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Navigation from "./components/Navigation";
 import Characters from "./components/home/Hero/Characters";
 import Starters from "./components/home/Starters/Starters";
@@ -8,8 +9,12 @@ import FeedbackForum from "./components/home/FeedbackForum/FeedbackForum";
 import Timeline from "./components/home/Timeline/Timeline";
 import HeroSection from "./components/home/Hero/HeroSection";
 import BottomText from "./components/home/Hero/BottomText";
+import SignupModal from "./components/navigation/SignupModal";
+import { useAuth } from "../contexts/auth-context";
 
 export default function Home() {
+  const [isSignupModalOpen, setIsSignupModalOpen] = useState(false);
+  const { user } = useAuth();
   return (
     <div className="overflow-x-hidden min-h-screen w-full max-w-full">
       <style jsx>{`
@@ -85,10 +90,24 @@ export default function Home() {
       <Features />
 
       {/* Feedback Forum Section */}
-      <FeedbackForum />
+      <FeedbackForum
+        isUserSignedIn={!!user}
+        onOpenSignupModal={() => setIsSignupModalOpen(true)}
+        onCloseFeedbackForum={() => {}}
+      />
 
       {/* Timeline Section */}
       <Timeline />
+
+      {/* Signup Modal */}
+      <SignupModal
+        isOpen={isSignupModalOpen}
+        onClose={() => setIsSignupModalOpen(false)}
+        onSignupSuccess={() => {
+          setIsSignupModalOpen(false);
+          // User state will be updated automatically through auth state listener
+        }}
+      />
     </div>
   );
 }
