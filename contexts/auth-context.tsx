@@ -3,9 +3,11 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import SupabaseAuth from "../lib/supabase-auth";
+import { UserService } from "../lib/users";
 
 interface AuthContextType {
   user: User | null;
+  userProfile: { profile_picture?: string } | null;
   isLoading: boolean;
   signOut: () => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -19,7 +21,26 @@ interface AuthProviderProps {
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
+  const [userProfile, setUserProfile] = useState<{
+    profile_picture?: string;
+  } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Function to fetch user profile from users table
+  const fetchUserProfile = async (userId: string) => {
+    try {
+      const { user: profile, error } = await UserService.getUserById(userId);
+      if (error) {
+        console.error("Error fetching user profile:", error);
+        setUserProfile(null);
+      } else {
+        setUserProfile(profile);
+      }
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+      setUserProfile(null);
+    }
+  };
 
   // Check for existing user session on mount
   useEffect(() => {
@@ -27,6 +48,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       try {
         const currentUser = await SupabaseAuth.getCurrentUser();
         setUser(currentUser);
+        if (currentUser?.id) {
+          await fetchUserProfile(currentUser.id);
+        }
       } catch (error) {
         // Don't log errors for missing sessions - this is expected when no one is signed in
         const errorMessage = error instanceof Error ? error.message : "";
@@ -38,6 +62,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         }
         // User remains null, which is correct for unsigned users
         setUser(null);
+        setUserProfile(null);
       } finally {
         setIsLoading(false);
       }
@@ -50,8 +75,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     const {
       data: { subscription },
-    } = SupabaseAuth.onAuthStateChange((event, session) => {
-      setUser(session?.user ?? null);
+    } = SupabaseAuth.onAuthStateChange(async (event, session) => {
+      const newUser = session?.user ?? null;
+      setUser(newUser);
+
+      if (newUser?.id) {
+        await fetchUserProfile(newUser.id);
+      } else {
+        setUserProfile(null);
+      }
+
       setIsLoading(false);
     });
 
@@ -74,6 +107,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       const currentUser = await SupabaseAuth.getCurrentUser();
       setUser(currentUser);
+      if (currentUser?.id) {
+        await fetchUserProfile(currentUser.id);
+      } else {
+        setUserProfile(null);
+      }
     } catch (error) {
       // Don't log errors for missing sessions - this is expected when no one is signed in
       const errorMessage = error instanceof Error ? error.message : "";
@@ -89,6 +127,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         errorMessage.includes("Auth session missing")
       ) {
         setUser(null);
+        setUserProfile(null);
       } else {
         throw error;
       }
@@ -97,6 +136,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const value = {
     user,
+    userProfile,
     isLoading,
     signOut,
     refreshUser,
