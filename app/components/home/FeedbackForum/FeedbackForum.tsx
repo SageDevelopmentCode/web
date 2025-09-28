@@ -337,6 +337,7 @@ export default function FeedbackForum({
               style={{
                 background:
                   "linear-gradient(90.81deg, #9D638D 0.58%, #BF8EFF 99.31%)",
+                boxShadow: "0px 4px 0px 1px #764B6F",
               }}
             >
               View All Feedback

@@ -381,7 +381,11 @@ export default function Starters() {
                             onClick={() =>
                               setShowMobileDetails(!showMobileDetails)
                             }
-                            className="w-full py-3 px-4 mt-4 mb-2 bg-[#7A873D] hover:bg-[#8B9A47] text-white font-semibold rounded-xl transition-colors duration-200 flex items-center justify-center gap-2"
+                            className="w-full py-3 px-4 mt-4 mb-4 bg-[#7A873D] hover:bg-[#8B9A47] text-white font-semibold transition-colors duration-200 flex items-center justify-center gap-2"
+                            style={{
+                              boxShadow: "0px 4px 0px 1px #57613B",
+                              borderRadius: "15px",
+                            }}
                           >
                             <span>
                               {showMobileDetails
