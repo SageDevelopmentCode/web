@@ -21,6 +21,14 @@ const emojiAssets: { [key: string]: string } = {
   "1f3a8": "/assets/emojis/1f3a8.png", // 🎨 artist palette
   "1f504": "/assets/emojis/1f504.png", // 🔄 counterclockwise arrows button
   "1f680": "/assets/emojis/1f680.png", // 🚀 rocket
+  "1f393": "/assets/emojis/1f393.png", // 🎓 graduation cap (student)
+  "1f4bc": "/assets/emojis/1f4bc.png", // 💼 briefcase (professional)
+  "1f614": "/assets/emojis/1f614.png", // 😔 pensive face (struggling)
+  "1f494": "/assets/emojis/1f494.png", // 💔 broken heart (relationship issues)
+  "1f331": "/assets/emojis/1f331.png", // 🌱 seedling (growth)
+  "1f64f": "/assets/emojis/1f64f.png", // 🙏 folded hands (seeking God)
+  "1f64c": "/assets/emojis/1f64c.png", // 🙌 raising hands (praise/worship)
+  "1f940": "/assets/emojis/1f940.png", // 🥀 wilted flower (alternative for struggling)
 };
 
 interface TwemojiProps {
@@ -133,6 +141,14 @@ export const EmojiMap = {
   PALETTE: "1f3a8", // 🎨 artist palette
   REFRESH: "1f504", // 🔄 counterclockwise arrows button
   ROCKET: "1f680", // 🚀 rocket
+  STUDENT: "1f393", // 🎓 graduation cap
+  PROFESSIONAL: "1f4bc", // 💼 briefcase
+  STRUGGLING: "1f614", // 😔 pensive face
+  RELATIONSHIP_ISSUES: "1f494", // 💔 broken heart
+  GROWTH: "1f331", // 🌱 seedling
+  SEEKING_GOD: "1f64f", // 🙏 folded hands
+  PRAISE: "1f64c", // 🙌 raising hands
+  WILTED: "1f940", // 🥀 wilted flower
 } as const;
 
 /**

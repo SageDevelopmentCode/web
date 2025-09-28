@@ -6,23 +6,24 @@ import BestFor from "./BestFor";
 import SuperEffectiveAgainst from "./SuperEffectiveAgainst";
 import VerseCollection from "./VerseCollection";
 import CharacterHeader from "./CharacterHeader";
+import { Twemoji, EmojiMap } from "../../Twemoji";
 
 export default function Starters() {
-  const [selectedCharacter, setSelectedCharacter] = useState<string | null>(
-    "Gabriel"
+  const [selectedOption, setSelectedOption] = useState<string | null>(
+    "student"
   );
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [animationKey, setAnimationKey] = useState(0);
   const [showMobileDetails, setShowMobileDetails] = useState(false);
 
-  // Handle character selection with transition
-  const handleCharacterSelect = (characterName: string) => {
-    if (characterName === selectedCharacter) return;
+  // Handle option selection with transition
+  const handleOptionSelect = (optionKey: string) => {
+    if (optionKey === selectedOption) return;
 
     setIsTransitioning(true);
-    setShowMobileDetails(false); // Reset mobile details visibility when changing characters
+    setShowMobileDetails(false); // Reset mobile details visibility when changing options
     setTimeout(() => {
-      setSelectedCharacter(characterName);
+      setSelectedOption(optionKey);
       setAnimationKey((prev) => prev + 1);
       setTimeout(() => {
         setIsTransitioning(false);
@@ -30,83 +31,131 @@ export default function Starters() {
     }, 200);
   };
 
-  const characters = [
-    {
-      name: "Gabriel",
-      src: "/assets/Gabriel.png",
-      rarity: "Rare",
-      title: "MESSENGER",
-      description:
-        "Gabriel is known as God's messenger, delivering divine announcements and revelations to prophets and people throughout biblical history.",
-      bestFor:
-        "People who value clear communication, are in leadership positions, or work in teaching and guidance roles.",
-      superEffectiveAgainst: ["Doubt", "Fear", "Confusion"],
-      verseCollection: {
-        title: "Divine Messages",
-        subtitle: "Collection • 42 Verses",
+  // Option data mapping to characters
+  const optionData: { [key: string]: any } = {
+    student: {
+      key: "student",
+      title: "I'm a Student",
+      emoji: EmojiMap.STUDENT,
+      character: {
+        name: "Gabriel",
+        src: "/assets/Gabriel.png",
+        rarity: "Rare",
+        title: "MESSENGER",
+        description:
+          "Gabriel is known as God's messenger, delivering divine announcements and revelations to prophets and people throughout biblical history.",
+        bestFor:
+          "People who value clear communication, are in leadership positions, or work in teaching and guidance roles.",
+        superEffectiveAgainst: ["Doubt", "Fear", "Confusion"],
+        verseCollection: {
+          title: "Divine Messages",
+          subtitle: "Collection • 42 Verses",
+        },
       },
     },
-    {
-      name: "Deborah",
-      src: "/assets/Deborah.png",
-      rarity: "Rare",
-      title: "PATIENCE",
-      description:
-        "Noah's life teaches us that walking with God may set us apart, but it positions us for preservation, purpose, and legacy.",
-      bestFor:
-        "People who struggle with impatience, are in waiting seasons, or working on long-term dreams.",
-      superEffectiveAgainst: ["Doubt", "Delay", "Doubt"],
-      verseCollection: {
-        title: "Promises in the storm",
-        subtitle: "Collection • 28 Verses",
+    professional: {
+      key: "professional",
+      title: "I'm a Professional",
+      emoji: EmojiMap.PROFESSIONAL,
+      character: {
+        name: "Solomon",
+        src: "/assets/Solomon.PNG",
+        rarity: "Legendary",
+        title: "WISDOM",
+        description:
+          "Solomon's pursuit of wisdom above all else shows us the value of seeking divine understanding in all life decisions.",
+        bestFor:
+          "People making important decisions, seeking guidance, or wanting to grow in understanding.",
+        superEffectiveAgainst: ["Foolishness", "Confusion", "Poor Judgment"],
+        verseCollection: {
+          title: "Proverbs of Life",
+          subtitle: "Collection • 156 Verses",
+        },
       },
     },
-    {
-      name: "David",
-      src: "/assets/David.png",
-      rarity: "Epic",
-      title: "COURAGE",
-      description:
-        "David shows us that with faith in God, even the smallest person can overcome the greatest giants and obstacles in life.",
-      bestFor:
-        "People facing overwhelming challenges, dealing with fear, or needing to step up as leaders.",
-      superEffectiveAgainst: ["Fear", "Pride", "Oppression"],
-      verseCollection: {
-        title: "Songs of Victory",
-        subtitle: "Collection • 73 Verses",
+    struggling: {
+      key: "struggling",
+      title: "I'm Struggling",
+      emoji: EmojiMap.STRUGGLING,
+      character: {
+        name: "David",
+        src: "/assets/David.png",
+        rarity: "Epic",
+        title: "COURAGE",
+        description:
+          "David shows us that with faith in God, even the smallest person can overcome the greatest giants and obstacles in life.",
+        bestFor:
+          "People facing overwhelming challenges, dealing with fear, or needing to step up as leaders.",
+        superEffectiveAgainst: ["Fear", "Pride", "Oppression"],
+        verseCollection: {
+          title: "Songs of Victory",
+          subtitle: "Collection • 73 Verses",
+        },
       },
     },
-    {
-      name: "Ruth",
-      src: "/assets/Ruth.png",
-      rarity: "Legendary",
-      title: "LOYALTY",
-      description:
-        "Ruth's unwavering loyalty and faithfulness demonstrate how dedication and love can transform lives and create lasting legacies.",
-      bestFor:
-        "People working on relationships, dealing with family transitions, or learning about commitment.",
-      superEffectiveAgainst: ["Abandonment", "Betrayal", "Isolation"],
-      verseCollection: {
-        title: "Faithful Devotion",
-        subtitle: "Collection • 34 Verses",
+    relationship: {
+      key: "relationship",
+      title: "I have Relationship Issues",
+      emoji: EmojiMap.HEART,
+      character: {
+        name: "Ruth",
+        src: "/assets/Ruth.png",
+        rarity: "Legendary",
+        title: "LOYALTY",
+        description:
+          "Ruth's unwavering loyalty and faithfulness demonstrate how dedication and love can transform lives and create lasting legacies.",
+        bestFor:
+          "People working on relationships, dealing with family transitions, or learning about commitment.",
+        superEffectiveAgainst: ["Abandonment", "Betrayal", "Isolation"],
+        verseCollection: {
+          title: "Faithful Devotion",
+          subtitle: "Collection • 34 Verses",
+        },
       },
     },
-    {
-      name: "Solomon",
-      src: "/assets/Solomon.PNG",
-      rarity: "Legendary",
-      title: "WISDOM",
-      description:
-        "Solomon's pursuit of wisdom above all else shows us the value of seeking divine understanding in all life decisions.",
-      bestFor:
-        "People making important decisions, seeking guidance, or wanting to grow in understanding.",
-      superEffectiveAgainst: ["Foolishness", "Confusion", "Poor Judgment"],
-      verseCollection: {
-        title: "Proverbs of Life",
-        subtitle: "Collection • 156 Verses",
+    growth: {
+      key: "growth",
+      title: "I Want Growth",
+      emoji: EmojiMap.GROWTH,
+      character: {
+        name: "Deborah",
+        src: "/assets/Deborah.png",
+        rarity: "Rare",
+        title: "PATIENCE",
+        description:
+          "Deborah's life teaches us that walking with God may set us apart, but it positions us for preservation, purpose, and legacy.",
+        bestFor:
+          "People who struggle with impatience, are in waiting seasons, or working on long-term dreams.",
+        superEffectiveAgainst: ["Doubt", "Delay", "Impatience"],
+        verseCollection: {
+          title: "Promises in the storm",
+          subtitle: "Collection • 28 Verses",
+        },
       },
     },
-  ];
+    seeking: {
+      key: "seeking",
+      title: "I'm Seeking God",
+      emoji: EmojiMap.SEEKING_GOD,
+      character: {
+        name: "Solomon", // Duplicate as requested
+        src: "/assets/Solomon.PNG",
+        rarity: "Legendary",
+        title: "WISDOM",
+        description:
+          "Solomon's pursuit of wisdom above all else shows us the value of seeking divine understanding in all life decisions.",
+        bestFor:
+          "People making important decisions, seeking guidance, or wanting to grow in understanding.",
+        superEffectiveAgainst: ["Foolishness", "Confusion", "Poor Judgment"],
+        verseCollection: {
+          title: "Proverbs of Life",
+          subtitle: "Collection • 156 Verses",
+        },
+      },
+    },
+  };
+
+  const options = Object.values(optionData);
 
   return (
     <>
@@ -180,54 +229,46 @@ export default function Starters() {
         <div className="max-w-7xl mx-auto">
           {/* Section Title */}
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-white text-center mb-8">
-            Meet the Starters.
+            Life Happens. God's Wisdom Responds.
           </h2>
 
-          {/* Characters Grid */}
-          <div className="horizontal-scroll flex overflow-x-auto gap-4 md:gap-8 md:flex-wrap md:justify-center md:overflow-visible pb-4 md:pb-0 px-2 md:px-0">
-            {characters.map((character, index) => (
-              <div
-                key={character.name}
-                className="cursor-pointer transition-transform duration-200 hover:scale-105 flex-shrink-0"
-                onClick={() => handleCharacterSelect(character.name)}
+          {/* Option Buttons Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 max-w-5xl mx-auto mb-8">
+            {options.map((option) => (
+              <button
+                key={option.key}
+                className={`
+                  relative p-6 rounded-3xl transition-all duration-300 hover:scale-105 cursor-pointer
+                  flex flex-col items-center justify-center text-center min-h-[140px]
+                  ${
+                    selectedOption === option.key
+                      ? "bg-[#7A873D] shadow-lg transform scale-105"
+                      : "bg-[#37400F] hover:bg-[#454D15]"
+                  }
+                `}
+                onClick={() => handleOptionSelect(option.key)}
               >
-                {/* Character Background */}
-                <div
-                  className="rounded-3xl p-0 transition-colors duration-300 w-32 h-32 md:w-48 md:h-48"
-                  style={{
-                    backgroundColor:
-                      selectedCharacter === character.name
-                        ? "#7A873D"
-                        : "#37400F",
-                  }}
-                >
-                  {/* Character Image Container */}
-                  <div className="relative w-full h-full overflow-hidden rounded-2xl">
-                    <Image
-                      src={character.src}
-                      alt={character.name}
-                      width={288}
-                      height={288}
-                      className="object-cover w-full h-auto"
-                      style={{
-                        transform: "translateY(10%)",
-                      }}
-                    />
-                  </div>
+                {/* Emoji */}
+                <div className="mb-3">
+                  <Twemoji hex={option.emoji} size={48} />
                 </div>
-              </div>
+
+                {/* Title */}
+                <h3 className="text-white font-bold text-base md:text-lg leading-tight">
+                  {option.title}
+                </h3>
+              </button>
             ))}
           </div>
 
           {/* Character Details Section */}
-          {selectedCharacter && (
+          {selectedOption && (
             <div className="mt-4">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-16">
                 {(() => {
-                  const character = characters.find(
-                    (c) => c.name === selectedCharacter
-                  );
-                  if (!character) return null;
+                  const optionInfo = optionData[selectedOption];
+                  if (!optionInfo) return null;
+                  const character = optionInfo.character;
 
                   return (
                     <div
@@ -287,8 +328,8 @@ export default function Starters() {
                           <CharacterHeader
                             name={character.name}
                             number={
-                              characters.findIndex(
-                                (c) => c.name === character.name
+                              options.findIndex(
+                                (o) => o.key === selectedOption
                               ) + 1
                             }
                             title={character.title}

@@ -589,60 +589,62 @@ export default function MobileSignupModal({
                     Select an Avatar {validationErrors.avatar && "(Required)"}
                   </p>
                   <div
-                    className={`grid grid-cols-7 gap-2 p-3 rounded-xl ${
+                    className={`p-3 rounded-xl ${
                       validationErrors.avatar ? "border-2 border-red-500" : ""
                     }`}
                   >
-                    {characters.map((character, index) => (
-                      <button
-                        key={character}
-                        onClick={() => {
-                          setSelectedAvatar(character);
-                          clearFieldError("avatar");
-                        }}
-                        className={`w-10 h-10 cursor-pointer rounded-full overflow-hidden border-2 transition-all duration-150 transform ${
-                          showAvatars
-                            ? "opacity-100 scale-100 translate-y-0"
-                            : "opacity-0 scale-75 translate-y-2"
-                        } ${
-                          selectedAvatar === character
-                            ? "border-gray-600"
-                            : "border-gray-300 hover:border-gray-400"
-                        }`}
-                        style={{
-                          backgroundColor: "#D6E5E2",
-                          transitionDelay: showAvatars
-                            ? `${index * 50}ms`
-                            : "0ms",
-                        }}
-                      >
-                        <Image
-                          src={`/assets/Characters/${character}`}
-                          alt={character.split(".")[0]}
-                          width={200}
-                          height={200}
-                          className={`w-auto h-full object-cover transition-all duration-150 ${
+                    <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-2">
+                      {characters.map((character, index) => (
+                        <button
+                          key={character}
+                          onClick={() => {
+                            setSelectedAvatar(character);
+                            clearFieldError("avatar");
+                          }}
+                          className={`flex-shrink-0 w-14 h-14 cursor-pointer rounded-full overflow-hidden border-3 transition-all duration-150 transform ${
+                            showAvatars
+                              ? "opacity-100 scale-100 translate-y-0"
+                              : "opacity-0 scale-75 translate-y-2"
+                          } ${
                             selectedAvatar === character
-                              ? "opacity-100 grayscale-0"
-                              : "opacity-60 grayscale"
+                              ? "border-gray-600 ring-2 ring-gray-400"
+                              : "border-gray-300 hover:border-gray-400"
                           }`}
                           style={{
-                            transform:
-                              character === "Ruth.png"
-                                ? "scale(3.5) translateY(30%) translateX(10%)"
-                                : character === "Samson.png"
-                                ? "scale(3.5) translateY(28%) translateX(4%)"
-                                : character === "Deborah.png"
-                                ? "scale(3.5) translateY(30%) translateX(4%)"
-                                : character === "Noah.png"
-                                ? "scale(3.5) translateY(26%) translateX(4%)"
-                                : "scale(3.5) translateY(33%) translateX(4%)",
-                            objectPosition: "center 30%",
+                            backgroundColor: "#D6E5E2",
+                            transitionDelay: showAvatars
+                              ? `${index * 30}ms`
+                              : "0ms",
                           }}
-                          quality={100}
-                        />
-                      </button>
-                    ))}
+                        >
+                          <Image
+                            src={`/assets/Characters/${character}`}
+                            alt={character.split(".")[0]}
+                            width={200}
+                            height={200}
+                            className={`w-auto h-full object-cover transition-all duration-150 ${
+                              selectedAvatar === character
+                                ? "opacity-100 grayscale-0"
+                                : "opacity-60 grayscale"
+                            }`}
+                            style={{
+                              transform:
+                                character === "Ruth.png"
+                                  ? "scale(3.5) translateY(30%) translateX(10%)"
+                                  : character === "Samson.png"
+                                  ? "scale(3.5) translateY(28%) translateX(4%)"
+                                  : character === "Deborah.png"
+                                  ? "scale(3.5) translateY(30%) translateX(4%)"
+                                  : character === "Noah.png"
+                                  ? "scale(3.5) translateY(26%) translateX(4%)"
+                                  : "scale(3.5) translateY(33%) translateX(4%)",
+                              objectPosition: "center 30%",
+                            }}
+                            quality={100}
+                          />
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
               )}
@@ -772,6 +774,17 @@ export default function MobileSignupModal({
           />
         </div>
       </div>
+
+      {/* Custom scrollbar styles */}
+      <style jsx>{`
+        .scrollbar-hide {
+          -ms-overflow-style: none; /* IE and Edge */
+          scrollbar-width: none; /* Firefox */
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none; /* Chrome, Safari and Opera */
+        }
+      `}</style>
     </div>
   );
 }
