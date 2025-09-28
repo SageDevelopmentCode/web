@@ -9,7 +9,7 @@ import FeedbackForum from "./components/home/FeedbackForum/FeedbackForum";
 import Timeline from "./components/home/Timeline/Timeline";
 import HeroSection from "./components/home/Hero/HeroSection";
 import BottomText from "./components/home/Hero/BottomText";
-import SignupModal from "./components/navigation/SignupModal";
+import ResponsiveSignupModal from "./components/navigation/ResponsiveSignupModal";
 import { useAuth } from "../contexts/auth-context";
 
 export default function Home() {
@@ -100,7 +100,7 @@ export default function Home() {
       <Timeline />
 
       {/* Signup Modal */}
-      <SignupModal
+      <ResponsiveSignupModal
         isOpen={isSignupModalOpen}
         onClose={() => setIsSignupModalOpen(false)}
         onSignupSuccess={() => {

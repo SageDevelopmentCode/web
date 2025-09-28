@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import SignupModal from "./navigation/SignupModal";
+import ResponsiveSignupModal from "./navigation/ResponsiveSignupModal";
 import UserAvatar from "./navigation/UserAvatar";
 import { useAuth } from "../../contexts/auth-context";
 
@@ -196,7 +196,7 @@ export default function Navigation() {
       </div>
 
       {/* Signup Modal */}
-      <SignupModal
+      <ResponsiveSignupModal
         isOpen={isSignupModalOpen}
         onClose={() => setIsSignupModalOpen(false)}
         onSignupSuccess={() => {

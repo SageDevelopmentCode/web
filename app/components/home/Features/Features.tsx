@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import FeatureCard from "./FeatureCard";
 import DesktopCommentsPopup from "./DesktopCommentsPopup";
-import SignupModal from "../../navigation/SignupModal";
+import ResponsiveSignupModal from "../../navigation/ResponsiveSignupModal";
 import { useAuth } from "../../../../contexts/auth-context";
 
 // Comment and Reply interfaces
@@ -518,7 +518,7 @@ export default function Features() {
         />
 
         {/* Signup Modal */}
-        <SignupModal
+        <ResponsiveSignupModal
           isOpen={isSignupModalOpen}
           onClose={handleCloseSignupModal}
           onSignupSuccess={handleSignupSuccess}
