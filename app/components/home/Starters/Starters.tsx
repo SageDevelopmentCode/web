@@ -96,7 +96,7 @@ export default function Starters() {
     relationship: {
       key: "relationship",
       title: "I have Relationship Issues",
-      emoji: EmojiMap.HEART,
+      emoji: EmojiMap.WILTED,
       character: {
         name: "Ruth",
         src: "/assets/Ruth.png",
@@ -232,33 +232,65 @@ export default function Starters() {
             Life Happens. God's Wisdom Responds.
           </h2>
 
-          {/* Option Buttons Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 max-w-5xl mx-auto mb-8">
-            {options.map((option) => (
-              <button
-                key={option.key}
-                className={`
-                  relative p-6 rounded-3xl transition-all duration-300 hover:scale-105 cursor-pointer
-                  flex flex-col items-center justify-center text-center min-h-[140px]
-                  ${
-                    selectedOption === option.key
-                      ? "bg-[#7A873D] shadow-lg transform scale-105"
-                      : "bg-[#37400F] hover:bg-[#454D15]"
-                  }
-                `}
-                onClick={() => handleOptionSelect(option.key)}
-              >
-                {/* Emoji */}
-                <div className="mb-3">
-                  <Twemoji hex={option.emoji} size={48} />
-                </div>
+          {/* Option Buttons - Mobile Horizontal Scroll, Desktop Grid */}
+          <div className="mb-8">
+            {/* Mobile: Horizontal Scroll */}
+            <div className="md:hidden horizontal-scroll flex overflow-x-auto gap-5 pb-4 px-2">
+              {options.map((option) => (
+                <button
+                  key={option.key}
+                  className={`
+                    relative p-4 rounded-2xl transition-all duration-300 cursor-pointer flex-shrink-0
+                    flex flex-col items-center justify-center text-center min-h-[120px] min-w-[140px]
+                    ${
+                      selectedOption === option.key
+                        ? "bg-[#7A873D] shadow-lg"
+                        : "bg-[#37400F] hover:bg-[#454D15]"
+                    }
+                  `}
+                  onClick={() => handleOptionSelect(option.key)}
+                >
+                  {/* Emoji */}
+                  <div className="mb-2">
+                    <Twemoji hex={option.emoji} size={36} />
+                  </div>
 
-                {/* Title */}
-                <h3 className="text-white font-bold text-base md:text-lg leading-tight">
-                  {option.title}
-                </h3>
-              </button>
-            ))}
+                  {/* Title */}
+                  <h3 className="text-white font-bold text-sm leading-tight">
+                    {option.title}
+                  </h3>
+                </button>
+              ))}
+            </div>
+
+            {/* Desktop: Grid */}
+            <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 max-w-5xl mx-auto">
+              {options.map((option) => (
+                <button
+                  key={option.key}
+                  className={`
+                    relative p-6 rounded-3xl transition-all duration-300 hover:scale-105 cursor-pointer
+                    flex flex-col items-center justify-center text-center min-h-[140px]
+                    ${
+                      selectedOption === option.key
+                        ? "bg-[#7A873D] shadow-lg"
+                        : "bg-[#37400F] hover:bg-[#454D15]"
+                    }
+                  `}
+                  onClick={() => handleOptionSelect(option.key)}
+                >
+                  {/* Emoji */}
+                  <div className="mb-3">
+                    <Twemoji hex={option.emoji} size={48} />
+                  </div>
+
+                  {/* Title */}
+                  <h3 className="text-white font-bold text-base md:text-lg leading-tight">
+                    {option.title}
+                  </h3>
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Character Details Section */}
