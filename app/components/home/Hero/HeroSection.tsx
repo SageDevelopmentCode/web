@@ -28,7 +28,7 @@ export default function HeroSection() {
         Sage
       </h1>
       <p className="text-white text-sm sm:text-base mt-4 text-center font-bold max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg fade-in-up delay-3 px-2">
-        A{" "}
+        Feeling Disconnected from God During Your Busy Week? Introducing Sage, a{" "}
         <span
           className="px-1 py-0.5 rounded"
           style={{
@@ -39,7 +39,7 @@ export default function HeroSection() {
         >
           Christian Self-Care
         </span>{" "}
-        Game. Sign up for early access and updates before launch.
+        Game.
       </p>
 
       {/* Mobile Layout - Separated Components */}
@@ -58,7 +58,7 @@ export default function HeroSection() {
         )}
         <button
           onClick={handleSubscribe}
-          className="w-full px-6 py-3 text-white font-semibold rounded-full text-sm cursor-pointer"
+          className="w-full px-6 py-3 text-white font-extrabold rounded-full text-sm cursor-pointer"
           style={{
             background:
               "linear-gradient(90.81deg, #9D638D 0.58%, #BF8EFF 99.31%)",
@@ -67,7 +67,7 @@ export default function HeroSection() {
           }}
           type="button"
         >
-          Subscribe
+          Subscribe for Early Access
         </button>
       </div>
 
