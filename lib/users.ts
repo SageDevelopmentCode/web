@@ -6,17 +6,20 @@ export interface User {
   created_at: string;
   updated_at: string;
   profile_picture?: string;
+  display_name?: string;
   // Add other user fields as needed based on your schema
 }
 
 export interface CreateUserData {
   user_id: string;
   profile_picture?: string;
+  display_name?: string;
   // Add other optional fields for user creation
 }
 
 export interface UpdateUserData {
   profile_picture?: string;
+  display_name?: string;
   updated_at?: string;
   // Add other updatable fields
 }

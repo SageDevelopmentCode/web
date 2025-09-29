@@ -253,6 +253,7 @@ export default function SignupModal({
             {
               user_id: user.id,
               profile_picture: profilePicture,
+              display_name: username,
             }
           );
 
