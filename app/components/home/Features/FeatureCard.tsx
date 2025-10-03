@@ -10,6 +10,24 @@ import {
 import { FeatureCommentService } from "../../../../lib/supabase/feature_comments";
 import { useAuth } from "../../../../contexts/auth-context";
 
+// Character file extension mapping
+const characterExtensions: Record<string, string> = {
+  Daniel: ".PNG",
+  David: ".png",
+  Deborah: ".png",
+  Elijah: ".png",
+  Esther: ".PNG",
+  Gabriel: ".png",
+  Job: ".PNG",
+  JohnTheBaptist: ".PNG",
+  Moses: ".PNG",
+  Noah: ".png",
+  Paul: ".png",
+  Ruth: ".png",
+  Samson: ".png",
+  Solomon: ".PNG",
+};
+
 interface FeatureCardProps {
   id: string;
   title: string;
@@ -25,8 +43,9 @@ interface FeatureCardProps {
       id: string;
       title: string;
       images: { src: string; alt: string }[];
-    }
-  ) => void;
+    },
+    commentsData?: Comment[]
+  ) => void | Promise<void>;
   isMobile?: boolean;
   isCommentSidebarOpen?: boolean;
   isUserSignedIn?: boolean;
@@ -44,20 +63,29 @@ interface FloatingEmoji {
 }
 
 interface Comment {
-  id: number;
-  username: string;
+  id: string;
   content: string;
-  timestamp: string;
+  created_at: string;
+  user?: {
+    user_id: string;
+    display_name?: string;
+    profile_picture?: string;
+  };
   replies?: Reply[];
+  reply_count?: number;
   showReplies?: boolean;
   isHearted?: boolean;
 }
 
 interface Reply {
-  id: number;
-  username: string;
+  id: string;
   content: string;
-  timestamp: string;
+  created_at: string;
+  user?: {
+    user_id: string;
+    display_name?: string;
+    profile_picture?: string;
+  };
   isHearted?: boolean;
 }
 
@@ -135,71 +163,8 @@ export default function FeatureCard({
   });
   const [userReaction, setUserReaction] = useState<ReactionType | null>(null);
   const [hasUserReacted, setHasUserReacted] = useState<boolean>(false);
-  const [comments, setComments] = useState<Comment[]>([
-    {
-      id: 1,
-      username: "Tristan Kelly • 5d",
-      content:
-        "This was a very good verse that challenged me and spoke to my heart.",
-      timestamp: "5d",
-      showReplies: false,
-      isHearted: false,
-      replies: [
-        {
-          id: 1,
-          username: "Sarah M • 4d",
-          content: "I completely agree! This verse really touched me too.",
-          timestamp: "4d",
-          isHearted: false,
-        },
-        {
-          id: 2,
-          username: "David L • 3d",
-          content: "Such a powerful message. Thanks for sharing your thoughts!",
-          timestamp: "3d",
-          isHearted: false,
-        },
-      ],
-    },
-    {
-      id: 2,
-      username: "Tristan Kelly • 5d",
-      content:
-        "This was a very good verse that challenged me and spoke to my heart.",
-      timestamp: "5d",
-      showReplies: false,
-      isHearted: false,
-      replies: [
-        {
-          id: 3,
-          username: "Mary J • 2d",
-          content: "Beautiful reflection. God bless!",
-          timestamp: "2d",
-          isHearted: false,
-        },
-      ],
-    },
-    {
-      id: 3,
-      username: "Tristan Kelly • 5d",
-      content:
-        "This was a very good verse that challenged me and spoke to my heart.",
-      timestamp: "5d",
-      showReplies: false,
-      isHearted: false,
-      replies: [],
-    },
-    {
-      id: 4,
-      username: "Tristan Kelly • 5d",
-      content:
-        "This was a very good verse that challenged me and spoke to my heart.",
-      timestamp: "5d",
-      showReplies: false,
-      isHearted: false,
-      replies: [],
-    },
-  ]);
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [isLoadingComments, setIsLoadingComments] = useState(false);
   const buttonRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
 
   // Sync comment button state with sidebar state
@@ -376,7 +341,7 @@ export default function FeatureCard({
   };
 
   // Toggle replies visibility
-  const toggleReplies = (commentId: number) => {
+  const toggleReplies = (commentId: string) => {
     setComments((prevComments) =>
       prevComments.map((comment) =>
         comment.id === commentId
@@ -387,7 +352,7 @@ export default function FeatureCard({
   };
 
   // Toggle heart for comments
-  const toggleCommentHeart = (commentId: number) => {
+  const toggleCommentHeart = (commentId: string) => {
     setComments((prevComments) =>
       prevComments.map((comment) =>
         comment.id === commentId
@@ -398,7 +363,7 @@ export default function FeatureCard({
   };
 
   // Toggle heart for replies
-  const toggleReplyHeart = (commentId: number, replyId: number) => {
+  const toggleReplyHeart = (commentId: string, replyId: string) => {
     setComments((prevComments) =>
       prevComments.map((comment) => {
         if (comment.id === commentId && comment.replies) {
@@ -479,10 +444,20 @@ export default function FeatureCard({
                   const newState = !isCommentPressed;
                   setIsCommentPressed(newState);
 
-                  // If opening comments, fetch comments from API
-                  if (newState) {
+                  // Open popup immediately
+                  if (onCommentToggle) {
+                    await onCommentToggle(
+                      newState,
+                      { id, title, images },
+                      comments
+                    );
+                  }
+
+                  // For mobile, fetch comments from API in background
+                  if (newState && isMobile) {
+                    setIsLoadingComments(true);
                     try {
-                      const { comments, error } =
+                      const { comments: apiComments, error } =
                         await FeatureCommentService.getFeatureCommentsWithUsers(
                           id,
                           true
@@ -495,26 +470,38 @@ export default function FeatureCard({
                       } else {
                         console.log(
                           "Feature comments with reply counts:",
-                          comments
+                          apiComments
                         );
                         // Log reply counts for each comment
-                        if (comments) {
-                          comments.forEach((comment, index) => {
+                        if (apiComments) {
+                          apiComments.forEach((comment, index) => {
                             console.log(
                               `Comment ${index + 1} (${comment.id}): ${
                                 comment.reply_count
                               } replies`
                             );
                           });
+                          // Update comments state with API data
+                          const formattedComments = apiComments.map(
+                            (comment) => ({
+                              ...comment,
+                              showReplies: false,
+                              isHearted: false,
+                              replies:
+                                comment.replies?.map((reply) => ({
+                                  ...reply,
+                                  isHearted: false,
+                                })) || [],
+                            })
+                          );
+                          setComments(formattedComments);
                         }
                       }
                     } catch (error) {
                       console.error("Error in comment fetch:", error);
+                    } finally {
+                      setIsLoadingComments(false);
                     }
-                  }
-
-                  if (onCommentToggle) {
-                    onCommentToggle(newState, { id, title, images });
                   }
                 }}
                 className={`rounded-full flex items-center justify-center transition-all duration-200 cursor-pointer flex-shrink-0 ${
@@ -676,6 +663,7 @@ export default function FeatureCard({
           onToggleReplyHeart={toggleReplyHeart}
           isUserSignedIn={isUserSignedIn}
           onOpenSignupModal={onOpenSignupModal || (() => {})}
+          isLoadingComments={isLoadingComments}
         />
 
         {/* Floating Emoji Animation */}

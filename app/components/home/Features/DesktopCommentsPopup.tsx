@@ -4,22 +4,50 @@ import { useRef, useEffect, useState } from "react";
 import { Send, X } from "lucide-react";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
+import Image from "next/image";
+
+// Character file extension mapping
+const characterExtensions: Record<string, string> = {
+  Daniel: ".PNG",
+  David: ".png",
+  Deborah: ".png",
+  Elijah: ".png",
+  Esther: ".PNG",
+  Gabriel: ".png",
+  Job: ".PNG",
+  JohnTheBaptist: ".PNG",
+  Moses: ".PNG",
+  Noah: ".png",
+  Paul: ".png",
+  Ruth: ".png",
+  Samson: ".png",
+  Solomon: ".PNG",
+};
 
 interface Comment {
-  id: number;
-  username: string;
+  id: string;
   content: string;
-  timestamp: string;
+  created_at: string;
+  user?: {
+    user_id: string;
+    display_name?: string;
+    profile_picture?: string;
+  };
   replies?: Reply[];
+  reply_count?: number;
   showReplies?: boolean;
   isHearted?: boolean;
 }
 
 interface Reply {
-  id: number;
-  username: string;
+  id: string;
   content: string;
-  timestamp: string;
+  created_at: string;
+  user?: {
+    user_id: string;
+    display_name?: string;
+    profile_picture?: string;
+  };
   isHearted?: boolean;
 }
 
@@ -28,11 +56,12 @@ interface DesktopCommentsPopupProps {
   onClose: () => void;
   comments: Comment[];
   featureData: { title: string; images: { src: string; alt: string }[] } | null;
-  onToggleReplies: (commentId: number) => void;
-  onToggleCommentHeart: (commentId: number) => void;
-  onToggleReplyHeart: (commentId: number, replyId: number) => void;
+  onToggleReplies: (commentId: string) => void;
+  onToggleCommentHeart: (commentId: string) => void;
+  onToggleReplyHeart: (commentId: string, replyId: string) => void;
   isUserSignedIn: boolean;
   onOpenSignupModal: () => void;
+  isLoadingComments?: boolean;
 }
 
 export default function DesktopCommentsPopup({
@@ -45,6 +74,7 @@ export default function DesktopCommentsPopup({
   onToggleReplyHeart,
   isUserSignedIn,
   onOpenSignupModal,
+  isLoadingComments = false,
 }: DesktopCommentsPopupProps) {
   const [showScrollHint, setShowScrollHint] = useState(true);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -223,102 +253,186 @@ export default function DesktopCommentsPopup({
                 onScroll={handleScroll}
                 className="flex-1 overflow-y-auto space-y-4 scrollbar-hide relative"
               >
-                {comments.map((comment) => (
-                  <div key={comment.id} className="space-y-3">
-                    {/* Main Comment */}
-                    <div className="flex space-x-3">
-                      <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0"></div>
-                      <div className="flex-1 space-y-1">
-                        <div className="flex items-center space-x-2">
-                          <span className="text-gray-300 text-sm font-medium">
-                            {comment.username}
-                          </span>
-                        </div>
-                        <p className="text-white text-sm leading-relaxed">
-                          {comment.content}
-                        </p>
-                        <div className="flex items-center space-x-4 pt-1">
-                          <button
-                            onClick={() => onToggleCommentHeart(comment.id)}
-                            className={`flex items-center space-x-1 transition-colors cursor-pointer ${
-                              comment.isHearted
-                                ? "text-red-500 hover:text-red-400"
-                                : "text-gray-400 hover:text-white"
-                            }`}
-                          >
-                            {comment.isHearted ? (
-                              <FavoriteIcon sx={{ fontSize: 20 }} />
-                            ) : (
-                              <FavoriteBorderIcon sx={{ fontSize: 20 }} />
-                            )}
-                          </button>
-                          <button className="text-gray-400 hover:text-white transition-colors text-sm">
-                            Reply
-                          </button>
-                          {comment.replies && comment.replies.length > 0 && (
-                            <button
-                              onClick={() => onToggleReplies(comment.id)}
-                              className="text-gray-400 hover:text-white transition-colors text-sm"
-                            >
-                              {comment.showReplies ? "Hide" : "View"}{" "}
-                              {comment.replies.length} Replies
-                            </button>
+                {isLoadingComments ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
+                    <span className="ml-3 text-gray-400">
+                      Loading comments...
+                    </span>
+                  </div>
+                ) : comments.length === 0 ? (
+                  <div className="flex items-center justify-center py-8">
+                    <span className="text-gray-400">
+                      No comments yet. Be the first to comment!
+                    </span>
+                  </div>
+                ) : (
+                  comments.map((comment) => (
+                    <div key={comment.id} className="space-y-3">
+                      {/* Main Comment */}
+                      <div className="flex space-x-3">
+                        <div
+                          className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden border-2 border-gray-300"
+                          style={{ backgroundColor: "#D6E5E2" }}
+                        >
+                          {comment.user?.profile_picture ? (
+                            <Image
+                              src={`/assets/Characters/${
+                                comment.user.profile_picture
+                              }${
+                                characterExtensions[
+                                  comment.user.profile_picture
+                                ] || ".png"
+                              }`}
+                              alt={comment.user.profile_picture}
+                              width={200}
+                              height={200}
+                              className="w-auto h-full object-cover opacity-100 grayscale-0"
+                              style={{
+                                transform:
+                                  comment.user.profile_picture === "Ruth"
+                                    ? "scale(3.5) translateY(30%) translateX(10%)"
+                                    : comment.user.profile_picture === "Samson"
+                                    ? "scale(3.5) translateY(28%) translateX(4%)"
+                                    : comment.user.profile_picture === "Deborah"
+                                    ? "scale(3.5) translateY(30%) translateX(4%)"
+                                    : comment.user.profile_picture === "Noah"
+                                    ? "scale(3.5) translateY(26%) translateX(4%)"
+                                    : "scale(3.5) translateY(33%) translateX(4%)",
+                                objectPosition: "center 30%",
+                              }}
+                              quality={100}
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-purple-500 rounded-full"></div>
                           )}
                         </div>
-                      </div>
-                    </div>
-
-                    {/* Replies */}
-                    {comment.showReplies &&
-                      comment.replies &&
-                      comment.replies.length > 0 && (
-                        <div className="ml-11 space-y-3 border-l-2 border-gray-700 pl-4">
-                          {comment.replies.map((reply) => (
-                            <div key={reply.id} className="flex space-x-3">
-                              <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
-                                <span className="text-white text-xs font-semibold">
-                                  {reply.username.charAt(0)}
-                                </span>
-                              </div>
-                              <div className="flex-1 space-y-1">
-                                <div className="flex items-center space-x-2">
-                                  <span className="text-gray-300 text-sm font-medium">
-                                    {reply.username}
-                                  </span>
-                                </div>
-                                <p className="text-white text-sm leading-relaxed">
-                                  {reply.content}
-                                </p>
-                                <div className="flex items-center space-x-4 pt-1">
-                                  <button
-                                    onClick={() =>
-                                      onToggleReplyHeart(comment.id, reply.id)
-                                    }
-                                    className={`flex items-center space-x-1 transition-colors cursor-pointer ${
-                                      reply.isHearted
-                                        ? "text-red-500 hover:text-red-400"
-                                        : "text-gray-400 hover:text-white"
-                                    }`}
-                                  >
-                                    {reply.isHearted ? (
-                                      <FavoriteIcon sx={{ fontSize: 16 }} />
-                                    ) : (
-                                      <FavoriteBorderIcon
-                                        sx={{ fontSize: 16 }}
-                                      />
-                                    )}
-                                  </button>
-                                  <button className="text-gray-400 hover:text-white transition-colors text-sm">
-                                    Reply
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
+                        <div className="flex-1 space-y-1">
+                          <div className="flex items-center space-x-2">
+                            <span className="text-gray-300 text-sm font-medium">
+                              {comment.user?.display_name || "Anonymous"}
+                            </span>
+                          </div>
+                          <p className="text-white text-sm leading-relaxed">
+                            {comment.content}
+                          </p>
+                          <div className="flex items-center space-x-4 pt-1">
+                            <button
+                              onClick={() => onToggleCommentHeart(comment.id)}
+                              className={`flex items-center space-x-1 transition-colors cursor-pointer ${
+                                comment.isHearted
+                                  ? "text-red-500 hover:text-red-400"
+                                  : "text-gray-400 hover:text-white"
+                              }`}
+                            >
+                              {comment.isHearted ? (
+                                <FavoriteIcon sx={{ fontSize: 20 }} />
+                              ) : (
+                                <FavoriteBorderIcon sx={{ fontSize: 20 }} />
+                              )}
+                            </button>
+                            <button className="text-gray-400 hover:text-white transition-colors text-sm">
+                              Reply
+                            </button>
+                            {comment.reply_count && comment.reply_count > 0 && (
+                              <button
+                                onClick={() => onToggleReplies(comment.id)}
+                                className="text-gray-400 hover:text-white transition-colors text-sm"
+                              >
+                                {comment.showReplies ? "Hide" : "View"}{" "}
+                                {comment.reply_count} Replies
+                              </button>
+                            )}
+                          </div>
                         </div>
-                      )}
-                  </div>
-                ))}
+                      </div>
+
+                      {/* Replies */}
+                      {comment.showReplies &&
+                        comment.replies &&
+                        comment.replies.length > 0 && (
+                          <div className="ml-11 space-y-3 border-l-2 border-gray-700 pl-4">
+                            {comment.replies.map((reply) => (
+                              <div key={reply.id} className="flex space-x-3">
+                                <div
+                                  className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden border-2 border-gray-300"
+                                  style={{ backgroundColor: "#D6E5E2" }}
+                                >
+                                  {reply.user?.profile_picture ? (
+                                    <Image
+                                      src={`/assets/Characters/${
+                                        reply.user.profile_picture
+                                      }${
+                                        characterExtensions[
+                                          reply.user.profile_picture
+                                        ] || ".png"
+                                      }`}
+                                      alt={reply.user.profile_picture}
+                                      width={200}
+                                      height={200}
+                                      className="w-auto h-full object-cover opacity-100 grayscale-0"
+                                      style={{
+                                        transform:
+                                          reply.user.profile_picture === "Ruth"
+                                            ? "scale(3.5) translateY(30%) translateX(10%)"
+                                            : reply.user.profile_picture ===
+                                              "Samson"
+                                            ? "scale(3.5) translateY(28%) translateX(4%)"
+                                            : reply.user.profile_picture ===
+                                              "Deborah"
+                                            ? "scale(3.5) translateY(30%) translateX(4%)"
+                                            : reply.user.profile_picture ===
+                                              "Noah"
+                                            ? "scale(3.5) translateY(26%) translateX(4%)"
+                                            : "scale(3.5) translateY(33%) translateX(4%)",
+                                        objectPosition: "center 30%",
+                                      }}
+                                      quality={100}
+                                    />
+                                  ) : (
+                                    <div className="w-full h-full bg-blue-500 rounded-full"></div>
+                                  )}
+                                </div>
+                                <div className="flex-1 space-y-1">
+                                  <div className="flex items-center space-x-2">
+                                    <span className="text-gray-300 text-sm font-medium">
+                                      {reply.user?.display_name || "Anonymous"}
+                                    </span>
+                                  </div>
+                                  <p className="text-white text-sm leading-relaxed">
+                                    {reply.content}
+                                  </p>
+                                  <div className="flex items-center space-x-4 pt-1">
+                                    <button
+                                      onClick={() =>
+                                        onToggleReplyHeart(comment.id, reply.id)
+                                      }
+                                      className={`flex items-center space-x-1 transition-colors cursor-pointer ${
+                                        reply.isHearted
+                                          ? "text-red-500 hover:text-red-400"
+                                          : "text-gray-400 hover:text-white"
+                                      }`}
+                                    >
+                                      {reply.isHearted ? (
+                                        <FavoriteIcon sx={{ fontSize: 16 }} />
+                                      ) : (
+                                        <FavoriteBorderIcon
+                                          sx={{ fontSize: 16 }}
+                                        />
+                                      )}
+                                    </button>
+                                    <button className="text-gray-400 hover:text-white transition-colors text-sm">
+                                      Reply
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                    </div>
+                  ))
+                )}
               </div>
 
               {/* Scroll Hint */}

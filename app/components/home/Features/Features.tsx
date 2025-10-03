@@ -6,23 +6,33 @@ import FeatureCard from "./FeatureCard";
 import DesktopCommentsPopup from "./DesktopCommentsPopup";
 import ResponsiveSignupModal from "../../navigation/ResponsiveSignupModal";
 import { useAuth } from "../../../../contexts/auth-context";
+import { FeatureCommentService } from "../../../../lib/supabase/feature_comments";
 
 // Comment and Reply interfaces
 interface Comment {
-  id: number;
-  username: string;
+  id: string;
   content: string;
-  timestamp: string;
+  created_at: string;
+  user?: {
+    user_id: string;
+    display_name?: string;
+    profile_picture?: string;
+  };
   replies?: Reply[];
+  reply_count?: number;
   showReplies?: boolean;
   isHearted?: boolean;
 }
 
 interface Reply {
-  id: number;
-  username: string;
+  id: string;
   content: string;
-  timestamp: string;
+  created_at: string;
+  user?: {
+    user_id: string;
+    display_name?: string;
+    profile_picture?: string;
+  };
   isHearted?: boolean;
 }
 
@@ -39,72 +49,9 @@ export default function Features() {
   const [isSignupModalOpen, setIsSignupModalOpen] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  // Mock comments data
-  const [comments, setComments] = useState<Comment[]>([
-    {
-      id: 1,
-      username: "Tristan Kelly • 5d",
-      content:
-        "This was a very good verse that challenged me and spoke to my heart.",
-      timestamp: "5d",
-      showReplies: false,
-      isHearted: false,
-      replies: [
-        {
-          id: 1,
-          username: "Sarah M • 4d",
-          content: "I completely agree! This verse really touched me too.",
-          timestamp: "4d",
-          isHearted: false,
-        },
-        {
-          id: 2,
-          username: "David L • 3d",
-          content: "Such a powerful message. Thanks for sharing your thoughts!",
-          timestamp: "3d",
-          isHearted: false,
-        },
-      ],
-    },
-    {
-      id: 2,
-      username: "Tristan Kelly • 5d",
-      content:
-        "This was a very good verse that challenged me and spoke to my heart.",
-      timestamp: "5d",
-      showReplies: false,
-      isHearted: false,
-      replies: [
-        {
-          id: 3,
-          username: "Mary J • 2d",
-          content: "Beautiful reflection. God bless!",
-          timestamp: "2d",
-          isHearted: false,
-        },
-      ],
-    },
-    {
-      id: 3,
-      username: "Tristan Kelly • 5d",
-      content:
-        "This was a very good verse that challenged me and spoke to my heart.",
-      timestamp: "5d",
-      showReplies: false,
-      isHearted: false,
-      replies: [],
-    },
-    {
-      id: 4,
-      username: "Tristan Kelly • 5d",
-      content:
-        "This was a very good verse that challenged me and spoke to my heart.",
-      timestamp: "5d",
-      showReplies: false,
-      isHearted: false,
-      replies: [],
-    },
-  ]);
+  // Dynamic comments data
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [isLoadingComments, setIsLoadingComments] = useState(false);
 
   // Detect mobile screen size
   useEffect(() => {
@@ -125,21 +72,67 @@ export default function Features() {
   }, [isMobile, isCommentsPopupOpen]);
 
   // Handle comment popup toggle
-  const handleCommentToggle = (
+  const handleCommentToggle = async (
     isOpen: boolean,
     featureData?: {
       id: string;
       title: string;
       images: { src: string; alt: string }[];
-    }
+    },
+    commentsData?: Comment[]
   ) => {
     // Only show popup on desktop
     if (!isMobile) {
       setIsCommentsPopupOpen(isOpen);
       if (isOpen && featureData) {
         setCurrentFeatureForComments(featureData);
+        setIsLoadingComments(true); // Start loading when opening
+
+        // If we don't have comments data, fetch it
+        if (!commentsData || commentsData.length === 0) {
+          try {
+            const { comments: apiComments, error } =
+              await FeatureCommentService.getFeatureCommentsWithUsers(
+                featureData.id,
+                true
+              );
+            if (error) {
+              console.error("Error fetching feature comments:", error);
+            } else {
+              console.log("Feature comments with reply counts:", apiComments);
+              if (apiComments) {
+                apiComments.forEach((comment, index) => {
+                  console.log(
+                    `Comment ${index + 1} (${comment.id}): ${
+                      comment.reply_count
+                    } replies`
+                  );
+                });
+                // Update comments state with API data
+                const formattedComments = apiComments.map((comment) => ({
+                  ...comment,
+                  showReplies: false,
+                  isHearted: false,
+                  replies:
+                    comment.replies?.map((reply) => ({
+                      ...reply,
+                      isHearted: false,
+                    })) || [],
+                }));
+                setComments(formattedComments);
+              }
+            }
+          } catch (error) {
+            console.error("Error in comment fetch:", error);
+          }
+        } else {
+          // Use provided comments data
+          setComments(commentsData);
+        }
+        setIsLoadingComments(false); // Stop loading
       } else if (!isOpen) {
         setCurrentFeatureForComments(null);
+        setIsLoadingComments(false);
       }
     }
   };
@@ -148,6 +141,7 @@ export default function Features() {
   const handlePopupClose = () => {
     setIsCommentsPopupOpen(false);
     setCurrentFeatureForComments(null);
+    setIsLoadingComments(false);
   };
 
   // Handle opening signup modal
@@ -167,7 +161,7 @@ export default function Features() {
   };
 
   // Toggle replies visibility
-  const toggleReplies = (commentId: number) => {
+  const toggleReplies = (commentId: string) => {
     setComments((prevComments) =>
       prevComments.map((comment) =>
         comment.id === commentId
@@ -178,7 +172,7 @@ export default function Features() {
   };
 
   // Toggle heart for comments
-  const toggleCommentHeart = (commentId: number) => {
+  const toggleCommentHeart = (commentId: string) => {
     setComments((prevComments) =>
       prevComments.map((comment) =>
         comment.id === commentId
@@ -189,7 +183,7 @@ export default function Features() {
   };
 
   // Toggle heart for replies
-  const toggleReplyHeart = (commentId: number, replyId: number) => {
+  const toggleReplyHeart = (commentId: string, replyId: string) => {
     setComments((prevComments) =>
       prevComments.map((comment) => {
         if (comment.id === commentId && comment.replies) {
@@ -521,6 +515,7 @@ export default function Features() {
           onToggleReplyHeart={toggleReplyHeart}
           isUserSignedIn={!!user}
           onOpenSignupModal={handleOpenSignupModal}
+          isLoadingComments={isLoadingComments}
         />
 
         {/* Signup Modal */}
