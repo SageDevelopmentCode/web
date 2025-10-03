@@ -125,13 +125,13 @@ export default function FeatureCard({
     useState<boolean>(false);
   const [showOverlay, setShowOverlay] = useState<boolean>(false);
 
-  // Mock reaction counts
-  const reactionCounts = {
-    love: 142,
-    like: 89,
-    neutral: 23,
-    dislike: 7,
-  };
+  // Dynamic reaction counts from API
+  const [reactionCounts, setReactionCounts] = useState({
+    love: 0,
+    like: 0,
+    neutral: 0,
+    dislike: 0,
+  });
   const [comments, setComments] = useState<Comment[]>([
     {
       id: 1,
@@ -216,6 +216,25 @@ export default function FeatureCard({
     }
   }, [isCommentPressed, isMobile]);
 
+  // Load initial reaction counts on component mount
+  useEffect(() => {
+    const loadInitialReactionCounts = async () => {
+      try {
+        const { counts, error } =
+          await FeatureReactionService.getFeatureReactionCounts(id);
+        if (error) {
+          console.error("Error fetching initial reaction counts:", error);
+        } else {
+          setReactionCounts(counts);
+        }
+      } catch (error) {
+        console.error("Error fetching initial reaction counts:", error);
+      }
+    };
+
+    loadInitialReactionCounts();
+  }, [id]);
+
   // Clean up floating emojis after animation
   useEffect(() => {
     if (floatingEmojis.length > 0) {
@@ -299,6 +318,8 @@ export default function FeatureCard({
         console.error("Error fetching reaction counts:", error);
       } else {
         console.log("Updated reaction counts for feature", id, ":", counts);
+        // Update the state with the actual counts from the API
+        setReactionCounts(counts);
       }
     } catch (error) {
       console.error("Error fetching reaction counts:", error);
