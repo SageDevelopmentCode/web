@@ -31,6 +31,7 @@ export default function Features() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isCommentsPopupOpen, setIsCommentsPopupOpen] = useState(false);
   const [currentFeatureForComments, setCurrentFeatureForComments] = useState<{
+    id: string;
     title: string;
     images: { src: string; alt: string }[];
   } | null>(null);
@@ -126,7 +127,11 @@ export default function Features() {
   // Handle comment popup toggle
   const handleCommentToggle = (
     isOpen: boolean,
-    featureData?: { title: string; images: { src: string; alt: string }[] }
+    featureData?: {
+      id: string;
+      title: string;
+      images: { src: string; alt: string }[];
+    }
   ) => {
     // Only show popup on desktop
     if (!isMobile) {
@@ -445,6 +450,7 @@ export default function Features() {
           {featureCards.map((card, index) => (
             <div key={card.id} className="flex-none">
               <FeatureCard
+                id={card.id}
                 title={card.title}
                 description={card.description}
                 images={card.images}

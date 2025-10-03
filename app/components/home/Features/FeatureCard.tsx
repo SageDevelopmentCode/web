@@ -3,10 +3,12 @@
 import { useState, useEffect, useRef } from "react";
 import { Twemoji } from "../../Twemoji";
 import MobileComments from "./MobileComments";
+import { FeatureReactionService } from "../../../../lib/supabase/feature_reactions";
 
 type ReactionType = "dislike" | "meh" | "neutral" | "like" | "love";
 
 interface FeatureCardProps {
+  id: string;
   title: string;
   description: string;
   images: {
@@ -16,7 +18,11 @@ interface FeatureCardProps {
   gradient?: string;
   onCommentToggle?: (
     isOpen: boolean,
-    featureData?: { title: string; images: { src: string; alt: string }[] }
+    featureData?: {
+      id: string;
+      title: string;
+      images: { src: string; alt: string }[];
+    }
   ) => void;
   isMobile?: boolean;
   isCommentSidebarOpen?: boolean;
@@ -93,6 +99,7 @@ function CounterAnimation({ target, duration = 1000 }: CounterAnimationProps) {
 }
 
 export default function FeatureCard({
+  id,
   title,
   description,
   images,
@@ -248,11 +255,27 @@ export default function FeatureCard({
   };
 
   // Enhanced reaction handler
-  const handleReactionClick = (reactionType: ReactionType, emoji: string) => {
+  const handleReactionClick = async (
+    reactionType: ReactionType,
+    emoji: string
+  ) => {
     setSelectedReaction(reactionType);
     setAnimatingReaction(reactionType);
     setShowReactionCounts(true);
     createEmojiFlurry(emoji, reactionType);
+
+    // Call getFeatureReactionCounts with the feature id
+    try {
+      const { counts, error } =
+        await FeatureReactionService.getFeatureReactionCounts(id);
+      if (error) {
+        console.error("Error fetching reaction counts:", error);
+      } else {
+        console.log("Reaction counts for feature", id, ":", counts);
+      }
+    } catch (error) {
+      console.error("Error in handleReactionClick:", error);
+    }
   };
 
   // Toggle replies visibility
@@ -359,7 +382,7 @@ export default function FeatureCard({
                   const newState = !isCommentPressed;
                   setIsCommentPressed(newState);
                   if (onCommentToggle) {
-                    onCommentToggle(newState, { title, images });
+                    onCommentToggle(newState, { id, title, images });
                   }
                 }}
                 className={`rounded-full flex items-center justify-center transition-all duration-200 cursor-pointer flex-shrink-0 ${
