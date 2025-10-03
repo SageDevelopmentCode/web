@@ -132,6 +132,8 @@ export default function FeatureCard({
     neutral: 0,
     dislike: 0,
   });
+  const [userReaction, setUserReaction] = useState<ReactionType | null>(null);
+  const [hasUserReacted, setHasUserReacted] = useState<boolean>(false);
   const [comments, setComments] = useState<Comment[]>([
     {
       id: 1,
@@ -216,24 +218,57 @@ export default function FeatureCard({
     }
   }, [isCommentPressed, isMobile]);
 
-  // Load initial reaction counts on component mount
+  // Load initial reaction counts and check user reaction on component mount
   useEffect(() => {
-    const loadInitialReactionCounts = async () => {
+    const loadInitialData = async () => {
       try {
-        const { counts, error } =
+        // Load reaction counts
+        const { counts, error: countsError } =
           await FeatureReactionService.getFeatureReactionCounts(id);
-        if (error) {
-          console.error("Error fetching initial reaction counts:", error);
+        if (countsError) {
+          console.error("Error fetching initial reaction counts:", countsError);
         } else {
           setReactionCounts(counts);
+          // Show reaction counts if there are any reactions
+          const hasAnyReactions = Object.values(counts).some(
+            (count) => count > 0
+          );
+          setShowReactionCounts(hasAnyReactions);
+        }
+
+        // Check if user has reacted (only if user is signed in)
+        if (user?.id) {
+          const {
+            hasReacted,
+            reaction,
+            error: reactionError,
+          } = await FeatureReactionService.hasUserReactedToFeature(id, user.id);
+
+          if (reactionError) {
+            console.error("Error checking user reaction:", reactionError);
+          } else {
+            setHasUserReacted(hasReacted);
+            setUserReaction(reaction);
+            setSelectedReaction(reaction);
+          }
         }
       } catch (error) {
-        console.error("Error fetching initial reaction counts:", error);
+        console.error("Error loading initial data:", error);
       }
     };
 
-    loadInitialReactionCounts();
-  }, [id]);
+    loadInitialData();
+  }, [id, user?.id]);
+
+  // Handle user authentication state changes
+  useEffect(() => {
+    if (!user?.id) {
+      // User logged out - reset reaction state
+      setUserReaction(null);
+      setHasUserReacted(false);
+      setSelectedReaction(null);
+    }
+  }, [user?.id]);
 
   // Clean up floating emojis after animation
   useEffect(() => {
@@ -305,6 +340,19 @@ export default function FeatureCard({
         console.error("Error toggling user reaction:", error);
       } else {
         console.log("Toggle reaction response for feature", id, ":", reaction);
+
+        // Update user reaction state
+        if (reaction) {
+          // User added or changed reaction
+          setUserReaction(reactionType);
+          setHasUserReacted(true);
+          setSelectedReaction(reactionType);
+        } else {
+          // User removed reaction
+          setUserReaction(null);
+          setHasUserReacted(false);
+          setSelectedReaction(null);
+        }
       }
     } catch (error) {
       console.error("Error in handleReactionClick:", error);
