@@ -7,6 +7,7 @@ import {
   FeatureReactionService,
   ReactionType,
 } from "../../../../lib/supabase/feature_reactions";
+import { FeatureCommentService } from "../../../../lib/supabase/feature_comments";
 import { useAuth } from "../../../../contexts/auth-context";
 
 interface FeatureCardProps {
@@ -474,9 +475,44 @@ export default function FeatureCard({
               style={{ width: "10%" }}
             >
               <button
-                onClick={() => {
+                onClick={async () => {
                   const newState = !isCommentPressed;
                   setIsCommentPressed(newState);
+
+                  // If opening comments, fetch comments from API
+                  if (newState) {
+                    try {
+                      const { comments, error } =
+                        await FeatureCommentService.getFeatureCommentsWithUsers(
+                          id,
+                          true
+                        );
+                      if (error) {
+                        console.error(
+                          "Error fetching feature comments:",
+                          error
+                        );
+                      } else {
+                        console.log(
+                          "Feature comments with reply counts:",
+                          comments
+                        );
+                        // Log reply counts for each comment
+                        if (comments) {
+                          comments.forEach((comment, index) => {
+                            console.log(
+                              `Comment ${index + 1} (${comment.id}): ${
+                                comment.reply_count
+                              } replies`
+                            );
+                          });
+                        }
+                      }
+                    } catch (error) {
+                      console.error("Error in comment fetch:", error);
+                    }
+                  }
+
                   if (onCommentToggle) {
                     onCommentToggle(newState, { id, title, images });
                   }

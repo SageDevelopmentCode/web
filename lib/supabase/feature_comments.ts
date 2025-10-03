@@ -36,10 +36,9 @@ export interface FeatureCommentFilters {
 // Extended comment interface with user information
 export interface FeatureCommentWithUser extends FeatureComment {
   user?: {
-    id: string;
-    email?: string;
+    user_id: string;
     display_name?: string;
-    avatar_url?: string;
+    profile_picture?: string;
   };
   replies?: FeatureCommentWithUser[];
   reply_count?: number;
@@ -240,8 +239,8 @@ export class FeatureCommentService {
       for (const comment of topLevelComments) {
         const { data: userData, error: userError } = await supabase
           .from("users")
-          .select("id, email, display_name, avatar_url")
-          .eq("id", comment.user_id)
+          .select("user_id, display_name, profile_picture")
+          .eq("user_id", comment.user_id)
           .single();
 
         const commentWithUser: FeatureCommentWithUser = {
@@ -446,8 +445,8 @@ export class FeatureCommentService {
       // Get user information
       const { data: userData, error: userError } = await supabase
         .from("users")
-        .select("id, email, display_name, avatar_url")
-        .eq("id", comment.user_id)
+        .select("user_id, display_name, profile_picture")
+        .eq("user_id", comment.user_id)
         .single();
 
       // Get all replies
@@ -463,8 +462,8 @@ export class FeatureCommentService {
         for (const reply of replies) {
           const { data: replyUserData } = await supabase
             .from("users")
-            .select("id, email, display_name, avatar_url")
-            .eq("id", reply.user_id)
+            .select("user_id, display_name, profile_picture")
+            .eq("user_id", reply.user_id)
             .single();
 
           repliesWithUsers.push({

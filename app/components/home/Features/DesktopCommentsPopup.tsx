@@ -185,7 +185,7 @@ export default function DesktopCommentsPopup({
           </h4>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-white p-2 transition-colors rounded-lg hover:bg-gray-700"
+            className="text-gray-400 hover:text-white p-2 transition-colors rounded-lg hover:bg-gray-700 cursor-pointer"
           >
             <X size={24} />
           </button>

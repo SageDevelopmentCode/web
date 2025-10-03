@@ -166,10 +166,9 @@ export class FeatureReactionService {
         .eq("feature_id", featureId)
         .eq("user_id", userId)
         .eq("is_deleted", false)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== "PGRST116") {
-        // PGRST116 is "not found" error
+      if (error) {
         throw error;
       }
 
@@ -321,8 +320,7 @@ export class FeatureReactionService {
       const { reaction: existingReaction, error: fetchError } =
         await this.getUserFeatureReaction(featureId, userId);
 
-      // Only throw error if it's not a "not found" error (PGRST116)
-      if (fetchError && fetchError.code !== "PGRST116") {
+      if (fetchError) {
         throw fetchError;
       }
 
