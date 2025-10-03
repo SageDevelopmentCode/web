@@ -321,7 +321,10 @@ export class FeatureReactionService {
       const { reaction: existingReaction, error: fetchError } =
         await this.getUserFeatureReaction(featureId, userId);
 
-      if (fetchError) throw fetchError;
+      // Only throw error if it's not a "not found" error (PGRST116)
+      if (fetchError && fetchError.code !== "PGRST116") {
+        throw fetchError;
+      }
 
       if (existingReaction) {
         // If user clicks the same reaction, remove it (soft delete)

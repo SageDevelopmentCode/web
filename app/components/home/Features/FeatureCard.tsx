@@ -3,9 +3,11 @@
 import { useState, useEffect, useRef } from "react";
 import { Twemoji } from "../../Twemoji";
 import MobileComments from "./MobileComments";
-import { FeatureReactionService } from "../../../../lib/supabase/feature_reactions";
-
-type ReactionType = "dislike" | "meh" | "neutral" | "like" | "love";
+import {
+  FeatureReactionService,
+  ReactionType,
+} from "../../../../lib/supabase/feature_reactions";
+import { useAuth } from "../../../../contexts/auth-context";
 
 interface FeatureCardProps {
   id: string;
@@ -110,6 +112,7 @@ export default function FeatureCard({
   isUserSignedIn = false,
   onOpenSignupModal,
 }: FeatureCardProps) {
+  const { user } = useAuth();
   const [selectedReaction, setSelectedReaction] = useState<ReactionType | null>(
     null
   );
@@ -264,17 +267,41 @@ export default function FeatureCard({
     setShowReactionCounts(true);
     createEmojiFlurry(emoji, reactionType);
 
-    // Call getFeatureReactionCounts with the feature id
+    // Check if user is signed in
+    if (!user?.id) {
+      console.log("User not signed in, cannot react");
+      return;
+    }
+
+    // Call toggleUserReaction with feature id, user id, and reaction
+    try {
+      const { reaction, error } =
+        await FeatureReactionService.toggleUserReaction(
+          id,
+          user.id,
+          reactionType
+        );
+
+      if (error) {
+        console.error("Error toggling user reaction:", error);
+      } else {
+        console.log("Toggle reaction response for feature", id, ":", reaction);
+      }
+    } catch (error) {
+      console.error("Error in handleReactionClick:", error);
+    }
+
+    // Also call getFeatureReactionCounts to see updated counts
     try {
       const { counts, error } =
         await FeatureReactionService.getFeatureReactionCounts(id);
       if (error) {
         console.error("Error fetching reaction counts:", error);
       } else {
-        console.log("Reaction counts for feature", id, ":", counts);
+        console.log("Updated reaction counts for feature", id, ":", counts);
       }
     } catch (error) {
-      console.error("Error in handleReactionClick:", error);
+      console.error("Error fetching reaction counts:", error);
     }
   };
 
