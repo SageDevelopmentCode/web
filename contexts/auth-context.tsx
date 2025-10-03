@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import SupabaseAuth from "../lib/supabase-auth";
-import { UserService } from "../lib/users";
+import { UserService } from "../lib/supabase/users";
 
 interface AuthContextType {
   user: User | null;

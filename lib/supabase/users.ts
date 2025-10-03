@@ -1,4 +1,4 @@
-import { supabase } from "./supabase";
+import { supabase } from "../supabase";
 
 // TypeScript interfaces for the users table
 export interface User {
@@ -209,7 +209,7 @@ export class UserAdminService {
   ): Promise<{ success: boolean; error: any }> {
     try {
       // Import supabaseAdmin only when needed
-      const { supabaseAdmin } = await import("./supabase-server");
+      const { supabaseAdmin } = await import("../supabase-server");
 
       const { error } = await supabaseAdmin
         .from("users")
@@ -231,7 +231,7 @@ export class UserAdminService {
   }> {
     try {
       // Import supabaseAdmin only when needed
-      const { supabaseAdmin } = await import("./supabase-server");
+      const { supabaseAdmin } = await import("../supabase-server");
 
       const { data, error } = await supabaseAdmin
         .from("users")

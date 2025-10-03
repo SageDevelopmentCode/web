@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Eye, EyeOff } from "lucide-react";
 import SupabaseAuth from "../../../lib/supabase-auth";
-import { UserService } from "../../../lib/users";
+import { UserService } from "../../../lib/supabase/users";
 import { supabase } from "../../../lib/supabase";
 import { validateSignupData } from "../../../lib/auth-validation";
 
