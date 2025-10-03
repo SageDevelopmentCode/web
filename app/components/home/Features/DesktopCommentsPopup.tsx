@@ -5,24 +5,10 @@ import { Send, X } from "lucide-react";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import Image from "next/image";
-
-// Character file extension mapping
-const characterExtensions: Record<string, string> = {
-  Daniel: ".PNG",
-  David: ".png",
-  Deborah: ".png",
-  Elijah: ".png",
-  Esther: ".PNG",
-  Gabriel: ".png",
-  Job: ".PNG",
-  JohnTheBaptist: ".PNG",
-  Moses: ".PNG",
-  Noah: ".png",
-  Paul: ".png",
-  Ruth: ".png",
-  Samson: ".png",
-  Solomon: ".PNG",
-};
+import {
+  getCharacterImageSrc,
+  getCharacterImageStyles,
+} from "../../../../lib/character-utils";
 
 interface Comment {
   id: string;
@@ -277,30 +263,16 @@ export default function DesktopCommentsPopup({
                         >
                           {comment.user?.profile_picture ? (
                             <Image
-                              src={`/assets/Characters/${
+                              src={getCharacterImageSrc(
                                 comment.user.profile_picture
-                              }${
-                                characterExtensions[
-                                  comment.user.profile_picture
-                                ] || ".png"
-                              }`}
+                              )}
                               alt={comment.user.profile_picture}
                               width={200}
                               height={200}
                               className="w-auto h-full object-cover opacity-100 grayscale-0"
-                              style={{
-                                transform:
-                                  comment.user.profile_picture === "Ruth"
-                                    ? "scale(3.5) translateY(30%) translateX(10%)"
-                                    : comment.user.profile_picture === "Samson"
-                                    ? "scale(3.5) translateY(28%) translateX(4%)"
-                                    : comment.user.profile_picture === "Deborah"
-                                    ? "scale(3.5) translateY(30%) translateX(4%)"
-                                    : comment.user.profile_picture === "Noah"
-                                    ? "scale(3.5) translateY(26%) translateX(4%)"
-                                    : "scale(3.5) translateY(33%) translateX(4%)",
-                                objectPosition: "center 30%",
-                              }}
+                              style={getCharacterImageStyles(
+                                comment.user.profile_picture
+                              )}
                               quality={100}
                             />
                           ) : (
@@ -360,33 +332,16 @@ export default function DesktopCommentsPopup({
                                 >
                                   {reply.user?.profile_picture ? (
                                     <Image
-                                      src={`/assets/Characters/${
+                                      src={getCharacterImageSrc(
                                         reply.user.profile_picture
-                                      }${
-                                        characterExtensions[
-                                          reply.user.profile_picture
-                                        ] || ".png"
-                                      }`}
+                                      )}
                                       alt={reply.user.profile_picture}
                                       width={200}
                                       height={200}
                                       className="w-auto h-full object-cover opacity-100 grayscale-0"
-                                      style={{
-                                        transform:
-                                          reply.user.profile_picture === "Ruth"
-                                            ? "scale(3.5) translateY(30%) translateX(10%)"
-                                            : reply.user.profile_picture ===
-                                              "Samson"
-                                            ? "scale(3.5) translateY(28%) translateX(4%)"
-                                            : reply.user.profile_picture ===
-                                              "Deborah"
-                                            ? "scale(3.5) translateY(30%) translateX(4%)"
-                                            : reply.user.profile_picture ===
-                                              "Noah"
-                                            ? "scale(3.5) translateY(26%) translateX(4%)"
-                                            : "scale(3.5) translateY(33%) translateX(4%)",
-                                        objectPosition: "center 30%",
-                                      }}
+                                      style={getCharacterImageStyles(
+                                        reply.user.profile_picture
+                                      )}
                                       quality={100}
                                     />
                                   ) : (

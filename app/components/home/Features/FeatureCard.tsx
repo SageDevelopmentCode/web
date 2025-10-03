@@ -10,24 +10,6 @@ import {
 import { FeatureCommentService } from "../../../../lib/supabase/feature_comments";
 import { useAuth } from "../../../../contexts/auth-context";
 
-// Character file extension mapping
-const characterExtensions: Record<string, string> = {
-  Daniel: ".PNG",
-  David: ".png",
-  Deborah: ".png",
-  Elijah: ".png",
-  Esther: ".PNG",
-  Gabriel: ".png",
-  Job: ".PNG",
-  JohnTheBaptist: ".PNG",
-  Moses: ".PNG",
-  Noah: ".png",
-  Paul: ".png",
-  Ruth: ".png",
-  Samson: ".png",
-  Solomon: ".PNG",
-};
-
 interface FeatureCardProps {
   id: string;
   title: string;

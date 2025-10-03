@@ -2,6 +2,10 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import {
+  getCharacterImageSrc,
+  getCharacterImageStyles,
+} from "../../../lib/character-utils";
 
 interface UserAvatarProps {
   user: {
@@ -19,24 +23,6 @@ interface UserAvatarProps {
   dropdownPosition?: "left" | "right";
   isMobile?: boolean;
 }
-
-// Character file extension mapping
-const characterExtensions: Record<string, string> = {
-  Daniel: ".PNG",
-  David: ".png",
-  Deborah: ".png",
-  Elijah: ".png",
-  Esther: ".PNG",
-  Gabriel: ".png",
-  Job: ".PNG",
-  JohnTheBaptist: ".PNG",
-  Moses: ".PNG",
-  Noah: ".png",
-  Paul: ".png",
-  Ruth: ".png",
-  Samson: ".png",
-  Solomon: ".PNG",
-};
 
 export default function UserAvatar({
   user,
@@ -124,26 +110,12 @@ export default function UserAvatar({
           type="button"
         >
           <Image
-            src={`/assets/Characters/${userProfile.profile_picture}${
-              characterExtensions[userProfile.profile_picture] || ".png"
-            }`}
+            src={getCharacterImageSrc(userProfile.profile_picture)}
             alt={userProfile.profile_picture}
             width={200}
             height={200}
             className="w-auto h-full object-cover opacity-100 grayscale-0"
-            style={{
-              transform:
-                userProfile.profile_picture === "Ruth"
-                  ? "scale(3.5) translateY(30%) translateX(10%)"
-                  : userProfile.profile_picture === "Samson"
-                  ? "scale(3.5) translateY(28%) translateX(4%)"
-                  : userProfile.profile_picture === "Deborah"
-                  ? "scale(3.5) translateY(30%) translateX(4%)"
-                  : userProfile.profile_picture === "Noah"
-                  ? "scale(3.5) translateY(26%) translateX(4%)"
-                  : "scale(3.5) translateY(33%) translateX(4%)",
-              objectPosition: "center 30%",
-            }}
+            style={getCharacterImageStyles(userProfile.profile_picture)}
             quality={100}
           />
         </button>
@@ -166,26 +138,12 @@ export default function UserAvatar({
                   style={{ backgroundColor: "#D6E5E2" }}
                 >
                   <Image
-                    src={`/assets/Characters/${userProfile.profile_picture}${
-                      characterExtensions[userProfile.profile_picture] || ".png"
-                    }`}
+                    src={getCharacterImageSrc(userProfile.profile_picture)}
                     alt={userProfile.profile_picture}
                     width={200}
                     height={200}
                     className="w-auto h-full object-cover opacity-100 grayscale-0"
-                    style={{
-                      transform:
-                        userProfile.profile_picture === "Ruth"
-                          ? "scale(3.5) translateY(30%) translateX(10%)"
-                          : userProfile.profile_picture === "Samson"
-                          ? "scale(3.5) translateY(28%) translateX(4%)"
-                          : userProfile.profile_picture === "Deborah"
-                          ? "scale(3.5) translateY(30%) translateX(4%)"
-                          : userProfile.profile_picture === "Noah"
-                          ? "scale(3.5) translateY(26%) translateX(4%)"
-                          : "scale(3.5) translateY(33%) translateX(4%)",
-                      objectPosition: "center 30%",
-                    }}
+                    style={getCharacterImageStyles(userProfile.profile_picture)}
                     quality={100}
                   />
                 </div>
@@ -301,29 +259,14 @@ export default function UserAvatar({
                       style={{ backgroundColor: "#D6E5E2" }}
                     >
                       <Image
-                        src={`/assets/Characters/${
-                          userProfile.profile_picture
-                        }${
-                          characterExtensions[userProfile.profile_picture] ||
-                          ".png"
-                        }`}
+                        src={getCharacterImageSrc(userProfile.profile_picture)}
                         alt={userProfile.profile_picture}
                         width={200}
                         height={200}
                         className="w-auto h-full object-cover opacity-100 grayscale-0"
-                        style={{
-                          transform:
-                            userProfile.profile_picture === "Ruth"
-                              ? "scale(3.5) translateY(30%) translateX(10%)"
-                              : userProfile.profile_picture === "Samson"
-                              ? "scale(3.5) translateY(28%) translateX(4%)"
-                              : userProfile.profile_picture === "Deborah"
-                              ? "scale(3.5) translateY(30%) translateX(4%)"
-                              : userProfile.profile_picture === "Noah"
-                              ? "scale(3.5) translateY(26%) translateX(4%)"
-                              : "scale(3.5) translateY(33%) translateX(4%)",
-                          objectPosition: "center 30%",
-                        }}
+                        style={getCharacterImageStyles(
+                          userProfile.profile_picture
+                        )}
                         quality={100}
                       />
                     </div>
