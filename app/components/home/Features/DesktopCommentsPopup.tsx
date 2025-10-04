@@ -306,7 +306,7 @@ export default function DesktopCommentsPopup({
                             <button className="text-gray-400 hover:text-white transition-colors text-sm">
                               Reply
                             </button>
-                            {comment.reply_count && comment.reply_count > 0 && (
+                            {comment.reply_count && comment.reply_count > 0 ? (
                               <button
                                 onClick={() => onToggleReplies(comment.id)}
                                 className="text-gray-400 hover:text-white transition-colors text-sm"
@@ -314,7 +314,7 @@ export default function DesktopCommentsPopup({
                                 {comment.showReplies ? "Hide" : "View"}{" "}
                                 {comment.reply_count} Replies
                               </button>
-                            )}
+                            ) : null}
                           </div>
                         </div>
                       </div>

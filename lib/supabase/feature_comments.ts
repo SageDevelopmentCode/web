@@ -260,7 +260,26 @@ export class FeatureCommentService {
         // Get replies if requested
         if (includeReplies) {
           const { replies } = await this.getCommentReplies(comment.id);
-          commentWithUser.replies = replies || [];
+          if (replies && replies.length > 0) {
+            // Fetch user data for each reply
+            const repliesWithUsers: FeatureCommentWithUser[] = [];
+            for (const reply of replies) {
+              const { data: replyUserData, error: replyUserError } =
+                await supabase
+                  .from("users")
+                  .select("user_id, display_name, profile_picture")
+                  .eq("user_id", reply.user_id)
+                  .single();
+
+              repliesWithUsers.push({
+                ...reply,
+                user: replyUserData || undefined,
+              });
+            }
+            commentWithUser.replies = repliesWithUsers;
+          } else {
+            commentWithUser.replies = [];
+          }
         }
 
         commentsWithUsers.push(commentWithUser);
