@@ -198,10 +198,9 @@ export default function SignupModal({
       if (user && session) {
         setSuccessMessage("Successfully logged in!");
 
-        // Call success callback and close modal after a short delay
+        // Refresh the page to reload user data and authentication state
         setTimeout(() => {
-          onSignupSuccess?.();
-          handleClose();
+          window.location.reload();
         }, 1500);
       } else {
         throw new Error("Login failed. Please try again.");
