@@ -8,6 +8,7 @@ import {
   ReactionType,
 } from "../../../../lib/supabase/feature_reactions";
 import { FeatureCommentService } from "../../../../lib/supabase/feature_comments";
+import { FeatureReactionBatch } from "../../../../lib/supabase/feature_reactions_batch";
 import { useAuth } from "../../../../contexts/auth-context";
 
 interface FeatureCardProps {
@@ -32,6 +33,9 @@ interface FeatureCardProps {
   isCommentSidebarOpen?: boolean;
   isUserSignedIn?: boolean;
   onOpenSignupModal?: () => void;
+  reactionData?: FeatureReactionBatch;
+  isLoadingReactions?: boolean;
+  onReactionUpdate?: () => void;
 }
 
 interface FloatingEmoji {
@@ -122,6 +126,9 @@ export default function FeatureCard({
   isCommentSidebarOpen = false,
   isUserSignedIn = false,
   onOpenSignupModal,
+  reactionData,
+  isLoadingReactions = false,
+  onReactionUpdate,
 }: FeatureCardProps) {
   const { user } = useAuth();
   const [selectedReaction, setSelectedReaction] = useState<ReactionType | null>(
@@ -136,7 +143,7 @@ export default function FeatureCard({
     useState<boolean>(false);
   const [showOverlay, setShowOverlay] = useState<boolean>(false);
 
-  // Dynamic reaction counts from API
+  // Dynamic reaction counts from batch data
   const [reactionCounts, setReactionCounts] = useState({
     love: 0,
     like: 0,
@@ -166,47 +173,21 @@ export default function FeatureCard({
     }
   }, [isCommentPressed, isMobile]);
 
-  // Load initial reaction counts and check user reaction on component mount
+  // Initialize reaction data from batch data
   useEffect(() => {
-    const loadInitialData = async () => {
-      try {
-        // Load reaction counts
-        const { counts, error: countsError } =
-          await FeatureReactionService.getFeatureReactionCounts(id);
-        if (countsError) {
-          console.error("Error fetching initial reaction counts:", countsError);
-        } else {
-          setReactionCounts(counts);
-          // Show reaction counts if there are any reactions
-          const hasAnyReactions = Object.values(counts).some(
-            (count) => count > 0
-          );
-          setShowReactionCounts(hasAnyReactions);
-        }
+    if (reactionData) {
+      setReactionCounts(reactionData.reactions);
+      setUserReaction(reactionData.userReaction);
+      setHasUserReacted(!!reactionData.userReaction);
+      setSelectedReaction(reactionData.userReaction);
 
-        // Check if user has reacted (only if user is signed in)
-        if (user?.id) {
-          const {
-            hasReacted,
-            reaction,
-            error: reactionError,
-          } = await FeatureReactionService.hasUserReactedToFeature(id, user.id);
-
-          if (reactionError) {
-            console.error("Error checking user reaction:", reactionError);
-          } else {
-            setHasUserReacted(hasReacted);
-            setUserReaction(reaction);
-            setSelectedReaction(reaction);
-          }
-        }
-      } catch (error) {
-        console.error("Error loading initial data:", error);
-      }
-    };
-
-    loadInitialData();
-  }, [id, user?.id]);
+      // Show reaction counts if there are any reactions
+      const hasAnyReactions = Object.values(reactionData.reactions).some(
+        (count) => count > 0
+      );
+      setShowReactionCounts(hasAnyReactions);
+    }
+  }, [reactionData]);
 
   // Handle user authentication state changes
   useEffect(() => {
@@ -306,19 +287,9 @@ export default function FeatureCard({
       console.error("Error in handleReactionClick:", error);
     }
 
-    // Also call getFeatureReactionCounts to see updated counts
-    try {
-      const { counts, error } =
-        await FeatureReactionService.getFeatureReactionCounts(id);
-      if (error) {
-        console.error("Error fetching reaction counts:", error);
-      } else {
-        console.log("Updated reaction counts for feature", id, ":", counts);
-        // Update the state with the actual counts from the API
-        setReactionCounts(counts);
-      }
-    } catch (error) {
-      console.error("Error fetching reaction counts:", error);
+    // Notify parent component to refresh batch reaction data
+    if (onReactionUpdate) {
+      onReactionUpdate();
     }
   };
 

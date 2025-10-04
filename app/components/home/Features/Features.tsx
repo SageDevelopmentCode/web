@@ -7,6 +7,10 @@ import DesktopCommentsPopup from "./DesktopCommentsPopup";
 import ResponsiveSignupModal from "../../navigation/ResponsiveSignupModal";
 import { useAuth } from "../../../../contexts/auth-context";
 import { FeatureCommentService } from "../../../../lib/supabase/feature_comments";
+import {
+  FeatureReactionBatchService,
+  FeatureReactionBatch,
+} from "../../../../lib/supabase/feature_reactions_batch";
 
 // Comment and Reply interfaces
 interface Comment {
@@ -52,6 +56,39 @@ export default function Features() {
   // Dynamic comments data
   const [comments, setComments] = useState<Comment[]>([]);
   const [isLoadingComments, setIsLoadingComments] = useState(false);
+
+  // Batch reaction data
+  const [featureReactions, setFeatureReactions] = useState<
+    FeatureReactionBatch[]
+  >([]);
+  const [isLoadingReactions, setIsLoadingReactions] = useState(false);
+
+  // Load batch reaction data on component mount
+  useEffect(() => {
+    const loadBatchReactions = async () => {
+      setIsLoadingReactions(true);
+      try {
+        const featureIds = featureCards.map((card) => card.id);
+        const { features, error } =
+          await FeatureReactionBatchService.getFeatureReactionsBatch(
+            featureIds,
+            user?.id
+          );
+
+        if (error) {
+          console.error("Error loading batch reactions:", error);
+        } else {
+          setFeatureReactions(features);
+        }
+      } catch (error) {
+        console.error("Error in loadBatchReactions:", error);
+      } finally {
+        setIsLoadingReactions(false);
+      }
+    };
+
+    loadBatchReactions();
+  }, [user?.id]);
 
   // Detect mobile screen size
   useEffect(() => {
@@ -158,6 +195,26 @@ export default function Features() {
   const handleSignupSuccess = () => {
     setIsSignupModalOpen(false);
     // Optionally show a success message or refresh user data
+  };
+
+  // Handle reaction update - refresh batch data
+  const handleReactionUpdate = async () => {
+    try {
+      const featureIds = featureCards.map((card) => card.id);
+      const { features, error } =
+        await FeatureReactionBatchService.getFeatureReactionsBatch(
+          featureIds,
+          user?.id
+        );
+
+      if (error) {
+        console.error("Error refreshing batch reactions:", error);
+      } else {
+        setFeatureReactions(features);
+      }
+    } catch (error) {
+      console.error("Error in handleReactionUpdate:", error);
+    }
   };
 
   // Toggle replies visibility
@@ -441,22 +498,30 @@ export default function Features() {
           className="flex gap-8 overflow-x-auto overflow-y-visible scrollbar-hide scroll-smooth mb-6"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
-          {featureCards.map((card, index) => (
-            <div key={card.id} className="flex-none">
-              <FeatureCard
-                id={card.id}
-                title={card.title}
-                description={card.description}
-                images={card.images}
-                gradient={gradientOptions[index % gradientOptions.length]}
-                onCommentToggle={handleCommentToggle}
-                isMobile={isMobile}
-                isCommentSidebarOpen={isCommentsPopupOpen}
-                isUserSignedIn={!!user}
-                onOpenSignupModal={handleOpenSignupModal}
-              />
-            </div>
-          ))}
+          {featureCards.map((card, index) => {
+            // Find reaction data for this feature
+            const reactionData = featureReactions.find((r) => r.id === card.id);
+
+            return (
+              <div key={card.id} className="flex-none">
+                <FeatureCard
+                  id={card.id}
+                  title={card.title}
+                  description={card.description}
+                  images={card.images}
+                  gradient={gradientOptions[index % gradientOptions.length]}
+                  onCommentToggle={handleCommentToggle}
+                  isMobile={isMobile}
+                  isCommentSidebarOpen={isCommentsPopupOpen}
+                  isUserSignedIn={!!user}
+                  onOpenSignupModal={handleOpenSignupModal}
+                  reactionData={reactionData}
+                  isLoadingReactions={isLoadingReactions}
+                  onReactionUpdate={handleReactionUpdate}
+                />
+              </div>
+            );
+          })}
         </div>
 
         {/* Navigation Arrows */}
