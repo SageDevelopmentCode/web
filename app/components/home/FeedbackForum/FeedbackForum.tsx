@@ -6,6 +6,7 @@ import { PresetEmoji } from "../../Twemoji";
 import FeedbackList from "./FeedbackList";
 import FeedbackDetails from "./FeedbackDetails";
 import { mockFeedbackPosts, FeedbackPost } from "./types";
+import { useSectionLazyLoad } from "../../../../lib/hooks/useSectionLazyLoad";
 
 interface FeedbackForumProps {
   isUserSignedIn?: boolean;
@@ -26,6 +27,13 @@ export default function FeedbackForum({
   const [bottomSheetView, setBottomSheetView] = useState<"list" | "details">(
     "list"
   );
+
+  // Section lazy loading
+  const { ref: sectionRef, hasLoaded } = useSectionLazyLoad({
+    threshold: 0.2,
+    rootMargin: "100px",
+    triggerOnce: true,
+  });
 
   const selectedPost = posts.find((post) => post.id === selectedPostId) || null;
 
@@ -150,8 +158,11 @@ export default function FeedbackForum({
 
   return (
     <section
+      ref={sectionRef}
       id="feedback-forum"
-      className="pt-10 pb-16 px-4 sm:px-6 md:px-8 w-full"
+      className={`pt-10 pb-16 px-4 sm:px-6 md:px-8 w-full transition-opacity duration-700 ${
+        hasLoaded ? "opacity-100" : "opacity-0"
+      }`}
       style={{ backgroundColor: "#3C4806" }}
     >
       <div className="max-w-6xl mx-auto">

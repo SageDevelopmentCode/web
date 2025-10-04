@@ -7,6 +7,7 @@ import SuperEffectiveAgainst from "./SuperEffectiveAgainst";
 import VerseCollection from "./VerseCollection";
 import CharacterHeader from "./CharacterHeader";
 import { Twemoji, EmojiMap } from "../../Twemoji";
+import { useSectionLazyLoad } from "../../../../lib/hooks/useSectionLazyLoad";
 
 export default function Starters() {
   const [selectedOption, setSelectedOption] = useState<string | null>(
@@ -15,6 +16,13 @@ export default function Starters() {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [animationKey, setAnimationKey] = useState(0);
   const [showMobileDetails, setShowMobileDetails] = useState(false);
+
+  // Section lazy loading
+  const { ref: sectionRef, hasLoaded } = useSectionLazyLoad({
+    threshold: 0.2,
+    rootMargin: "100px",
+    triggerOnce: true,
+  });
 
   // Handle option selection with transition
   const handleOptionSelect = (optionKey: string) => {
@@ -223,7 +231,10 @@ export default function Starters() {
       `}</style>
 
       <section
-        className="pt-30 pb-16 px-4 md:px-35 w-full max-w-full overflow-x-hidden"
+        ref={sectionRef}
+        className={`pt-30 pb-16 px-4 md:px-35 w-full max-w-full overflow-x-hidden transition-opacity duration-700 ${
+          hasLoaded ? "opacity-100" : "opacity-0"
+        }`}
         style={{ backgroundColor: "#3C4806" }}
       >
         <div className="max-w-7xl mx-auto">

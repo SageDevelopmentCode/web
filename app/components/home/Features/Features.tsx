@@ -11,6 +11,7 @@ import {
   FeatureReactionBatchService,
   FeatureReactionBatch,
 } from "../../../../lib/supabase/feature_reactions_batch";
+import { useSectionLazyLoad } from "../../../../lib/hooks/useSectionLazyLoad";
 
 // Comment and Reply interfaces
 interface Comment {
@@ -53,6 +54,13 @@ export default function Features() {
   const [isSignupModalOpen, setIsSignupModalOpen] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
+  // Section lazy loading
+  const { ref: sectionRef, hasLoaded } = useSectionLazyLoad({
+    threshold: 0.2,
+    rootMargin: "100px",
+    triggerOnce: true,
+  });
+
   // Dynamic comments data
   const [comments, setComments] = useState<Comment[]>([]);
   const [isLoadingComments, setIsLoadingComments] = useState(false);
@@ -63,8 +71,10 @@ export default function Features() {
   >([]);
   const [isLoadingReactions, setIsLoadingReactions] = useState(false);
 
-  // Load batch reaction data on component mount
+  // Load batch reaction data only when section becomes visible
   useEffect(() => {
+    if (!hasLoaded) return;
+
     const loadBatchReactions = async () => {
       setIsLoadingReactions(true);
       try {
@@ -88,7 +98,7 @@ export default function Features() {
     };
 
     loadBatchReactions();
-  }, [user?.id]);
+  }, [hasLoaded, user?.id]);
 
   // Detect mobile screen size
   useEffect(() => {
@@ -483,7 +493,10 @@ export default function Features() {
 
   return (
     <section
-      className="pt-10 pb-16 sm:px-6 md:px-50 w-full max-w-full overflow-x-visible relative"
+      ref={sectionRef}
+      className={`pt-10 pb-16 sm:px-6 md:px-50 w-full max-w-full overflow-x-visible relative transition-opacity duration-700 ${
+        hasLoaded ? "opacity-100" : "opacity-0"
+      }`}
       style={{ backgroundColor: "#3C4806" }}
     >
       <div className="max-w-none mx-auto px-4 relative">

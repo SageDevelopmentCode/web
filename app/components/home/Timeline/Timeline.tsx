@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Twemoji, EmojiMap } from "../../Twemoji";
+import { useSectionLazyLoad } from "../../../../lib/hooks/useSectionLazyLoad";
 
 interface TimelineEntry {
   id: string;
@@ -125,6 +126,13 @@ const renderDescriptionWithLinks = (
 export default function Timeline() {
   const [isMobile, setIsMobile] = useState(false);
 
+  // Section lazy loading
+  const { ref: sectionRef, hasLoaded } = useSectionLazyLoad({
+    threshold: 0.2,
+    rootMargin: "100px",
+    triggerOnce: true,
+  });
+
   // Check for mobile viewport
   useEffect(() => {
     const checkMobile = () => {
@@ -139,7 +147,10 @@ export default function Timeline() {
 
   return (
     <section
-      className="pt-16 pb-16 px-4 sm:px-6 md:px-8 w-full"
+      ref={sectionRef}
+      className={`pt-16 pb-16 px-4 sm:px-6 md:px-8 w-full transition-opacity duration-700 ${
+        hasLoaded ? "opacity-100" : "opacity-0"
+      }`}
       style={{ backgroundColor: "#3C4806" }}
     >
       <div className="max-w-6xl mx-auto">
