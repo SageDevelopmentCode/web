@@ -1,4 +1,5 @@
 import { supabase } from "../supabase";
+import { FeatureCommentLikeBatchService } from "./feature_comments_likes_batch";
 
 // TypeScript interfaces for the feature_comments table
 export interface FeatureComment {
@@ -42,6 +43,8 @@ export interface FeatureCommentWithUser extends FeatureComment {
   };
   replies?: FeatureCommentWithUser[];
   reply_count?: number;
+  like_count?: number;
+  user_has_liked?: boolean;
 }
 
 // Feature Comment CRUD operations
@@ -213,7 +216,8 @@ export class FeatureCommentService {
     featureId: string,
     includeReplies: boolean = true,
     limit?: number,
-    offset?: number
+    offset?: number,
+    userId?: string
   ): Promise<{
     comments: FeatureCommentWithUser[] | null;
     error: any;
@@ -233,19 +237,51 @@ export class FeatureCommentService {
         return { comments: [], error: null, count: 0 };
       }
 
+      // Collect all comment IDs (parents + replies) for batch like fetching
+      const allCommentIds: string[] = [...topLevelComments.map(c => c.id)];
+
+      // Get replies first if requested, to collect all IDs
+      const repliesMap: Map<string, FeatureComment[]> = new Map();
+      if (includeReplies) {
+        for (const comment of topLevelComments) {
+          const { replies } = await this.getCommentReplies(comment.id);
+          if (replies && replies.length > 0) {
+            repliesMap.set(comment.id, replies);
+            // Add reply IDs to allCommentIds
+            allCommentIds.push(...replies.map(r => r.id));
+          }
+        }
+      }
+
+      // Batch fetch all like data in one query
+      const { comments: likeBatchData } = await FeatureCommentLikeBatchService.getCommentLikesBatch(
+        allCommentIds,
+        userId
+      );
+
+      // Create a map for quick lookup
+      const likeDataMap = new Map(
+        likeBatchData.map(item => [item.commentId, item])
+      );
+
       // Get user information for each comment
       const commentsWithUsers: FeatureCommentWithUser[] = [];
 
       for (const comment of topLevelComments) {
-        const { data: userData, error: userError } = await supabase
+        const { data: userData } = await supabase
           .from("users")
           .select("user_id, display_name, profile_picture")
           .eq("user_id", comment.user_id)
           .single();
 
+        // Get like data from batch
+        const likeData = likeDataMap.get(comment.id);
+
         const commentWithUser: FeatureCommentWithUser = {
           ...comment,
           user: userData || undefined,
+          like_count: likeData?.likeCount || 0,
+          user_has_liked: likeData?.userHasLiked || false,
         };
 
         // Get reply count
@@ -259,21 +295,26 @@ export class FeatureCommentService {
 
         // Get replies if requested
         if (includeReplies) {
-          const { replies } = await this.getCommentReplies(comment.id);
+          const replies = repliesMap.get(comment.id);
           if (replies && replies.length > 0) {
             // Fetch user data for each reply
             const repliesWithUsers: FeatureCommentWithUser[] = [];
             for (const reply of replies) {
-              const { data: replyUserData, error: replyUserError } =
+              const { data: replyUserData } =
                 await supabase
                   .from("users")
                   .select("user_id, display_name, profile_picture")
                   .eq("user_id", reply.user_id)
                   .single();
 
+              // Get like data from batch for reply
+              const replyLikeData = likeDataMap.get(reply.id);
+
               repliesWithUsers.push({
                 ...reply,
                 user: replyUserData || undefined,
+                like_count: replyLikeData?.likeCount || 0,
+                user_has_liked: replyLikeData?.userHasLiked || false,
               });
             }
             commentWithUser.replies = repliesWithUsers;
@@ -446,7 +487,10 @@ export class FeatureCommentService {
   }
 
   // Get comment thread (comment + all its replies)
-  static async getCommentThread(commentId: string): Promise<{
+  static async getCommentThread(
+    commentId: string,
+    userId?: string
+  ): Promise<{
     thread: FeatureCommentWithUser | null;
     error: any;
   }> {
@@ -461,19 +505,39 @@ export class FeatureCommentService {
         return { thread: null, error: null };
       }
 
-      // Get user information
-      const { data: userData, error: userError } = await supabase
-        .from("users")
-        .select("user_id, display_name, profile_picture")
-        .eq("user_id", comment.user_id)
-        .single();
-
       // Get all replies
       const { replies, error: repliesError } = await this.getCommentReplies(
         commentId
       );
 
       if (repliesError) throw repliesError;
+
+      // Collect all comment IDs for batch like fetching
+      const allCommentIds = [commentId];
+      if (replies) {
+        allCommentIds.push(...replies.map(r => r.id));
+      }
+
+      // Batch fetch all like data in one query
+      const { comments: likeBatchData } = await FeatureCommentLikeBatchService.getCommentLikesBatch(
+        allCommentIds,
+        userId
+      );
+
+      // Create a map for quick lookup
+      const likeDataMap = new Map(
+        likeBatchData.map(item => [item.commentId, item])
+      );
+
+      // Get user information
+      const { data: userData } = await supabase
+        .from("users")
+        .select("user_id, display_name, profile_picture")
+        .eq("user_id", comment.user_id)
+        .single();
+
+      // Get like data for main comment
+      const commentLikeData = likeDataMap.get(commentId);
 
       // Get user information for replies
       const repliesWithUsers: FeatureCommentWithUser[] = [];
@@ -485,10 +549,15 @@ export class FeatureCommentService {
             .eq("user_id", reply.user_id)
             .single();
 
+          // Get like data for reply
+          const replyLikeData = likeDataMap.get(reply.id);
+
           repliesWithUsers.push({
             ...reply,
             user: replyUserData || undefined,
             replies: [],
+            like_count: replyLikeData?.likeCount || 0,
+            user_has_liked: replyLikeData?.userHasLiked || false,
           });
         }
       }
@@ -498,6 +567,8 @@ export class FeatureCommentService {
         user: userData || undefined,
         replies: repliesWithUsers,
         reply_count: repliesWithUsers.length,
+        like_count: commentLikeData?.likeCount || 0,
+        user_has_liked: commentLikeData?.userHasLiked || false,
       };
 
       return { thread, error: null };
