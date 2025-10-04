@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Twemoji } from "../../Twemoji";
 import MobileComments from "./MobileComments";
+import LazyImage from "../../LazyImage";
 import {
   FeatureReactionService,
   ReactionType,
@@ -486,13 +487,14 @@ export default function FeatureCard({
               }`}
             >
               {images.map((image, index) => (
-                <img
+                <LazyImage
                   key={index}
                   src={image.src}
                   alt={image.alt}
                   className={`h-auto object-contain ${
                     isMobile ? "w-[150px]" : "w-[200px]"
                   }`}
+                  width={isMobile ? "150px" : "200px"}
                 />
               ))}
             </div>
