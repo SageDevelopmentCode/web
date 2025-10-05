@@ -13,6 +13,7 @@ import { FeatureCommentLikeService } from "../../../../lib/supabase/feature_comm
 import { FeatureReactionBatch } from "../../../../lib/supabase/feature_reactions_batch";
 import { useAuth } from "../../../../contexts/auth-context";
 import { useSubmitReply } from "../../../../lib/hooks/useSubmitReply";
+import type { Comment, Reply } from "./types";
 
 interface FeatureCardProps {
   id: string;
@@ -49,37 +50,6 @@ interface FloatingEmoji {
   startX: number;
   startY: number;
   delay: number;
-}
-
-interface Comment {
-  id: string;
-  content: string;
-  created_at: string;
-  user?: {
-    user_id: string;
-    display_name?: string;
-    profile_picture?: string;
-  };
-  replies?: Reply[];
-  reply_count?: number;
-  showReplies?: boolean;
-  isHearted?: boolean;
-}
-
-interface Reply {
-  id: string;
-  content: string;
-  created_at: string;
-  user?: {
-    user_id: string;
-    display_name?: string;
-    profile_picture?: string;
-  };
-  isHearted?: boolean;
-  like_count?: number;
-  replies?: Reply[];
-  reply_count?: number;
-  showReplies?: boolean;
 }
 
 interface CounterAnimationProps {

@@ -8,22 +8,7 @@ import {
   getCharacterImageSrc,
   getCharacterImageStyles,
 } from "../../../../lib/character-utils";
-
-interface Reply {
-  id: string;
-  content: string;
-  created_at: string;
-  user?: {
-    user_id: string;
-    display_name?: string;
-    profile_picture?: string;
-  };
-  isHearted?: boolean;
-  like_count?: number;
-  replies?: Reply[];
-  reply_count?: number;
-  showReplies?: boolean;
-}
+import type { Reply } from "./types";
 
 interface ReplyItemProps {
   reply: Reply;
