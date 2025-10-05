@@ -224,107 +224,124 @@ export class FeatureCommentService {
     count?: number;
   }> {
     try {
-      // First get top-level comments
-      const {
-        comments: topLevelComments,
-        error: topLevelError,
-        count,
-      } = await this.getTopLevelFeatureComments(featureId, limit, offset);
+      // QUERY 1: Fetch ALL comments (parents + replies) for this feature in ONE query
+      const { data: allComments, error: commentsError } = await supabase
+        .from("feature_comments")
+        .select("*")
+        .eq("feature_id", featureId)
+        .eq("is_deleted", false)
+        .order("created_at", { ascending: false });
 
-      if (topLevelError) throw topLevelError;
-
-      if (!topLevelComments) {
+      if (commentsError) throw commentsError;
+      if (!allComments || allComments.length === 0) {
         return { comments: [], error: null, count: 0 };
       }
 
-      // Collect all comment IDs (parents + replies) for batch like fetching
-      const allCommentIds: string[] = [...topLevelComments.map(c => c.id)];
+      // Separate parent comments and replies in memory
+      const parentComments = allComments.filter(c => c.parent_comment_id === null);
+      const allReplies = allComments.filter(c => c.parent_comment_id !== null);
 
-      // Get replies first if requested, to collect all IDs
-      const repliesMap: Map<string, FeatureComment[]> = new Map();
-      if (includeReplies) {
-        for (const comment of topLevelComments) {
-          const { replies } = await this.getCommentReplies(comment.id);
-          if (replies && replies.length > 0) {
-            repliesMap.set(comment.id, replies);
-            // Add reply IDs to allCommentIds
-            allCommentIds.push(...replies.map(r => r.id));
-          }
+      // Apply pagination to parent comments only
+      const paginatedParents = limit
+        ? parentComments.slice(offset || 0, (offset || 0) + limit)
+        : parentComments;
+
+      // Get total count of parent comments
+      const count = parentComments.length;
+
+      // Build replies map for quick lookup
+      const repliesMap = new Map<string, FeatureComment[]>();
+      allReplies.forEach(reply => {
+        const parentId = reply.parent_comment_id!;
+        if (!repliesMap.has(parentId)) {
+          repliesMap.set(parentId, []);
         }
+        repliesMap.get(parentId)!.push(reply);
+      });
+
+      // Calculate reply counts in memory
+      const replyCountsMap = new Map<string, number>();
+      parentComments.forEach(parent => {
+        const replies = repliesMap.get(parent.id) || [];
+        replyCountsMap.set(parent.id, replies.length);
+      });
+
+      // Collect all comment IDs that we need data for
+      const relevantCommentIds = [...paginatedParents.map(c => c.id)];
+      if (includeReplies) {
+        paginatedParents.forEach(parent => {
+          const replies = repliesMap.get(parent.id) || [];
+          relevantCommentIds.push(...replies.map(r => r.id));
+        });
       }
 
-      // Batch fetch all like data in one query
+      // Extract unique user IDs from relevant comments
+      const uniqueUserIds = new Set<string>();
+      paginatedParents.forEach(c => uniqueUserIds.add(c.user_id));
+      if (includeReplies) {
+        paginatedParents.forEach(parent => {
+          const replies = repliesMap.get(parent.id) || [];
+          replies.forEach(r => uniqueUserIds.add(r.user_id));
+        });
+      }
+
+      // QUERY 2: Batch fetch ALL users in ONE query
+      const { data: usersData, error: usersError } = await supabase
+        .from("users")
+        .select("user_id, display_name, profile_picture")
+        .in("user_id", Array.from(uniqueUserIds));
+
+      if (usersError) throw usersError;
+
+      // Create user lookup map
+      const usersMap = new Map(
+        usersData?.map(user => [user.user_id, user]) || []
+      );
+
+      // QUERY 3: Batch fetch ALL likes in ONE query
       const { comments: likeBatchData } = await FeatureCommentLikeBatchService.getCommentLikesBatch(
-        allCommentIds,
+        relevantCommentIds,
         userId
       );
 
-      // Create a map for quick lookup
+      // Create like data lookup map
       const likeDataMap = new Map(
         likeBatchData.map(item => [item.commentId, item])
       );
 
-      // Get user information for each comment
-      const commentsWithUsers: FeatureCommentWithUser[] = [];
-
-      for (const comment of topLevelComments) {
-        const { data: userData } = await supabase
-          .from("users")
-          .select("user_id, display_name, profile_picture")
-          .eq("user_id", comment.user_id)
-          .single();
-
-        // Get like data from batch
+      // Build the final structure with all data
+      const commentsWithUsers: FeatureCommentWithUser[] = paginatedParents.map(comment => {
+        const userData = usersMap.get(comment.user_id);
         const likeData = likeDataMap.get(comment.id);
+        const replies = repliesMap.get(comment.id) || [];
 
         const commentWithUser: FeatureCommentWithUser = {
           ...comment,
           user: userData || undefined,
           like_count: likeData?.likeCount || 0,
           user_has_liked: likeData?.userHasLiked || false,
+          reply_count: replyCountsMap.get(comment.id) || 0,
         };
 
-        // Get reply count
-        const { count: replyCount } = await supabase
-          .from("feature_comments")
-          .select("*", { count: "exact", head: true })
-          .eq("parent_comment_id", comment.id)
-          .eq("is_deleted", false);
+        // Add replies if requested
+        if (includeReplies && replies.length > 0) {
+          commentWithUser.replies = replies.map(reply => {
+            const replyUserData = usersMap.get(reply.user_id);
+            const replyLikeData = likeDataMap.get(reply.id);
 
-        commentWithUser.reply_count = replyCount || 0;
-
-        // Get replies if requested
-        if (includeReplies) {
-          const replies = repliesMap.get(comment.id);
-          if (replies && replies.length > 0) {
-            // Fetch user data for each reply
-            const repliesWithUsers: FeatureCommentWithUser[] = [];
-            for (const reply of replies) {
-              const { data: replyUserData } =
-                await supabase
-                  .from("users")
-                  .select("user_id, display_name, profile_picture")
-                  .eq("user_id", reply.user_id)
-                  .single();
-
-              // Get like data from batch for reply
-              const replyLikeData = likeDataMap.get(reply.id);
-
-              repliesWithUsers.push({
-                ...reply,
-                user: replyUserData || undefined,
-                like_count: replyLikeData?.likeCount || 0,
-                user_has_liked: replyLikeData?.userHasLiked || false,
-              });
-            }
-            commentWithUser.replies = repliesWithUsers;
-          } else {
-            commentWithUser.replies = [];
-          }
+            return {
+              ...reply,
+              user: replyUserData || undefined,
+              like_count: replyLikeData?.likeCount || 0,
+              user_has_liked: replyLikeData?.userHasLiked || false,
+            };
+          });
+        } else {
+          commentWithUser.replies = [];
         }
 
-        commentsWithUsers.push(commentWithUser);
-      }
+        return commentWithUser;
+      });
 
       return { comments: commentsWithUsers, error: null, count };
     } catch (error) {
