@@ -9,6 +9,7 @@ import {
   ReactionType,
 } from "../../../../lib/supabase/feature_reactions";
 import { FeatureCommentService } from "../../../../lib/supabase/feature_comments";
+import { FeatureCommentLikeService } from "../../../../lib/supabase/feature_comments_likes";
 import { FeatureReactionBatch } from "../../../../lib/supabase/feature_reactions_batch";
 import { useAuth } from "../../../../contexts/auth-context";
 
@@ -306,7 +307,15 @@ export default function FeatureCard({
   };
 
   // Toggle heart for comments
-  const toggleCommentHeart = (commentId: string) => {
+  const toggleCommentHeart = async (commentId: string) => {
+    if (!user?.id) {
+      // If user is not signed in, close bottom sheet and open signup modal
+      handleCloseBottomSheet();
+      onOpenSignupModal?.();
+      return;
+    }
+
+    // Optimistic UI update
     setComments((prevComments) =>
       prevComments.map((comment) =>
         comment.id === commentId
@@ -314,10 +323,48 @@ export default function FeatureCard({
           : comment
       )
     );
+
+    try {
+      // Call API to toggle like
+      const { error } = await FeatureCommentLikeService.toggleUserCommentLike(
+        commentId,
+        user.id
+      );
+
+      if (error) {
+        console.error("Error toggling comment like:", error);
+        // Revert optimistic update on error
+        setComments((prevComments) =>
+          prevComments.map((comment) =>
+            comment.id === commentId
+              ? { ...comment, isHearted: !comment.isHearted }
+              : comment
+          )
+        );
+      }
+    } catch (error) {
+      console.error("Error in toggleCommentHeart:", error);
+      // Revert optimistic update on error
+      setComments((prevComments) =>
+        prevComments.map((comment) =>
+          comment.id === commentId
+            ? { ...comment, isHearted: !comment.isHearted }
+            : comment
+        )
+      );
+    }
   };
 
   // Toggle heart for replies
-  const toggleReplyHeart = (commentId: string, replyId: string) => {
+  const toggleReplyHeart = async (commentId: string, replyId: string) => {
+    if (!user?.id) {
+      // If user is not signed in, close bottom sheet and open signup modal
+      handleCloseBottomSheet();
+      onOpenSignupModal?.();
+      return;
+    }
+
+    // Optimistic UI update
     setComments((prevComments) =>
       prevComments.map((comment) => {
         if (comment.id === commentId && comment.replies) {
@@ -331,6 +378,48 @@ export default function FeatureCard({
         return comment;
       })
     );
+
+    try {
+      // Call API to toggle like (use replyId, not commentId)
+      const { error } = await FeatureCommentLikeService.toggleUserCommentLike(
+        replyId,
+        user.id
+      );
+
+      if (error) {
+        console.error("Error toggling reply like:", error);
+        // Revert optimistic update on error
+        setComments((prevComments) =>
+          prevComments.map((comment) => {
+            if (comment.id === commentId && comment.replies) {
+              const updatedReplies = comment.replies.map((reply) =>
+                reply.id === replyId
+                  ? { ...reply, isHearted: !reply.isHearted }
+                  : reply
+              );
+              return { ...comment, replies: updatedReplies };
+            }
+            return comment;
+          })
+        );
+      }
+    } catch (error) {
+      console.error("Error in toggleReplyHeart:", error);
+      // Revert optimistic update on error
+      setComments((prevComments) =>
+        prevComments.map((comment) => {
+          if (comment.id === commentId && comment.replies) {
+            const updatedReplies = comment.replies.map((reply) =>
+              reply.id === replyId
+                ? { ...reply, isHearted: !reply.isHearted }
+                : reply
+            );
+            return { ...comment, replies: updatedReplies };
+          }
+          return comment;
+        })
+      );
+    }
   };
 
   // Handle bottom sheet close with animation
