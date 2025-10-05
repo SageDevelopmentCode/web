@@ -293,6 +293,59 @@ export default function Features() {
     }
   };
 
+  // Submit a reply to a comment or reply
+  const handleSubmitReply = async (parentCommentId: string, replyContent: string) => {
+    if (!user?.id || !currentFeatureForComments?.id || !replyContent.trim()) {
+      return;
+    }
+
+    try {
+      // Create the reply using createFeatureComment with parent_comment_id
+      const { error } = await FeatureCommentService.createFeatureComment({
+        feature_id: currentFeatureForComments.id,
+        user_id: user.id,
+        content: replyContent.trim(),
+        parent_comment_id: parentCommentId,
+      });
+
+      if (error) {
+        console.error("Error creating reply:", error);
+        return;
+      }
+
+      // Refresh comments to show the new reply
+      setIsLoadingComments(true);
+      const { comments: apiComments, error: fetchError } =
+        await FeatureCommentService.getFeatureCommentsWithUsers(
+          currentFeatureForComments.id,
+          true,
+          undefined,
+          undefined,
+          user?.id
+        );
+
+      if (fetchError) {
+        console.error("Error fetching updated comments:", fetchError);
+      } else if (apiComments) {
+        const formattedComments = apiComments.map((comment) => ({
+          ...comment,
+          showReplies: true, // Keep replies open after submitting
+          isHearted: comment.user_has_liked || false,
+          replies:
+            comment.replies?.map((reply) => ({
+              ...reply,
+              isHearted: reply.user_has_liked || false,
+            })) || [],
+        }));
+        setComments(formattedComments);
+      }
+      setIsLoadingComments(false);
+    } catch (error) {
+      console.error("Error in handleSubmitReply:", error);
+      setIsLoadingComments(false);
+    }
+  };
+
   // Toggle heart for replies
   const toggleReplyHeart = async (commentId: string, replyId: string) => {
     if (!user?.id) {
@@ -617,6 +670,7 @@ export default function Features() {
                   description={card.description}
                   images={card.images}
                   gradient={gradientOptions[index % gradientOptions.length]}
+                  onSubmitReply={handleSubmitReply}
                   onCommentToggle={handleCommentToggle}
                   isMobile={isMobile}
                   isCommentSidebarOpen={isCommentsPopupOpen}
@@ -685,6 +739,7 @@ export default function Features() {
           onToggleReplies={toggleReplies}
           onToggleCommentHeart={toggleCommentHeart}
           onToggleReplyHeart={toggleReplyHeart}
+          onSubmitReply={handleSubmitReply}
           isUserSignedIn={!!user}
           onOpenSignupModal={handleOpenSignupModal}
           isLoadingComments={isLoadingComments}

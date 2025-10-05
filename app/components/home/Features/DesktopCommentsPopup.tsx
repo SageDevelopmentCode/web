@@ -47,6 +47,7 @@ interface DesktopCommentsPopupProps {
   onToggleReplies: (commentId: string) => void;
   onToggleCommentHeart: (commentId: string) => void;
   onToggleReplyHeart: (commentId: string, replyId: string) => void;
+  onSubmitReply: (parentCommentId: string, replyContent: string) => Promise<void>;
   isUserSignedIn: boolean;
   onOpenSignupModal: () => void;
   isLoadingComments?: boolean;
@@ -60,6 +61,7 @@ export default function DesktopCommentsPopup({
   onToggleReplies,
   onToggleCommentHeart,
   onToggleReplyHeart,
+  onSubmitReply,
   isUserSignedIn,
   onOpenSignupModal,
   isLoadingComments = false,
@@ -68,6 +70,7 @@ export default function DesktopCommentsPopup({
   const [isAnimating, setIsAnimating] = useState(false);
   const [shouldRender, setShouldRender] = useState(false);
   const [activeReplyInput, setActiveReplyInput] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState<string>("");
   const commentsContainerRef = useRef<HTMLDivElement>(null);
   const popupRef = useRef<HTMLDivElement>(null);
 
@@ -342,10 +345,28 @@ export default function DesktopCommentsPopup({
                             <input
                               type="text"
                               placeholder="Say Something..."
+                              value={replyText}
+                              onChange={(e) => setReplyText(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' && replyText.trim()) {
+                                  onSubmitReply(comment.id, replyText);
+                                  setReplyText("");
+                                  setActiveReplyInput(null);
+                                }
+                              }}
                               className="w-full text-white placeholder-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
                               style={{ backgroundColor: "#4B5563" }}
                             />
-                            <button className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white hover:text-purple-400 cursor-pointer transition-all duration-300">
+                            <button
+                              onClick={() => {
+                                if (replyText.trim()) {
+                                  onSubmitReply(comment.id, replyText);
+                                  setReplyText("");
+                                  setActiveReplyInput(null);
+                                }
+                              }}
+                              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white hover:text-purple-400 cursor-pointer transition-all duration-300"
+                            >
                               <Send size={20} />
                             </button>
                           </div>
@@ -437,10 +458,28 @@ export default function DesktopCommentsPopup({
                                       <input
                                         type="text"
                                         placeholder="Say Something..."
+                                        value={replyText}
+                                        onChange={(e) => setReplyText(e.target.value)}
+                                        onKeyDown={(e) => {
+                                          if (e.key === 'Enter' && replyText.trim()) {
+                                            onSubmitReply(comment.id, replyText);
+                                            setReplyText("");
+                                            setActiveReplyInput(null);
+                                          }
+                                        }}
                                         className="w-full text-white placeholder-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
                                         style={{ backgroundColor: "#4B5563" }}
                                       />
-                                      <button className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white hover:text-purple-400 cursor-pointer transition-all duration-300">
+                                      <button
+                                        onClick={() => {
+                                          if (replyText.trim()) {
+                                            onSubmitReply(comment.id, replyText);
+                                            setReplyText("");
+                                            setActiveReplyInput(null);
+                                          }
+                                        }}
+                                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white hover:text-purple-400 cursor-pointer transition-all duration-300"
+                                      >
                                         <Send size={20} />
                                       </button>
                                     </div>

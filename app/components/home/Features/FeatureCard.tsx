@@ -35,6 +35,7 @@ interface FeatureCardProps {
   isCommentSidebarOpen?: boolean;
   isUserSignedIn?: boolean;
   onOpenSignupModal?: () => void;
+  onSubmitReply?: (parentCommentId: string, replyContent: string) => Promise<void>;
   reactionData?: FeatureReactionBatch;
   isLoadingReactions?: boolean;
   onReactionUpdate?: () => void;
@@ -128,6 +129,7 @@ export default function FeatureCard({
   isCommentSidebarOpen = false,
   isUserSignedIn = false,
   onOpenSignupModal,
+  onSubmitReply,
   reactionData,
   isLoadingReactions = false,
   onReactionUpdate,
@@ -708,6 +710,7 @@ export default function FeatureCard({
           onToggleReplies={toggleReplies}
           onToggleCommentHeart={toggleCommentHeart}
           onToggleReplyHeart={toggleReplyHeart}
+          onSubmitReply={onSubmitReply || (async () => {})}
           isUserSignedIn={isUserSignedIn}
           onOpenSignupModal={onOpenSignupModal || (() => {})}
           isLoadingComments={isLoadingComments}
