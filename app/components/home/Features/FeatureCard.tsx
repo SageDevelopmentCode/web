@@ -13,6 +13,7 @@ import { FeatureCommentLikeService } from "../../../../lib/supabase/feature_comm
 import { FeatureReactionBatch } from "../../../../lib/supabase/feature_reactions_batch";
 import { useAuth } from "../../../../contexts/auth-context";
 import { useSubmitReply } from "../../../../lib/hooks/useSubmitReply";
+import { useSubmitComment } from "../../../../lib/hooks/useSubmitComment";
 import type { Comment, Reply } from "./types";
 
 interface FeatureCardProps {
@@ -432,6 +433,14 @@ export default function FeatureCard({
     setIsLoadingComments
   );
 
+  // Use custom hook for comment submission
+  const handleMobileSubmitComment = useSubmitComment(
+    id,
+    user?.id,
+    setComments,
+    setIsLoadingComments
+  );
+
   return (
     <div className="flex justify-center">
       <div
@@ -710,6 +719,7 @@ export default function FeatureCard({
           onToggleCommentHeart={toggleCommentHeart}
           onToggleReplyHeart={toggleReplyHeart}
           onSubmitReply={handleMobileSubmitReply}
+          onSubmitComment={handleMobileSubmitComment}
           isUserSignedIn={isUserSignedIn}
           onOpenSignupModal={onOpenSignupModal || (() => {})}
           isLoadingComments={isLoadingComments}

@@ -14,6 +14,7 @@ import {
 } from "../../../../lib/supabase/feature_reactions_batch";
 import { useSectionLazyLoad } from "../../../../lib/hooks/useSectionLazyLoad";
 import { useSubmitReply } from "../../../../lib/hooks/useSubmitReply";
+import { useSubmitComment } from "../../../../lib/hooks/useSubmitComment";
 import type { Comment, Reply } from "./types";
 
 export default function Features() {
@@ -212,6 +213,14 @@ export default function Features() {
 
   // Use custom hook for reply submission
   const handleSubmitReply = useSubmitReply(
+    currentFeatureForComments?.id,
+    user?.id,
+    setComments,
+    setIsLoadingComments
+  );
+
+  // Use custom hook for comment submission
+  const handleSubmitComment = useSubmitComment(
     currentFeatureForComments?.id,
     user?.id,
     setComments,
@@ -690,6 +699,7 @@ export default function Features() {
           onToggleCommentHeart={toggleCommentHeart}
           onToggleReplyHeart={toggleReplyHeart}
           onSubmitReply={handleSubmitReply}
+          onSubmitComment={handleSubmitComment}
           isUserSignedIn={!!user}
           onOpenSignupModal={handleOpenSignupModal}
           isLoadingComments={isLoadingComments}

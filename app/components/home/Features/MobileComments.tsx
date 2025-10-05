@@ -22,6 +22,7 @@ interface MobileCommentsProps {
   onToggleCommentHeart: (commentId: string) => void;
   onToggleReplyHeart: (commentId: string, replyId: string) => void;
   onSubmitReply: (parentCommentId: string, replyContent: string) => Promise<void>;
+  onSubmitComment: (commentContent: string) => Promise<void>;
   isUserSignedIn: boolean;
   onOpenSignupModal: () => void;
   isLoadingComments?: boolean;
@@ -37,6 +38,7 @@ export default function MobileComments({
   onToggleCommentHeart,
   onToggleReplyHeart,
   onSubmitReply,
+  onSubmitComment,
   isUserSignedIn,
   onOpenSignupModal,
   isLoadingComments = false,
@@ -44,6 +46,7 @@ export default function MobileComments({
   const [showScrollHint, setShowScrollHint] = useState(true);
   const [activeReplyInput, setActiveReplyInput] = useState<string | null>(null);
   const [replyText, setReplyText] = useState<string>("");
+  const [commentText, setCommentText] = useState<string>("");
   const commentsContainerRef = useRef<HTMLDivElement>(null);
 
   // Check if scrolling is needed and handle scroll hint
@@ -280,10 +283,26 @@ export default function MobileComments({
                 <input
                   type="text"
                   placeholder="Say Something..."
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && commentText.trim()) {
+                      onSubmitComment(commentText);
+                      setCommentText("");
+                    }
+                  }}
                   className="w-full text-white placeholder-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
                   style={{ backgroundColor: "#4B5563" }}
                 />
-                <button className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white hover:text-purple-400 cursor-pointer transition-all duration-300">
+                <button
+                  onClick={() => {
+                    if (commentText.trim()) {
+                      onSubmitComment(commentText);
+                      setCommentText("");
+                    }
+                  }}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white hover:text-purple-400 cursor-pointer transition-all duration-300"
+                >
                   <Send size={20} />
                 </button>
               </div>
