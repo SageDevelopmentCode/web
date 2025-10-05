@@ -76,6 +76,10 @@ interface Reply {
     profile_picture?: string;
   };
   isHearted?: boolean;
+  like_count?: number;
+  replies?: Reply[];
+  reply_count?: number;
+  showReplies?: boolean;
 }
 
 interface CounterAnimationProps {
