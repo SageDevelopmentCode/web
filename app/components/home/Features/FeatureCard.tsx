@@ -503,7 +503,10 @@ export default function FeatureCard({
                       const { comments: apiComments, error } =
                         await FeatureCommentService.getFeatureCommentsWithUsers(
                           id,
-                          true
+                          true,
+                          undefined,
+                          undefined,
+                          user?.id
                         );
                       if (error) {
                         console.error(
@@ -529,11 +532,11 @@ export default function FeatureCard({
                             (comment) => ({
                               ...comment,
                               showReplies: false,
-                              isHearted: false,
+                              isHearted: comment.user_has_liked || false,
                               replies:
                                 comment.replies?.map((reply) => ({
                                   ...reply,
-                                  isHearted: false,
+                                  isHearted: reply.user_has_liked || false,
                                 })) || [],
                             })
                           );
