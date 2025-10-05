@@ -266,22 +266,25 @@ export class FeatureCommentService {
         replyCountsMap.set(parent.id, replies.length);
       });
 
+      // Recursive helper to collect all nested reply IDs
+      const collectNestedReplyIds = (parentId: string, commentIds: string[], userIds: Set<string>) => {
+        const replies = repliesMap.get(parentId) || [];
+        replies.forEach(reply => {
+          commentIds.push(reply.id);
+          userIds.add(reply.user_id);
+          // Recursively collect nested replies
+          collectNestedReplyIds(reply.id, commentIds, userIds);
+        });
+      };
+
       // Collect all comment IDs that we need data for
       const relevantCommentIds = [...paginatedParents.map(c => c.id)];
-      if (includeReplies) {
-        paginatedParents.forEach(parent => {
-          const replies = repliesMap.get(parent.id) || [];
-          relevantCommentIds.push(...replies.map(r => r.id));
-        });
-      }
-
-      // Extract unique user IDs from relevant comments
       const uniqueUserIds = new Set<string>();
       paginatedParents.forEach(c => uniqueUserIds.add(c.user_id));
+
       if (includeReplies) {
         paginatedParents.forEach(parent => {
-          const replies = repliesMap.get(parent.id) || [];
-          replies.forEach(r => uniqueUserIds.add(r.user_id));
+          collectNestedReplyIds(parent.id, relevantCommentIds, uniqueUserIds);
         });
       }
 
@@ -309,33 +312,45 @@ export class FeatureCommentService {
         likeBatchData.map(item => [item.commentId, item])
       );
 
+      // Recursive helper function to build nested replies
+      const buildNestedReplies = (parentId: string): FeatureCommentWithUser[] => {
+        const directReplies = repliesMap.get(parentId) || [];
+
+        return directReplies.map(reply => {
+          const replyUserData = usersMap.get(reply.user_id);
+          const replyLikeData = likeDataMap.get(reply.id);
+
+          // Recursively get nested replies for this reply
+          const nestedReplies = buildNestedReplies(reply.id);
+
+          return {
+            ...reply,
+            user: replyUserData || undefined,
+            like_count: replyLikeData?.likeCount || 0,
+            user_has_liked: replyLikeData?.userHasLiked || false,
+            replies: nestedReplies,
+            reply_count: nestedReplies.length,
+          };
+        });
+      };
+
       // Build the final structure with all data
       const commentsWithUsers: FeatureCommentWithUser[] = paginatedParents.map(comment => {
         const userData = usersMap.get(comment.user_id);
         const likeData = likeDataMap.get(comment.id);
-        const replies = repliesMap.get(comment.id) || [];
+        const directReplies = repliesMap.get(comment.id) || [];
 
         const commentWithUser: FeatureCommentWithUser = {
           ...comment,
           user: userData || undefined,
           like_count: likeData?.likeCount || 0,
           user_has_liked: likeData?.userHasLiked || false,
-          reply_count: replyCountsMap.get(comment.id) || 0,
+          reply_count: directReplies.length, // Only count direct replies
         };
 
-        // Add replies if requested
-        if (includeReplies && replies.length > 0) {
-          commentWithUser.replies = replies.map(reply => {
-            const replyUserData = usersMap.get(reply.user_id);
-            const replyLikeData = likeDataMap.get(reply.id);
-
-            return {
-              ...reply,
-              user: replyUserData || undefined,
-              like_count: replyLikeData?.likeCount || 0,
-              user_has_liked: replyLikeData?.userHasLiked || false,
-            };
-          });
+        // Add nested replies if requested
+        if (includeReplies) {
+          commentWithUser.replies = buildNestedReplies(comment.id);
         } else {
           commentWithUser.replies = [];
         }

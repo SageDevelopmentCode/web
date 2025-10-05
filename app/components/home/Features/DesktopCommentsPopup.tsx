@@ -462,7 +462,7 @@ export default function DesktopCommentsPopup({
                                         onChange={(e) => setReplyText(e.target.value)}
                                         onKeyDown={(e) => {
                                           if (e.key === 'Enter' && replyText.trim()) {
-                                            onSubmitReply(comment.id, replyText);
+                                            onSubmitReply(reply.id, replyText);
                                             setReplyText("");
                                             setActiveReplyInput(null);
                                           }
@@ -473,7 +473,7 @@ export default function DesktopCommentsPopup({
                                       <button
                                         onClick={() => {
                                           if (replyText.trim()) {
-                                            onSubmitReply(comment.id, replyText);
+                                            onSubmitReply(reply.id, replyText);
                                             setReplyText("");
                                             setActiveReplyInput(null);
                                           }
