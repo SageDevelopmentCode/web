@@ -12,6 +12,7 @@ import { FeatureCommentService } from "../../../../lib/supabase/feature_comments
 import { FeatureCommentLikeService } from "../../../../lib/supabase/feature_comments_likes";
 import { FeatureReactionBatch } from "../../../../lib/supabase/feature_reactions_batch";
 import { useAuth } from "../../../../contexts/auth-context";
+import { useSubmitReply } from "../../../../lib/hooks/useSubmitReply";
 
 interface FeatureCardProps {
   id: string;
@@ -35,7 +36,6 @@ interface FeatureCardProps {
   isCommentSidebarOpen?: boolean;
   isUserSignedIn?: boolean;
   onOpenSignupModal?: () => void;
-  onSubmitReply?: (parentCommentId: string, replyContent: string) => Promise<void>;
   reactionData?: FeatureReactionBatch;
   isLoadingReactions?: boolean;
   onReactionUpdate?: () => void;
@@ -129,7 +129,6 @@ export default function FeatureCard({
   isCommentSidebarOpen = false,
   isUserSignedIn = false,
   onOpenSignupModal,
-  onSubmitReply,
   reactionData,
   isLoadingReactions = false,
   onReactionUpdate,
@@ -451,6 +450,14 @@ export default function FeatureCard({
     }, 300); // Match the animation duration
   };
 
+  // Use custom hook for reply submission (same as desktop)
+  const handleMobileSubmitReply = useSubmitReply(
+    id,
+    user?.id,
+    setComments,
+    setIsLoadingComments
+  );
+
   return (
     <div className="flex justify-center">
       <div
@@ -728,7 +735,7 @@ export default function FeatureCard({
           onToggleReplies={toggleReplies}
           onToggleCommentHeart={toggleCommentHeart}
           onToggleReplyHeart={toggleReplyHeart}
-          onSubmitReply={onSubmitReply || (async () => {})}
+          onSubmitReply={handleMobileSubmitReply}
           isUserSignedIn={isUserSignedIn}
           onOpenSignupModal={onOpenSignupModal || (() => {})}
           isLoadingComments={isLoadingComments}

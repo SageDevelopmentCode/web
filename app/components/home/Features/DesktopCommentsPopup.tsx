@@ -51,7 +51,10 @@ interface DesktopCommentsPopupProps {
   onToggleReplies: (commentId: string) => void;
   onToggleCommentHeart: (commentId: string) => void;
   onToggleReplyHeart: (commentId: string, replyId: string) => void;
-  onSubmitReply: (parentCommentId: string, replyContent: string) => Promise<void>;
+  onSubmitReply: (
+    parentCommentId: string,
+    replyContent: string
+  ) => Promise<void>;
   isUserSignedIn: boolean;
   onOpenSignupModal: () => void;
   isLoadingComments?: boolean;
@@ -313,7 +316,9 @@ export default function DesktopCommentsPopup({
                                 <FavoriteBorderIcon sx={{ fontSize: 20 }} />
                               )}
                               {comment.like_count && comment.like_count > 0 ? (
-                                <span className="text-xs">{comment.like_count}</span>
+                                <span className="text-xs">
+                                  {comment.like_count}
+                                </span>
                               ) : null}
                             </button>
                             <button
@@ -322,7 +327,11 @@ export default function DesktopCommentsPopup({
                                   onClose();
                                   onOpenSignupModal();
                                 } else {
-                                  setActiveReplyInput(activeReplyInput === comment.id ? null : comment.id);
+                                  setActiveReplyInput(
+                                    activeReplyInput === comment.id
+                                      ? null
+                                      : comment.id
+                                  );
                                 }
                               }}
                               className="text-gray-400 hover:text-white transition-colors text-sm cursor-pointer"
@@ -352,7 +361,7 @@ export default function DesktopCommentsPopup({
                               value={replyText}
                               onChange={(e) => setReplyText(e.target.value)}
                               onKeyDown={(e) => {
-                                if (e.key === 'Enter' && replyText.trim()) {
+                                if (e.key === "Enter" && replyText.trim()) {
                                   onSubmitReply(comment.id, replyText);
                                   setReplyText("");
                                   setActiveReplyInput(null);

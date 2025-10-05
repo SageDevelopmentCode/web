@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import FeatureCard from "./FeatureCard";
 import DesktopCommentsPopup from "./DesktopCommentsPopup";
@@ -13,6 +13,7 @@ import {
   FeatureReactionBatch,
 } from "../../../../lib/supabase/feature_reactions_batch";
 import { useSectionLazyLoad } from "../../../../lib/hooks/useSectionLazyLoad";
+import { useSubmitReply } from "../../../../lib/hooks/useSubmitReply";
 
 // Comment and Reply interfaces
 interface Comment {
@@ -134,11 +135,17 @@ export default function Features() {
     },
     commentsData?: Comment[]
   ) => {
-    // Only show popup on desktop
+    // Set current feature for both mobile and desktop (needed for reply submission)
+    if (isOpen && featureData) {
+      setCurrentFeatureForComments(featureData);
+    } else if (!isOpen) {
+      setCurrentFeatureForComments(null);
+    }
+
+    // Only show popup on desktop (mobile handles its own bottom sheet)
     if (!isMobile) {
       setIsCommentsPopupOpen(isOpen);
       if (isOpen && featureData) {
-        setCurrentFeatureForComments(featureData);
         setIsLoadingComments(true); // Start loading when opening
 
         // If we don't have comments data, fetch it
@@ -187,7 +194,6 @@ export default function Features() {
         }
         setIsLoadingComments(false); // Stop loading
       } else if (!isOpen) {
-        setCurrentFeatureForComments(null);
         setIsLoadingComments(false);
       }
     }
@@ -235,6 +241,14 @@ export default function Features() {
       console.error("Error in handleReactionUpdate:", error);
     }
   };
+
+  // Use custom hook for reply submission
+  const handleSubmitReply = useSubmitReply(
+    currentFeatureForComments?.id,
+    user?.id,
+    setComments,
+    setIsLoadingComments
+  );
 
   // Toggle replies visibility (works recursively for nested replies)
   const toggleReplies = (commentId: string) => {
@@ -314,58 +328,6 @@ export default function Features() {
     }
   };
 
-  // Submit a reply to a comment or reply
-  const handleSubmitReply = async (parentCommentId: string, replyContent: string) => {
-    if (!user?.id || !currentFeatureForComments?.id || !replyContent.trim()) {
-      return;
-    }
-
-    try {
-      // Create the reply using createFeatureComment with parent_comment_id
-      const { error } = await FeatureCommentService.createFeatureComment({
-        feature_id: currentFeatureForComments.id,
-        user_id: user.id,
-        content: replyContent.trim(),
-        parent_comment_id: parentCommentId,
-      });
-
-      if (error) {
-        console.error("Error creating reply:", error);
-        return;
-      }
-
-      // Refresh comments to show the new reply
-      setIsLoadingComments(true);
-      const { comments: apiComments, error: fetchError } =
-        await FeatureCommentService.getFeatureCommentsWithUsers(
-          currentFeatureForComments.id,
-          true,
-          undefined,
-          undefined,
-          user?.id
-        );
-
-      if (fetchError) {
-        console.error("Error fetching updated comments:", fetchError);
-      } else if (apiComments) {
-        const formattedComments = apiComments.map((comment) => ({
-          ...comment,
-          showReplies: true, // Keep replies open after submitting
-          isHearted: comment.user_has_liked || false,
-          replies:
-            comment.replies?.map((reply) => ({
-              ...reply,
-              isHearted: reply.user_has_liked || false,
-            })) || [],
-        }));
-        setComments(formattedComments);
-      }
-      setIsLoadingComments(false);
-    } catch (error) {
-      console.error("Error in handleSubmitReply:", error);
-      setIsLoadingComments(false);
-    }
-  };
 
   // Toggle heart for replies
   const toggleReplyHeart = async (commentId: string, replyId: string) => {
@@ -691,7 +653,6 @@ export default function Features() {
                   description={card.description}
                   images={card.images}
                   gradient={gradientOptions[index % gradientOptions.length]}
-                  onSubmitReply={handleSubmitReply}
                   onCommentToggle={handleCommentToggle}
                   isMobile={isMobile}
                   isCommentSidebarOpen={isCommentsPopupOpen}
