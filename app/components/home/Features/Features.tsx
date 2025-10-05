@@ -247,7 +247,8 @@ export default function Features() {
   // Toggle heart for comments
   const toggleCommentHeart = async (commentId: string) => {
     if (!user?.id) {
-      // If user is not signed in, open signup modal
+      // If user is not signed in, close popup and open signup modal
+      handlePopupClose();
       handleOpenSignupModal();
       return;
     }
@@ -295,7 +296,8 @@ export default function Features() {
   // Toggle heart for replies
   const toggleReplyHeart = async (commentId: string, replyId: string) => {
     if (!user?.id) {
-      // If user is not signed in, open signup modal
+      // If user is not signed in, close popup and open signup modal
+      handlePopupClose();
       handleOpenSignupModal();
       return;
     }

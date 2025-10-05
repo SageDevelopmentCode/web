@@ -206,7 +206,16 @@ export default function MobileComments({
                             <span className="text-xs">{comment.like_count}</span>
                           ) : null}
                         </button>
-                        <button className="text-gray-400 hover:text-white transition-colors text-sm">
+                        <button
+                          onClick={() => {
+                            if (!isUserSignedIn) {
+                              onClose();
+                              onOpenSignupModal();
+                            }
+                            // TODO: Implement reply functionality for signed-in users
+                          }}
+                          className="text-gray-400 hover:text-white transition-colors text-sm cursor-pointer"
+                        >
                           Reply
                         </button>
                         {comment.reply_count && comment.reply_count > 0 && (
@@ -280,7 +289,16 @@ export default function MobileComments({
                                     <span className="text-xs">{reply.like_count}</span>
                                   ) : null}
                                 </button>
-                                <button className="text-gray-400 hover:text-white transition-colors text-sm">
+                                <button
+                                  onClick={() => {
+                                    if (!isUserSignedIn) {
+                                      onClose();
+                                      onOpenSignupModal();
+                                    }
+                                    // TODO: Implement reply functionality for signed-in users
+                                  }}
+                                  className="text-gray-400 hover:text-white transition-colors text-sm cursor-pointer"
+                                >
                                   Reply
                                 </button>
                               </div>
