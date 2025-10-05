@@ -7,6 +7,7 @@ import DesktopCommentsPopup from "./DesktopCommentsPopup";
 import ResponsiveSignupModal from "../../navigation/ResponsiveSignupModal";
 import { useAuth } from "../../../../contexts/auth-context";
 import { FeatureCommentService } from "../../../../lib/supabase/feature_comments";
+import { FeatureCommentLikeService } from "../../../../lib/supabase/feature_comments_likes";
 import {
   FeatureReactionBatchService,
   FeatureReactionBatch,
@@ -27,6 +28,7 @@ interface Comment {
   reply_count?: number;
   showReplies?: boolean;
   isHearted?: boolean;
+  like_count?: number;
 }
 
 interface Reply {
@@ -39,6 +41,7 @@ interface Reply {
     profile_picture?: string;
   };
   isHearted?: boolean;
+  like_count?: number;
 }
 
 export default function Features() {
@@ -141,7 +144,10 @@ export default function Features() {
             const { comments: apiComments, error } =
               await FeatureCommentService.getFeatureCommentsWithUsers(
                 featureData.id,
-                true
+                true,
+                undefined,
+                undefined,
+                user?.id
               );
             if (error) {
               console.error("Error fetching feature comments:", error);
@@ -152,18 +158,18 @@ export default function Features() {
                   console.log(
                     `Comment ${index + 1} (${comment.id}): ${
                       comment.reply_count
-                    } replies`
+                    } replies, ${comment.like_count} likes`
                   );
                 });
                 // Update comments state with API data
                 const formattedComments = apiComments.map((comment) => ({
                   ...comment,
                   showReplies: false,
-                  isHearted: false,
+                  isHearted: comment.user_has_liked || false,
                   replies:
                     comment.replies?.map((reply) => ({
                       ...reply,
-                      isHearted: false,
+                      isHearted: reply.user_has_liked || false,
                     })) || [],
                 }));
                 setComments(formattedComments);
@@ -239,7 +245,14 @@ export default function Features() {
   };
 
   // Toggle heart for comments
-  const toggleCommentHeart = (commentId: string) => {
+  const toggleCommentHeart = async (commentId: string) => {
+    if (!user?.id) {
+      // If user is not signed in, open signup modal
+      handleOpenSignupModal();
+      return;
+    }
+
+    // Optimistic UI update
     setComments((prevComments) =>
       prevComments.map((comment) =>
         comment.id === commentId
@@ -247,10 +260,47 @@ export default function Features() {
           : comment
       )
     );
+
+    try {
+      // Call API to toggle like
+      const { error } = await FeatureCommentLikeService.toggleUserCommentLike(
+        commentId,
+        user.id
+      );
+
+      if (error) {
+        console.error("Error toggling comment like:", error);
+        // Revert optimistic update on error
+        setComments((prevComments) =>
+          prevComments.map((comment) =>
+            comment.id === commentId
+              ? { ...comment, isHearted: !comment.isHearted }
+              : comment
+          )
+        );
+      }
+    } catch (error) {
+      console.error("Error in toggleCommentHeart:", error);
+      // Revert optimistic update on error
+      setComments((prevComments) =>
+        prevComments.map((comment) =>
+          comment.id === commentId
+            ? { ...comment, isHearted: !comment.isHearted }
+            : comment
+        )
+      );
+    }
   };
 
   // Toggle heart for replies
-  const toggleReplyHeart = (commentId: string, replyId: string) => {
+  const toggleReplyHeart = async (commentId: string, replyId: string) => {
+    if (!user?.id) {
+      // If user is not signed in, open signup modal
+      handleOpenSignupModal();
+      return;
+    }
+
+    // Optimistic UI update
     setComments((prevComments) =>
       prevComments.map((comment) => {
         if (comment.id === commentId && comment.replies) {
@@ -264,6 +314,48 @@ export default function Features() {
         return comment;
       })
     );
+
+    try {
+      // Call API to toggle like (use replyId, not commentId)
+      const { error } = await FeatureCommentLikeService.toggleUserCommentLike(
+        replyId,
+        user.id
+      );
+
+      if (error) {
+        console.error("Error toggling reply like:", error);
+        // Revert optimistic update on error
+        setComments((prevComments) =>
+          prevComments.map((comment) => {
+            if (comment.id === commentId && comment.replies) {
+              const updatedReplies = comment.replies.map((reply) =>
+                reply.id === replyId
+                  ? { ...reply, isHearted: !reply.isHearted }
+                  : reply
+              );
+              return { ...comment, replies: updatedReplies };
+            }
+            return comment;
+          })
+        );
+      }
+    } catch (error) {
+      console.error("Error in toggleReplyHeart:", error);
+      // Revert optimistic update on error
+      setComments((prevComments) =>
+        prevComments.map((comment) => {
+          if (comment.id === commentId && comment.replies) {
+            const updatedReplies = comment.replies.map((reply) =>
+              reply.id === replyId
+                ? { ...reply, isHearted: !reply.isHearted }
+                : reply
+            );
+            return { ...comment, replies: updatedReplies };
+          }
+          return comment;
+        })
+      );
+    }
   };
 
   // Define gradient options for alternating cards

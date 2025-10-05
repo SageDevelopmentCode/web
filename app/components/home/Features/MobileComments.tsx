@@ -23,6 +23,7 @@ interface Comment {
   reply_count?: number;
   showReplies?: boolean;
   isHearted?: boolean;
+  like_count?: number;
 }
 
 interface Reply {
@@ -35,6 +36,7 @@ interface Reply {
     profile_picture?: string;
   };
   isHearted?: boolean;
+  like_count?: number;
 }
 
 interface MobileCommentsProps {
@@ -200,6 +202,9 @@ export default function MobileComments({
                           ) : (
                             <FavoriteBorderIcon sx={{ fontSize: 20 }} />
                           )}
+                          {comment.like_count && comment.like_count > 0 ? (
+                            <span className="text-xs">{comment.like_count}</span>
+                          ) : null}
                         </button>
                         <button className="text-gray-400 hover:text-white transition-colors text-sm">
                           Reply
@@ -271,6 +276,9 @@ export default function MobileComments({
                                   ) : (
                                     <FavoriteBorderIcon sx={{ fontSize: 16 }} />
                                   )}
+                                  {reply.like_count && reply.like_count > 0 ? (
+                                    <span className="text-xs">{reply.like_count}</span>
+                                  ) : null}
                                 </button>
                                 <button className="text-gray-400 hover:text-white transition-colors text-sm">
                                   Reply
