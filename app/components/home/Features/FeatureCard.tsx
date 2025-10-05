@@ -297,14 +297,32 @@ export default function FeatureCard({
     }
   };
 
-  // Toggle replies visibility
+  // Toggle replies visibility (works recursively for nested replies)
   const toggleReplies = (commentId: string) => {
+    const toggleInReplies = (replies: Reply[]): Reply[] => {
+      return replies.map((reply) => {
+        if (reply.id === commentId) {
+          return { ...reply, showReplies: !reply.showReplies };
+        }
+        if (reply.replies && reply.replies.length > 0) {
+          return { ...reply, replies: toggleInReplies(reply.replies) };
+        }
+        return reply;
+      });
+    };
+
     setComments((prevComments) =>
-      prevComments.map((comment) =>
-        comment.id === commentId
-          ? { ...comment, showReplies: !comment.showReplies }
-          : comment
-      )
+      prevComments.map((comment) => {
+        // Check if it's the top-level comment
+        if (comment.id === commentId) {
+          return { ...comment, showReplies: !comment.showReplies };
+        }
+        // Check nested replies
+        if (comment.replies && comment.replies.length > 0) {
+          return { ...comment, replies: toggleInReplies(comment.replies) };
+        }
+        return comment;
+      })
     );
   };
 
