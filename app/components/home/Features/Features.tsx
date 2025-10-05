@@ -42,6 +42,9 @@ interface Reply {
   };
   isHearted?: boolean;
   like_count?: number;
+  replies?: Reply[];
+  reply_count?: number;
+  showReplies?: boolean;
 }
 
 export default function Features() {
