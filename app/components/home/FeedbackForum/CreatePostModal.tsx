@@ -184,8 +184,8 @@ export default function CreatePostModal({
                   onClick={() => setShowFeatureSelector(!showFeatureSelector)}
                   className="px-4 py-2 text-white font-semibold rounded-full text-sm cursor-pointer transition-opacity hover:opacity-90"
                   style={{
-                    background: showFeatureSelector
-                      ? "#3B3B3B"
+                    background: selectedFeature
+                      ? selectedFeature.gradient
                       : "linear-gradient(90.81deg, #9D638D 0.58%, #BF8EFF 99.31%)",
                   }}
                 >
