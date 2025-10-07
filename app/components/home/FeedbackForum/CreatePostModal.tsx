@@ -73,7 +73,7 @@ export default function CreatePostModal({
 
       {/* Modal Content */}
       <div
-        className={`relative w-[90vw] max-w-md mx-4 rounded-3xl overflow-hidden transition-all duration-300 transform ${
+        className={`relative w-[90vw] max-w-2xl mx-4 rounded-3xl overflow-hidden transition-all duration-300 transform ${
           isVisible
             ? "opacity-100 scale-100 translate-y-0"
             : "opacity-0 scale-95 translate-y-4"
@@ -137,7 +137,7 @@ export default function CreatePostModal({
               placeholder="Post description..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              rows={6}
+              rows={8}
               className="w-full px-0 py-3 bg-transparent border-none outline-none text-gray-300 placeholder-gray-500 text-base resize-none"
               style={{ color: "#D1D5DB" }}
             />
@@ -156,7 +156,7 @@ export default function CreatePostModal({
               >
                 + Select a Feature
               </button>
-              <button className="px-4 py-2 text-white font-medium rounded-full text-sm cursor-pointer transition-all hover:bg-opacity-80 bg-gray-700">
+              <button className="px-4 py-2 text-white font-medium rounded-full text-sm cursor-pointer transition-all hover:bg-opacity-80 bg-[#3B3B3B]">
                 + Add a Tag
               </button>
             </div>
