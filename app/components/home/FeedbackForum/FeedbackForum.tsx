@@ -5,6 +5,7 @@ import { Plus, ChevronLeft } from "lucide-react";
 import { PresetEmoji } from "../../Twemoji";
 import FeedbackList from "./FeedbackList";
 import FeedbackDetails from "./FeedbackDetails";
+import CreatePostModal from "./CreatePostModal";
 import { mockFeedbackPosts, FeedbackPost } from "./types";
 import { useSectionLazyLoad } from "../../../../lib/hooks/useSectionLazyLoad";
 
@@ -12,12 +13,22 @@ interface FeedbackForumProps {
   isUserSignedIn?: boolean;
   onOpenSignupModal?: () => void;
   onCloseFeedbackForum?: () => void;
+  userProfile?: {
+    profile_picture: string;
+  };
+  user?: {
+    user_metadata?: {
+      display_name?: string;
+    };
+  };
 }
 
 export default function FeedbackForum({
   isUserSignedIn = false,
   onOpenSignupModal = () => {},
   onCloseFeedbackForum = () => {},
+  userProfile,
+  user,
 }: FeedbackForumProps) {
   const [posts, setPosts] = useState<FeedbackPost[]>(mockFeedbackPosts);
   const [selectedPostId, setSelectedPostId] = useState<number | null>(null);
@@ -27,6 +38,7 @@ export default function FeedbackForum({
   const [bottomSheetView, setBottomSheetView] = useState<"list" | "details">(
     "list"
   );
+  const [showCreatePostModal, setShowCreatePostModal] = useState(false);
 
   // Section lazy loading
   const { ref: sectionRef, hasLoaded } = useSectionLazyLoad({
@@ -186,7 +198,7 @@ export default function FeedbackForum({
                   Share your feedback:
                 </h3>
                 <p className="text-gray-300 text-sm">
-                  What could we improve to better meet your needs?
+                  What could we build or improve to better meet your needs?
                 </p>
               </div>
               <button
@@ -196,6 +208,7 @@ export default function FeedbackForum({
                     "linear-gradient(90.81deg, #9D638D 0.58%, #BF8EFF 99.31%)",
                 }}
                 type="button"
+                onClick={() => setShowCreatePostModal(true)}
               >
                 <Plus size={20} />
                 Create
@@ -210,7 +223,7 @@ export default function FeedbackForum({
                   Share your feedback:
                 </h3>
                 <p className="text-gray-300 text-sm sm:text-base">
-                  What could we improve to better meet your needs?
+                  What could we build or improve to better meet your needs?
                 </p>
               </div>
 
@@ -223,6 +236,7 @@ export default function FeedbackForum({
                       "linear-gradient(90.81deg, #9D638D 0.58%, #BF8EFF 99.31%)",
                   }}
                   type="button"
+                  onClick={() => setShowCreatePostModal(true)}
                 >
                   <Plus size={20} />
                   Create
@@ -473,6 +487,16 @@ export default function FeedbackForum({
           animation: slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
         }
       `}</style>
+
+      {/* Create Post Modal */}
+      {userProfile && user && (
+        <CreatePostModal
+          isOpen={showCreatePostModal}
+          onClose={() => setShowCreatePostModal(false)}
+          userProfile={userProfile}
+          user={user}
+        />
+      )}
     </section>
   );
 }

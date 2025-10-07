@@ -14,7 +14,7 @@ import { useAuth } from "../contexts/auth-context";
 
 export default function Home() {
   const [isSignupModalOpen, setIsSignupModalOpen] = useState(false);
-  const { user } = useAuth();
+  const { user, userProfile } = useAuth();
   return (
     <div className="overflow-x-hidden min-h-screen w-full max-w-full">
       <style jsx>{`
@@ -94,6 +94,8 @@ export default function Home() {
         isUserSignedIn={!!user}
         onOpenSignupModal={() => setIsSignupModalOpen(true)}
         onCloseFeedbackForum={() => {}}
+        userProfile={userProfile || undefined}
+        user={user || undefined}
       />
 
       {/* Timeline Section */}
