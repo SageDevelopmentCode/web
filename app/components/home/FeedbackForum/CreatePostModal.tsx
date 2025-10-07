@@ -6,6 +6,18 @@ import {
   getCharacterImageSrc,
   getCharacterImageStyles,
 } from "../../../../lib/character-utils";
+import FeatureSelector from "./FeatureSelector";
+
+interface Feature {
+  id: string;
+  title: string;
+  description: string;
+  images: {
+    src: string;
+    alt: string;
+  }[];
+  gradient: string;
+}
 
 interface CreatePostModalProps {
   isOpen: boolean;
@@ -18,6 +30,7 @@ interface CreatePostModalProps {
       display_name?: string;
     };
   };
+  features?: Feature[];
 }
 
 export default function CreatePostModal({
@@ -25,10 +38,15 @@ export default function CreatePostModal({
   onClose,
   userProfile,
   user,
+  features = [],
 }: CreatePostModalProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [showFeatureSelector, setShowFeatureSelector] = useState(false);
+  const [selectedFeatureId, setSelectedFeatureId] = useState<string | null>(
+    null
+  );
 
   useEffect(() => {
     if (isOpen) {
@@ -43,11 +61,24 @@ export default function CreatePostModal({
     // Reset form
     setTitle("");
     setDescription("");
+    setShowFeatureSelector(false);
+    setSelectedFeatureId(null);
     // Delay the actual close to allow exit animation
     setTimeout(() => {
       onClose();
     }, 300);
   };
+
+  const handleSelectFeature = (featureId: string) => {
+    if (selectedFeatureId === featureId) {
+      // Deselect if clicking the same feature
+      setSelectedFeatureId(null);
+    } else {
+      setSelectedFeatureId(featureId);
+    }
+  };
+
+  const selectedFeature = features.find((f) => f.id === selectedFeatureId);
 
   const handleSubmit = () => {
     // TODO: Handle post submission
@@ -73,11 +104,11 @@ export default function CreatePostModal({
 
       {/* Modal Content */}
       <div
-        className={`relative w-[90vw] max-w-2xl mx-4 rounded-3xl overflow-hidden transition-all duration-300 transform ${
+        className={`relative mx-4 rounded-3xl overflow-hidden transition-all duration-300 transform ${
           isVisible
             ? "opacity-100 scale-100 translate-y-0"
             : "opacity-0 scale-95 translate-y-4"
-        }`}
+        } ${showFeatureSelector ? "w-[90vw] max-w-5xl" : "w-[90vw] max-w-2xl"}`}
         style={{ backgroundColor: "#282828" }}
       >
         {/* Close button */}
@@ -100,9 +131,11 @@ export default function CreatePostModal({
           </svg>
         </button>
 
-        <div className="p-8">
-          {/* User Avatar */}
-          <div className="flex justify-center mb-6">
+        <div className={`flex ${showFeatureSelector ? "gap-6" : ""}`}>
+          {/* Left Side - Form */}
+          <div className={`p-8 ${showFeatureSelector ? "flex-1" : "w-full"}`}>
+            {/* User Avatar */}
+            <div className="flex justify-center mb-6">
             <div
               className="w-16 h-16 rounded-full overflow-hidden border-2 border-gray-600"
               style={{ backgroundColor: "#D6E5E2" }}
@@ -143,37 +176,59 @@ export default function CreatePostModal({
             />
           </div>
 
-          {/* Suggested Section */}
-          <div className="mb-6">
-            <p className="text-gray-400 text-sm mb-3">Suggested</p>
-            <div className="flex flex-wrap gap-2">
-              <button
-                className="px-4 py-2 text-white font-semibold rounded-full text-sm cursor-pointer transition-opacity hover:opacity-90"
-                style={{
-                  background:
-                    "linear-gradient(90.81deg, #9D638D 0.58%, #BF8EFF 99.31%)",
-                }}
-              >
-                + Select a Feature
-              </button>
-              <button className="px-4 py-2 text-white font-medium rounded-full text-sm cursor-pointer transition-all hover:bg-opacity-80 bg-[#3B3B3B]">
-                + Add a Tag
-              </button>
+            {/* Suggested Section */}
+            <div className="mb-6">
+              <p className="text-gray-400 text-sm mb-3">Suggested</p>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => setShowFeatureSelector(!showFeatureSelector)}
+                  className="px-4 py-2 text-white font-semibold rounded-full text-sm cursor-pointer transition-opacity hover:opacity-90"
+                  style={{
+                    background: showFeatureSelector
+                      ? "#3B3B3B"
+                      : "linear-gradient(90.81deg, #9D638D 0.58%, #BF8EFF 99.31%)",
+                  }}
+                >
+                  {selectedFeature
+                    ? selectedFeature.title
+                    : "+ Select a Feature"}
+                </button>
+                <button className="px-4 py-2 text-white font-medium rounded-full text-sm cursor-pointer transition-all hover:bg-opacity-80 bg-[#3B3B3B]">
+                  + Add a Tag
+                </button>
+              </div>
             </div>
+
+            {/* Submit Button */}
+            <button
+              onClick={handleSubmit}
+              className="w-full py-3 text-white font-bold transition-all hover:opacity-90 cursor-pointer"
+              style={{
+                backgroundColor: "#778554",
+                boxShadow: "0px 4px 0px 1px #57613B",
+                borderRadius: "15px",
+              }}
+            >
+              Submit Post
+            </button>
           </div>
 
-          {/* Submit Button */}
-          <button
-            onClick={handleSubmit}
-            className="w-full py-3 text-white font-bold transition-all hover:opacity-90 cursor-pointer"
-            style={{
-              backgroundColor: "#778554",
-              boxShadow: "0px 4px 0px 1px #57613B",
-              borderRadius: "15px",
-            }}
-          >
-            Submit Post
-          </button>
+          {/* Right Side - Feature Selector */}
+          {showFeatureSelector && (
+            <div
+              className="w-[400px] p-6 border-l border-gray-700"
+              style={{ maxHeight: "80vh" }}
+            >
+              <h3 className="text-white font-bold text-lg mb-4">
+                Select a Feature
+              </h3>
+              <FeatureSelector
+                features={features}
+                selectedFeatureId={selectedFeatureId}
+                onSelectFeature={handleSelectFeature}
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>

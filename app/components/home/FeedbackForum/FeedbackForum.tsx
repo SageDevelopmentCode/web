@@ -49,6 +49,156 @@ export default function FeedbackForum({
 
   const selectedPost = posts.find((post) => post.id === selectedPostId) || null;
 
+  // Define gradient options for feature cards
+  const gradientOptions = [
+    "linear-gradient(90.81deg, #4AA78B 0.58%, #68AFFF 99.31%)", // Teal to Blue
+    "linear-gradient(90.81deg, #9D638D 0.58%, #BF8EFF 99.31%)", // Purple to Violet
+    "linear-gradient(90.81deg, #E67E22 0.58%, #F39C12 99.31%)", // Orange to Golden
+    "linear-gradient(90.81deg, #2ECC71 0.58%, #27AE60 99.31%)", // Light Green to Green
+    "linear-gradient(90.81deg, #E74C3C 0.58%, #C0392B 99.31%)", // Light Red to Red
+    "linear-gradient(90.81deg, #3498DB 0.58%, #2980B9 99.31%)", // Light Blue to Blue
+  ];
+
+  // Feature cards data with gradients
+  const featureCards = [
+    {
+      id: "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+      title: "Get Started Easily",
+      description:
+        "Simple sign-up process to begin your spiritual journey with personalized guidance.",
+      images: [
+        {
+          src: "/assets/feature_mockups/SignUp.png",
+          alt: "Sign Up Interface",
+        },
+        {
+          src: "/assets/feature_mockups/Dashboard.png",
+          alt: "Dashboard Overview",
+        },
+      ],
+      gradient: gradientOptions[0],
+    },
+    {
+      id: "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+      title: "Set Meaningful Goals",
+      description:
+        "Create and track spiritual goals with inspiring ideas to grow your faith.",
+      images: [
+        {
+          src: "/assets/feature_mockups/GoalsList.png",
+          alt: "Goals List",
+        },
+        {
+          src: "/assets/feature_mockups/GoalsIdeas.png",
+          alt: "Goal Ideas",
+        },
+      ],
+      gradient: gradientOptions[1],
+    },
+    {
+      id: "6ba7b811-9dad-11d1-80b4-00c04fd430c8",
+      title: "Navigate Daily Challenges",
+      description:
+        "Balance your workday priorities while staying connected to your spiritual struggles.",
+      images: [
+        {
+          src: "/assets/feature_mockups/Workday.png",
+          alt: "Workday Planning",
+        },
+        {
+          src: "/assets/feature_mockups/Struggles.png",
+          alt: "Spiritual Struggles",
+        },
+      ],
+      gradient: gradientOptions[2],
+    },
+    {
+      id: "6ba7b812-9dad-11d1-80b4-00c04fd430c8",
+      title: "Daily Check-ins",
+      description:
+        "Regular spiritual check-ins to maintain accountability and track your progress.",
+      images: [
+        {
+          src: "/assets/feature_mockups/CheckInOne.png",
+          alt: "Check-in Step One",
+        },
+        {
+          src: "/assets/feature_mockups/CheckInTwo.png",
+          alt: "Check-in Step Two",
+        },
+      ],
+      gradient: gradientOptions[3],
+    },
+    {
+      id: "6ba7b813-9dad-11d1-80b4-00c04fd430c8",
+      title: "Immersive Bible Reading",
+      description:
+        "Engage with Scripture through interactive reading experiences and detailed insights.",
+      images: [
+        {
+          src: "/assets/feature_mockups/Reading.png",
+          alt: "Bible Reading",
+        },
+        {
+          src: "/assets/feature_mockups/ReadingDetails.png",
+          alt: "Reading Details",
+        },
+      ],
+      gradient: gradientOptions[4],
+    },
+    {
+      id: "6ba7b814-9dad-11d1-80b4-00c04fd430c8",
+      title: "Community Discussions",
+      description:
+        "Connect with others through verse comments and meaningful conversation threads.",
+      images: [
+        {
+          src: "/assets/feature_mockups/VerseComments.png",
+          alt: "Verse Comments",
+        },
+        {
+          src: "/assets/feature_mockups/VerseThreads.png",
+          alt: "Discussion Threads",
+        },
+      ],
+      gradient: gradientOptions[5],
+    },
+    {
+      id: "6ba7b815-9dad-11d1-80b4-00c04fd430c8",
+      title: "Spiritual Battles",
+      description:
+        "Engage in spiritual warfare through interactive battles that strengthen your faith.",
+      images: [
+        {
+          src: "/assets/feature_mockups/Battle.png",
+          alt: "Battle Interface",
+        },
+        {
+          src: "/assets/feature_mockups/Battling.png",
+          alt: "Active Battle",
+        },
+      ],
+      gradient: gradientOptions[0],
+    },
+    {
+      id: "6ba7b816-9dad-11d1-80b4-00c04fd430c8",
+      title: "Challenge Selection",
+      description:
+        "Choose your difficulty level and answer questions to test your biblical knowledge.",
+      images: [
+        {
+          src: "/assets/feature_mockups/DifficultySelection.png",
+          alt: "Difficulty Selection",
+        },
+        {
+          src: "/assets/feature_mockups/AnswerSelection.png",
+          alt: "Answer Selection",
+        },
+      ],
+      gradient: gradientOptions[1],
+    },
+  ];
+
   // Check for mobile viewport
   useEffect(() => {
     const checkMobile = () => {
@@ -495,6 +645,7 @@ export default function FeedbackForum({
           onClose={() => setShowCreatePostModal(false)}
           userProfile={userProfile}
           user={user}
+          features={featureCards}
         />
       )}
     </section>
