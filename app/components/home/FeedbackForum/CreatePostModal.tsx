@@ -75,6 +75,8 @@ export default function CreatePostModal({
       setSelectedFeatureId(null);
     } else {
       setSelectedFeatureId(featureId);
+      // Close the feature selector panel after selection
+      setShowFeatureSelector(false);
     }
   };
 
@@ -216,12 +218,38 @@ export default function CreatePostModal({
           {/* Right Side - Feature Selector */}
           {showFeatureSelector && (
             <div
-              className="w-[400px] p-6 border-l border-gray-700"
-              style={{ maxHeight: "80vh" }}
+              className="w-[400px] p-6 relative"
+              style={{
+                maxHeight: "80vh",
+                borderLeft: "1px solid #3B3B3B"
+              }}
             >
-              <h3 className="text-white font-bold text-lg mb-4">
-                Select a Feature
-              </h3>
+              {/* Collapse Button - centered vertically on the left border */}
+              <button
+                onClick={() => setShowFeatureSelector(false)}
+                className="absolute -left-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center transition-all hover:opacity-80 cursor-pointer z-10"
+                style={{ backgroundColor: "#3B3B3B" }}
+                title="Collapse"
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="white"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+              </button>
+
+              <div className="mb-4">
+                <h3 className="text-white font-bold text-lg">
+                  Select a Feature
+                </h3>
+              </div>
               <FeatureSelector
                 features={features}
                 selectedFeatureId={selectedFeatureId}
