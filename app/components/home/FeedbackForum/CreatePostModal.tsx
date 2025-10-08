@@ -33,11 +33,126 @@ interface CreatePostModalProps {
   features?: Feature[];
 }
 
+// User Avatar Component
+function UserAvatar({ profilePicture }: { profilePicture: string }) {
+  return (
+    <div className="flex justify-center mb-6">
+      <div
+        className="w-16 h-16 rounded-full overflow-hidden border-2 border-gray-600"
+        style={{ backgroundColor: "#D6E5E2" }}
+      >
+        <Image
+          src={getCharacterImageSrc(profilePicture)}
+          alt={profilePicture}
+          width={200}
+          height={200}
+          className="w-auto h-full object-cover opacity-100 grayscale-0"
+          style={getCharacterImageStyles(profilePicture)}
+          quality={100}
+        />
+      </div>
+    </div>
+  );
+}
+
+// Title and Description Component
+function TitleAndDescription({
+  title,
+  description,
+  isMobile,
+  onTitleChange,
+  onDescriptionChange,
+}: {
+  title: string;
+  description: string;
+  isMobile: boolean;
+  onTitleChange: (value: string) => void;
+  onDescriptionChange: (value: string) => void;
+}) {
+  return (
+    <>
+      {/* Title Input */}
+      <div className="mb-4">
+        <input
+          type="text"
+          placeholder="Title of your post"
+          value={title}
+          onChange={(e) => onTitleChange(e.target.value)}
+          className="w-full px-0 py-3 bg-transparent border-none outline-none text-white placeholder-gray-400 text-lg font-semibold"
+          style={{ color: "#FFFFFF" }}
+        />
+      </div>
+
+      {/* Description Textarea */}
+      <div className={isMobile ? "flex-1 mb-6" : "mb-8"}>
+        <textarea
+          placeholder="Post description..."
+          value={description}
+          onChange={(e) => onDescriptionChange(e.target.value)}
+          rows={isMobile ? undefined : 8}
+          className={`w-full px-0 py-3 bg-transparent border-none outline-none text-gray-300 placeholder-gray-500 text-base resize-none ${
+            isMobile ? "h-64" : ""
+          }`}
+          style={{ color: "#D1D5DB" }}
+        />
+      </div>
+    </>
+  );
+}
+
+// Suggested Buttons and Submit Component
+function SuggestedAndSubmit({
+  selectedFeature,
+  onFeatureButtonClick,
+  onSubmit,
+}: {
+  selectedFeature: Feature | undefined;
+  onFeatureButtonClick: () => void;
+  onSubmit: () => void;
+}) {
+  return (
+    <>
+      {/* Suggested Section */}
+      <div className="mb-6">
+        <p className="text-gray-400 text-sm mb-3">Suggested</p>
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={onFeatureButtonClick}
+            className="px-4 py-2 text-white font-semibold rounded-full text-sm cursor-pointer transition-opacity hover:opacity-90"
+            style={{
+              background: selectedFeature
+                ? selectedFeature.gradient
+                : "linear-gradient(90.81deg, #9D638D 0.58%, #BF8EFF 99.31%)",
+            }}
+          >
+            {selectedFeature ? selectedFeature.title : "+ Select a Feature"}
+          </button>
+          <button className="px-4 py-2 text-white font-medium rounded-full text-sm cursor-pointer transition-all hover:bg-opacity-80 bg-[#3B3B3B]">
+            + Add a Tag
+          </button>
+        </div>
+      </div>
+
+      {/* Submit Button */}
+      <button
+        onClick={onSubmit}
+        className="w-full py-3 text-white font-bold transition-all hover:opacity-90 cursor-pointer"
+        style={{
+          backgroundColor: "#778554",
+          boxShadow: "0px 4px 0px 1px #57613B",
+          borderRadius: "15px",
+        }}
+      >
+        Submit Post
+      </button>
+    </>
+  );
+}
+
 export default function CreatePostModal({
   isOpen,
   onClose,
   userProfile,
-  user,
   features = [],
 }: CreatePostModalProps) {
   const [isVisible, setIsVisible] = useState(false);
@@ -222,87 +337,23 @@ export default function CreatePostModal({
             >
               {/* Scrollable Content */}
               <div className="flex-1 overflow-y-auto px-6">
-                {/* User Avatar */}
-                <div className="flex justify-center mb-6">
-                  <div
-                    className="w-16 h-16 rounded-full overflow-hidden border-2 border-gray-600"
-                    style={{ backgroundColor: "#D6E5E2" }}
-                  >
-                    <Image
-                      src={getCharacterImageSrc(userProfile.profile_picture)}
-                      alt={userProfile.profile_picture}
-                      width={200}
-                      height={200}
-                      className="w-auto h-full object-cover opacity-100 grayscale-0"
-                      style={getCharacterImageStyles(
-                        userProfile.profile_picture
-                      )}
-                      quality={100}
-                    />
-                  </div>
-                </div>
-
-                {/* Title Input */}
-                <div className="mb-4">
-                  <input
-                    type="text"
-                    placeholder="Title of your post"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    className="w-full px-0 py-3 bg-transparent border-none outline-none text-white placeholder-gray-400 text-lg font-semibold"
-                    style={{ color: "#FFFFFF" }}
-                  />
-                </div>
-
-                {/* Description Textarea */}
-                <div className="flex-1 mb-6">
-                  <textarea
-                    placeholder="Post description..."
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    className="w-full h-64 px-0 py-3 bg-transparent border-none outline-none text-gray-300 placeholder-gray-500 text-base resize-none"
-                    style={{ color: "#D1D5DB" }}
-                  />
-                </div>
+                <UserAvatar profilePicture={userProfile.profile_picture} />
+                <TitleAndDescription
+                  title={title}
+                  description={description}
+                  isMobile={true}
+                  onTitleChange={setTitle}
+                  onDescriptionChange={setDescription}
+                />
               </div>
 
               {/* Fixed Bottom Section */}
               <div className="flex-shrink-0 px-6 pb-20">
-                {/* Suggested Section */}
-                <div className="mb-6">
-                  <p className="text-gray-400 text-sm mb-3">Suggested</p>
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      onClick={handleFeatureButtonClick}
-                      className="px-4 py-2 text-white font-semibold rounded-full text-sm cursor-pointer transition-opacity hover:opacity-90"
-                      style={{
-                        background: selectedFeature
-                          ? selectedFeature.gradient
-                          : "linear-gradient(90.81deg, #9D638D 0.58%, #BF8EFF 99.31%)",
-                      }}
-                    >
-                      {selectedFeature
-                        ? selectedFeature.title
-                        : "+ Select a Feature"}
-                    </button>
-                    <button className="px-4 py-2 text-white font-medium rounded-full text-sm cursor-pointer transition-all hover:bg-opacity-80 bg-[#3B3B3B]">
-                      + Add a Tag
-                    </button>
-                  </div>
-                </div>
-
-                {/* Submit Button */}
-                <button
-                  onClick={handleSubmit}
-                  className="w-full py-3 text-white font-bold transition-all hover:opacity-90 cursor-pointer"
-                  style={{
-                    backgroundColor: "#778554",
-                    boxShadow: "0px 4px 0px 1px #57613B",
-                    borderRadius: "15px",
-                  }}
-                >
-                  Submit Post
-                </button>
+                <SuggestedAndSubmit
+                  selectedFeature={selectedFeature}
+                  onFeatureButtonClick={handleFeatureButtonClick}
+                  onSubmit={handleSubmit}
+                />
               </div>
             </div>
 
@@ -398,83 +449,19 @@ export default function CreatePostModal({
         <div className={`flex ${showFeatureSelector ? "gap-6" : ""}`}>
           {/* Left Side - Form */}
           <div className={`p-8 ${showFeatureSelector ? "flex-1" : "w-full"}`}>
-            {/* User Avatar */}
-            <div className="flex justify-center mb-6">
-              <div
-                className="w-16 h-16 rounded-full overflow-hidden border-2 border-gray-600"
-                style={{ backgroundColor: "#D6E5E2" }}
-              >
-                <Image
-                  src={getCharacterImageSrc(userProfile.profile_picture)}
-                  alt={userProfile.profile_picture}
-                  width={200}
-                  height={200}
-                  className="w-auto h-full object-cover opacity-100 grayscale-0"
-                  style={getCharacterImageStyles(userProfile.profile_picture)}
-                  quality={100}
-                />
-              </div>
-            </div>
-
-            {/* Title Input */}
-            <div className="mb-4">
-              <input
-                type="text"
-                placeholder="Title of your post"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="w-full px-0 py-3 bg-transparent border-none outline-none text-white placeholder-gray-400 text-lg font-semibold"
-                style={{ color: "#FFFFFF" }}
-              />
-            </div>
-
-            {/* Description Textarea */}
-            <div className="mb-8">
-              <textarea
-                placeholder="Post description..."
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                rows={8}
-                className="w-full px-0 py-3 bg-transparent border-none outline-none text-gray-300 placeholder-gray-500 text-base resize-none"
-                style={{ color: "#D1D5DB" }}
-              />
-            </div>
-
-            {/* Suggested Section */}
-            <div className="mb-6">
-              <p className="text-gray-400 text-sm mb-3">Suggested</p>
-              <div className="flex flex-wrap gap-2">
-                <button
-                  onClick={handleFeatureButtonClick}
-                  className="px-4 py-2 text-white font-semibold rounded-full text-sm cursor-pointer transition-opacity hover:opacity-90"
-                  style={{
-                    background: selectedFeature
-                      ? selectedFeature.gradient
-                      : "linear-gradient(90.81deg, #9D638D 0.58%, #BF8EFF 99.31%)",
-                  }}
-                >
-                  {selectedFeature
-                    ? selectedFeature.title
-                    : "+ Select a Feature"}
-                </button>
-                <button className="px-4 py-2 text-white font-medium rounded-full text-sm cursor-pointer transition-all hover:bg-opacity-80 bg-[#3B3B3B]">
-                  + Add a Tag
-                </button>
-              </div>
-            </div>
-
-            {/* Submit Button */}
-            <button
-              onClick={handleSubmit}
-              className="w-full py-3 text-white font-bold transition-all hover:opacity-90 cursor-pointer"
-              style={{
-                backgroundColor: "#778554",
-                boxShadow: "0px 4px 0px 1px #57613B",
-                borderRadius: "15px",
-              }}
-            >
-              Submit Post
-            </button>
+            <UserAvatar profilePicture={userProfile.profile_picture} />
+            <TitleAndDescription
+              title={title}
+              description={description}
+              isMobile={false}
+              onTitleChange={setTitle}
+              onDescriptionChange={setDescription}
+            />
+            <SuggestedAndSubmit
+              selectedFeature={selectedFeature}
+              onFeatureButtonClick={handleFeatureButtonClick}
+              onSubmit={handleSubmit}
+            />
           </div>
 
           {/* Right Side - Feature Selector */}
