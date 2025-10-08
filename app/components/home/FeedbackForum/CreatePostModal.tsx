@@ -56,6 +56,36 @@ export default function CreatePostModal({
     }
   }, [isOpen]);
 
+  // Handle body scroll lock
+  useEffect(() => {
+    if (isVisible) {
+      // Store current scroll position
+      const scrollY = window.scrollY;
+
+      // Lock body scroll
+      document.body.style.position = "fixed";
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = "100%";
+      document.body.style.overflow = "hidden";
+
+      // Store the scroll position for restoration
+      document.body.setAttribute("data-scroll-y", scrollY.toString());
+
+      return () => {
+        // Restore scroll position and unlock body
+        const scrollY = parseInt(
+          document.body.getAttribute("data-scroll-y") || "0"
+        );
+        document.body.style.position = "";
+        document.body.style.top = "";
+        document.body.style.width = "";
+        document.body.style.overflow = "";
+        window.scrollTo(0, scrollY);
+        document.body.removeAttribute("data-scroll-y");
+      };
+    }
+  }, [isVisible]);
+
   const handleClose = () => {
     setIsVisible(false);
     // Reset form
