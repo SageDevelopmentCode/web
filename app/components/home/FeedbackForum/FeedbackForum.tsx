@@ -8,6 +8,10 @@ import FeedbackDetails from "./FeedbackDetails";
 import CreatePostModal from "./CreatePostModal";
 import { mockFeedbackPosts, FeedbackPost } from "./types";
 import { useSectionLazyLoad } from "../../../../lib/hooks/useSectionLazyLoad";
+import {
+  FeedbackService,
+  FeedbackWithUserAndTags,
+} from "../../../../lib/supabase/feedback";
 
 interface FeedbackForumProps {
   isUserSignedIn?: boolean;
@@ -40,6 +44,7 @@ export default function FeedbackForum({
     "list"
   );
   const [showCreatePostModal, setShowCreatePostModal] = useState(false);
+  const [isLoadingFeedback, setIsLoadingFeedback] = useState(false);
 
   // Section lazy loading
   const { ref: sectionRef, hasLoaded } = useSectionLazyLoad({
@@ -49,6 +54,64 @@ export default function FeedbackForum({
   });
 
   const selectedPost = posts.find((post) => post.id === selectedPostId) || null;
+
+  // Helper function to format relative time
+  const formatRelativeTime = (dateString: string): string => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) return "Today";
+    if (diffDays === 1) return "1d";
+    if (diffDays < 7) return `${diffDays}d`;
+    if (diffDays < 30) return `${Math.floor(diffDays / 7)}w`;
+    return `${Math.floor(diffDays / 30)}mo`;
+  };
+
+  // Transform database feedback to FeedbackPost format
+  const transformFeedbackData = (
+    dbFeedback: FeedbackWithUserAndTags[]
+  ): FeedbackPost[] => {
+    return dbFeedback.map((fb, index) => ({
+      id: index + 1, // Use sequential numbers starting from 1
+      username: fb.user?.display_name || "Anonymous",
+      timestamp: formatRelativeTime(fb.created_at),
+      title: fb.title,
+      description: fb.description || "",
+      category: "new" as const, // Default category for now
+      heartsCount: 0, // Placeholder
+      commentsCount: 0, // Placeholder
+      isHearted: false, // Placeholder
+      comments: [], // Placeholder
+      tags: fb.tags || [],
+    }));
+  };
+
+  // Fetch feedback with users and tags when section loads
+  useEffect(() => {
+    if (hasLoaded) {
+      const fetchFeedback = async () => {
+        setIsLoadingFeedback(true);
+        const { feedback, error, count } =
+          await FeedbackService.getFeedbackWithUsersAndTags();
+
+        if (error) {
+          console.error("Error fetching feedback:", error);
+        } else {
+          console.log("Fetched feedback with users and tags:", feedback);
+          console.log("Total count:", count);
+
+          if (feedback && feedback.length > 0) {
+            const transformedPosts = transformFeedbackData(feedback);
+            setPosts(transformedPosts);
+          }
+        }
+        setIsLoadingFeedback(false);
+      };
+      fetchFeedback();
+    }
+  }, [hasLoaded]);
 
   // Define gradient options for feature cards
   const gradientOptions = [
