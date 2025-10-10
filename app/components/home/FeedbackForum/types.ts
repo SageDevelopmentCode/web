@@ -18,6 +18,12 @@ export interface FeedbackReply {
   heartsCount: number;
 }
 
+export interface FeedbackTag {
+  id: string;
+  name: string;
+  description?: string | null;
+}
+
 export interface FeedbackPost {
   id: number;
   username: string;
@@ -29,6 +35,7 @@ export interface FeedbackPost {
   commentsCount: number;
   isHearted?: boolean;
   comments: FeedbackComment[];
+  tags?: FeedbackTag[];
 }
 
 export const mockFeedbackPosts: FeedbackPost[] = [

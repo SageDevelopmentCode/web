@@ -8,6 +8,8 @@ import {
 } from "../../../../lib/character-utils";
 import FeatureSelector from "./FeatureSelector";
 import { Tag, TagsService } from "../../../../lib/supabase/tags";
+import { FeedbackService } from "../../../../lib/supabase/feedback";
+import { FeedbackTagsService } from "../../../../lib/supabase/feedback_tags";
 
 interface Feature {
   id: string;
@@ -27,6 +29,7 @@ interface CreatePostModalProps {
     profile_picture: string;
   };
   user: {
+    id: string;
     user_metadata?: {
       display_name?: string;
     };
@@ -237,6 +240,7 @@ export default function CreatePostModal({
   isOpen,
   onClose,
   userProfile,
+  user,
   features = [],
 }: CreatePostModalProps) {
   const [isVisible, setIsVisible] = useState(false);
@@ -398,14 +402,59 @@ export default function CreatePostModal({
     setSelectedTagIds(selectedTagIds.filter((id) => id !== tagId));
   };
 
-  const handleSubmit = () => {
-    // TODO: Handle post submission
-    console.log("Post submitted:", {
-      title,
-      description,
-      selectedTagIds,
-      feature_id: selectedFeatureId,
-    });
+  const handleSubmit = async () => {
+    // Validate required fields
+    if (!title.trim()) {
+      console.error("Title is required");
+      return;
+    }
+
+    if (!user?.id) {
+      console.error("User must be logged in to submit feedback");
+      return;
+    }
+
+    try {
+      // Create the feedback post
+      const { feedback, error: feedbackError } =
+        await FeedbackService.createFeedback({
+          user_id: user.id,
+          title: title.trim(),
+          description: description.trim() || null,
+          feature_id: selectedFeatureId,
+        });
+
+      if (feedbackError || !feedback) {
+        console.error("Error creating feedback:", feedbackError);
+        return;
+      }
+
+      // Add tags to the feedback if any were selected
+      if (selectedTagIds.length > 0) {
+        const { error: tagsError } =
+          await FeedbackTagsService.addTagsToFeedback(
+            feedback.id,
+            selectedTagIds,
+            user.id
+          );
+
+        if (tagsError) {
+          console.error("Error adding tags to feedback:", tagsError);
+          // Note: Feedback was created successfully, only tags failed
+        }
+      }
+
+      console.log("Feedback submitted successfully:", feedback);
+
+      // Reset form and close modal
+      setTitle("");
+      setDescription("");
+      setSelectedTagIds([]);
+      setSelectedFeatureId(null);
+      handleClose();
+    } catch (error) {
+      console.error("Error submitting feedback:", error);
+    }
   };
 
   if (!isOpen) return null;

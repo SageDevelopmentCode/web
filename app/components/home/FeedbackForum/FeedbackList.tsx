@@ -182,6 +182,20 @@ export default function FeedbackList({
               {post.description}
             </p>
 
+            {/* Tags */}
+            {post.tags && post.tags.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-3">
+                {post.tags.map((tag) => (
+                  <span
+                    key={tag.id}
+                    className="px-2 py-1 text-xs rounded-full bg-[#4A4A4A] text-gray-300"
+                  >
+                    {tag.name}
+                  </span>
+                ))}
+              </div>
+            )}
+
             {/* Combined User Info and Post Actions */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">

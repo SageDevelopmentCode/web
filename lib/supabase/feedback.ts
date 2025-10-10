@@ -7,7 +7,6 @@ export interface Feedback {
   updated_at: string;
   is_deleted: boolean;
   user_id: string;
-  tag_id: string | null;
   feature_id: string | null;
   title: string;
   description: string | null;
@@ -17,7 +16,6 @@ export interface CreateFeedbackData {
   user_id: string;
   title: string;
   description?: string | null;
-  tag_id?: string | null;
   feature_id?: string | null;
   is_deleted?: boolean;
 }
@@ -25,7 +23,6 @@ export interface CreateFeedbackData {
 export interface UpdateFeedbackData {
   title?: string;
   description?: string | null;
-  tag_id?: string | null;
   feature_id?: string | null;
   is_deleted?: boolean;
   updated_at?: string;
@@ -33,7 +30,6 @@ export interface UpdateFeedbackData {
 
 export interface FeedbackFilters {
   user_id?: string;
-  tag_id?: string | null;
   feature_id?: string | null;
   is_deleted?: boolean;
 }
@@ -45,6 +41,24 @@ export interface FeedbackWithUser extends Feedback {
     display_name?: string;
     profile_picture?: string;
   };
+}
+
+// Extended feedback interface with tags
+export interface FeedbackWithTags extends Feedback {
+  tags?: Array<{
+    id: string;
+    name: string;
+    description: string | null;
+  }>;
+}
+
+// Extended feedback interface with both user and tags
+export interface FeedbackWithUserAndTags extends FeedbackWithUser {
+  tags?: Array<{
+    id: string;
+    name: string;
+    description: string | null;
+  }>;
 }
 
 // Feedback CRUD operations
@@ -59,7 +73,6 @@ export class FeedbackService {
         .insert([
           {
             ...feedbackData,
-            tag_id: feedbackData.tag_id || null,
             feature_id: feedbackData.feature_id || null,
             description: feedbackData.description || null,
             is_deleted: feedbackData.is_deleted ?? false,
@@ -119,13 +132,6 @@ export class FeedbackService {
       if (filters?.user_id) {
         query = query.eq("user_id", filters.user_id);
       }
-      if (filters?.tag_id !== undefined) {
-        if (filters.tag_id === null) {
-          query = query.is("tag_id", null);
-        } else {
-          query = query.eq("tag_id", filters.tag_id);
-        }
-      }
       if (filters?.feature_id !== undefined) {
         if (filters.feature_id === null) {
           query = query.is("feature_id", null);
@@ -163,19 +169,6 @@ export class FeedbackService {
     count?: number;
   }> {
     return this.getFeedback({ user_id: userId }, limit, offset);
-  }
-
-  // Get feedback by tag ID
-  static async getFeedbackByTagId(
-    tagId: string,
-    limit?: number,
-    offset?: number
-  ): Promise<{
-    feedback: Feedback[] | null;
-    error: any;
-    count?: number;
-  }> {
-    return this.getFeedback({ tag_id: tagId }, limit, offset);
   }
 
   // Get feedback by feature ID
@@ -239,6 +232,211 @@ export class FeedbackService {
       return { feedback: feedbackWithUsers, error: null, count };
     } catch (error) {
       console.error("Error fetching feedback with users:", error);
+      return { feedback: null, error, count: 0 };
+    }
+  }
+
+  // Get feedback with tags
+  static async getFeedbackWithTags(
+    filters?: FeedbackFilters,
+    limit?: number,
+    offset?: number
+  ): Promise<{
+    feedback: FeedbackWithTags[] | null;
+    error: any;
+    count?: number;
+  }> {
+    try {
+      // Fetch feedback
+      const {
+        feedback,
+        error: feedbackError,
+        count,
+      } = await this.getFeedback(filters, limit, offset);
+
+      if (feedbackError) throw feedbackError;
+      if (!feedback || feedback.length === 0) {
+        return { feedback: [], error: null, count: 0 };
+      }
+
+      // Get unique feedback IDs
+      const feedbackIds = feedback.map((f) => f.id);
+
+      // Batch fetch all feedback_tags with tag details
+      const { data: feedbackTagsData, error: tagsError } = await supabase
+        .from("feedback_tags")
+        .select(
+          `
+          feedback_id,
+          tags (
+            id,
+            name,
+            description
+          )
+        `
+        )
+        .in("feedback_id", feedbackIds)
+        .eq("is_deleted", false);
+
+      if (tagsError) throw tagsError;
+
+      // Create a map of feedback_id to tags
+      const tagsMap = new Map<string, any[]>();
+      feedbackTagsData?.forEach((item: any) => {
+        if (item.tags) {
+          if (!tagsMap.has(item.feedback_id)) {
+            tagsMap.set(item.feedback_id, []);
+          }
+          tagsMap.get(item.feedback_id)?.push(item.tags);
+        }
+      });
+
+      // Build the final structure with tags
+      const feedbackWithTags: FeedbackWithTags[] = feedback.map((fb) => ({
+        ...fb,
+        tags: tagsMap.get(fb.id) || [],
+      }));
+
+      return { feedback: feedbackWithTags, error: null, count };
+    } catch (error) {
+      console.error("Error fetching feedback with tags:", error);
+      return { feedback: null, error, count: 0 };
+    }
+  }
+
+  // Get feedback with both users and tags
+  static async getFeedbackWithUsersAndTags(
+    filters?: FeedbackFilters,
+    limit?: number,
+    offset?: number
+  ): Promise<{
+    feedback: FeedbackWithUserAndTags[] | null;
+    error: any;
+    count?: number;
+  }> {
+    try {
+      // Fetch feedback
+      const {
+        feedback,
+        error: feedbackError,
+        count,
+      } = await this.getFeedback(filters, limit, offset);
+
+      if (feedbackError) throw feedbackError;
+      if (!feedback || feedback.length === 0) {
+        return { feedback: [], error: null, count: 0 };
+      }
+
+      // Get unique user IDs
+      const uniqueUserIds = [...new Set(feedback.map((f) => f.user_id))];
+      const feedbackIds = feedback.map((f) => f.id);
+
+      // Batch fetch users and tags in parallel
+      const [usersResult, tagsResult] = await Promise.all([
+        supabase
+          .from("users")
+          .select("user_id, display_name, profile_picture")
+          .in("user_id", uniqueUserIds),
+        supabase
+          .from("feedback_tags")
+          .select(
+            `
+            feedback_id,
+            tags (
+              id,
+              name,
+              description
+            )
+          `
+          )
+          .in("feedback_id", feedbackIds)
+          .eq("is_deleted", false),
+      ]);
+
+      if (usersResult.error) throw usersResult.error;
+      if (tagsResult.error) throw tagsResult.error;
+
+      // Create user lookup map
+      const usersMap = new Map(
+        usersResult.data?.map((user) => [user.user_id, user]) || []
+      );
+
+      // Create tags map
+      const tagsMap = new Map<string, any[]>();
+      tagsResult.data?.forEach((item: any) => {
+        if (item.tags) {
+          if (!tagsMap.has(item.feedback_id)) {
+            tagsMap.set(item.feedback_id, []);
+          }
+          tagsMap.get(item.feedback_id)?.push(item.tags);
+        }
+      });
+
+      // Build the final structure with both user and tags data
+      const feedbackWithUsersAndTags: FeedbackWithUserAndTags[] = feedback.map(
+        (fb) => ({
+          ...fb,
+          user: usersMap.get(fb.user_id) || undefined,
+          tags: tagsMap.get(fb.id) || [],
+        })
+      );
+
+      return { feedback: feedbackWithUsersAndTags, error: null, count };
+    } catch (error) {
+      console.error("Error fetching feedback with users and tags:", error);
+      return { feedback: null, error, count: 0 };
+    }
+  }
+
+  // Get feedback by tag ID (using the junction table)
+  static async getFeedbackByTagId(
+    tagId: string,
+    limit?: number,
+    offset?: number
+  ): Promise<{
+    feedback: Feedback[] | null;
+    error: any;
+    count?: number;
+  }> {
+    try {
+      // First get all feedback IDs that have this tag
+      const { data: feedbackTagsData, error: feedbackTagsError } =
+        await supabase
+          .from("feedback_tags")
+          .select("feedback_id")
+          .eq("tag_id", tagId)
+          .eq("is_deleted", false);
+
+      if (feedbackTagsError) throw feedbackTagsError;
+
+      if (!feedbackTagsData || feedbackTagsData.length === 0) {
+        return { feedback: [], error: null, count: 0 };
+      }
+
+      const feedbackIds = feedbackTagsData.map((item) => item.feedback_id);
+
+      // Now fetch the feedback
+      let query = supabase
+        .from("feedback")
+        .select("*", { count: "exact" })
+        .in("id", feedbackIds)
+        .eq("is_deleted", false)
+        .order("created_at", { ascending: false });
+
+      if (limit) {
+        query = query.limit(limit);
+      }
+
+      if (offset) {
+        query = query.range(offset, offset + (limit || 10) - 1);
+      }
+
+      const { data, error, count } = await query;
+
+      if (error) throw error;
+      return { feedback: data, error: null, count: count || 0 };
+    } catch (error) {
+      console.error("Error fetching feedback by tag:", error);
       return { feedback: null, error, count: 0 };
     }
   }
@@ -339,25 +537,6 @@ export class FeedbackService {
       return { count: count || 0, error: null };
     } catch (error) {
       console.error("Error getting feedback count by user:", error);
-      return { count: 0, error };
-    }
-  }
-
-  // Get feedback count by tag
-  static async getFeedbackCountByTag(
-    tagId: string
-  ): Promise<{ count: number; error: any }> {
-    try {
-      const { count, error } = await supabase
-        .from("feedback")
-        .select("*", { count: "exact", head: true })
-        .eq("tag_id", tagId)
-        .eq("is_deleted", false);
-
-      if (error) throw error;
-      return { count: count || 0, error: null };
-    } catch (error) {
-      console.error("Error getting feedback count by tag:", error);
       return { count: 0, error };
     }
   }

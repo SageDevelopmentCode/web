@@ -239,6 +239,20 @@ export default function FeedbackDetails({
             {post.description}
           </p>
 
+          {/* Tags */}
+          {post.tags && post.tags.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-4">
+              {post.tags.map((tag) => (
+                <span
+                  key={tag.id}
+                  className="px-3 py-1.5 text-sm rounded-full bg-[#4A4A4A] text-gray-300"
+                >
+                  {tag.name}
+                </span>
+              ))}
+            </div>
+          )}
+
           {/* Post Actions */}
           <div className="flex items-center gap-3">
             <button
