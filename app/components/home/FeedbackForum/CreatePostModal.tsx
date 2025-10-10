@@ -35,6 +35,7 @@ interface CreatePostModalProps {
     };
   };
   features?: Feature[];
+  onSuccess?: () => void;
 }
 
 // User Avatar Component
@@ -242,6 +243,7 @@ export default function CreatePostModal({
   userProfile,
   user,
   features = [],
+  onSuccess,
 }: CreatePostModalProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [title, setTitle] = useState("");
@@ -445,6 +447,11 @@ export default function CreatePostModal({
       }
 
       console.log("Feedback submitted successfully:", feedback);
+
+      // Call onSuccess callback to refetch feedback list
+      if (onSuccess) {
+        onSuccess();
+      }
 
       // Reset form and close modal
       setTitle("");

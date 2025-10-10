@@ -94,27 +94,29 @@ export default function FeedbackForum({
     }));
   };
 
+  // Function to fetch feedback data
+  const fetchFeedback = async () => {
+    setIsLoadingFeedback(true);
+    const { feedback, error, count } =
+      await FeedbackService.getFeedbackWithUsersAndTags();
+
+    if (error) {
+      console.error("Error fetching feedback:", error);
+    } else {
+      console.log("Fetched feedback with users and tags:", feedback);
+      console.log("Total count:", count);
+
+      if (feedback && feedback.length > 0) {
+        const transformedPosts = transformFeedbackData(feedback);
+        setPosts(transformedPosts);
+      }
+    }
+    setIsLoadingFeedback(false);
+  };
+
   // Fetch feedback with users and tags when section loads
   useEffect(() => {
     if (hasLoaded) {
-      const fetchFeedback = async () => {
-        setIsLoadingFeedback(true);
-        const { feedback, error, count } =
-          await FeedbackService.getFeedbackWithUsersAndTags();
-
-        if (error) {
-          console.error("Error fetching feedback:", error);
-        } else {
-          console.log("Fetched feedback with users and tags:", feedback);
-          console.log("Total count:", count);
-
-          if (feedback && feedback.length > 0) {
-            const transformedPosts = transformFeedbackData(feedback);
-            setPosts(transformedPosts);
-          }
-        }
-        setIsLoadingFeedback(false);
-      };
       fetchFeedback();
     }
   }, [hasLoaded]);
@@ -760,6 +762,7 @@ export default function FeedbackForum({
           userProfile={userProfile}
           user={user}
           features={featureCards}
+          onSuccess={fetchFeedback}
         />
       )}
     </section>
