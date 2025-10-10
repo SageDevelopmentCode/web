@@ -27,6 +27,7 @@ export interface FeedbackTag {
 export interface FeedbackPost {
   id: number;
   username: string;
+  profile_picture?: string;
   timestamp: string;
   title: string;
   description: string;

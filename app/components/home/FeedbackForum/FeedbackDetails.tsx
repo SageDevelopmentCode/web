@@ -2,8 +2,13 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Send, MoreHorizontal } from "lucide-react";
+import Image from "next/image";
 import { PresetEmoji } from "../../Twemoji";
 import { FeedbackPost, FeedbackComment } from "./types";
+import {
+  getCharacterImageSrc,
+  getCharacterImageStyles,
+} from "../../../../lib/character-utils";
 
 interface FeedbackDetailsProps {
   post: FeedbackPost | null;
@@ -216,13 +221,28 @@ export default function FeedbackDetails({
         <div className={`mb-6 pb-6  ${isMobile ? "" : "flex-shrink-0"}`}>
           {/* User Info Row */}
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
-              <span className="text-white text-sm font-semibold">
-                {post.username
-                  .split(" ")
-                  .map((n) => n[0])
-                  .join("")}
-              </span>
+            <div
+              className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden border-2 border-gray-300"
+              style={{ backgroundColor: "#D6E5E2" }}
+            >
+              {post.profile_picture ? (
+                <Image
+                  src={getCharacterImageSrc(post.profile_picture)}
+                  alt={post.profile_picture}
+                  width={200}
+                  height={200}
+                  className="w-auto h-full object-cover opacity-100 grayscale-0"
+                  style={getCharacterImageStyles(post.profile_picture)}
+                  quality={100}
+                />
+              ) : (
+                <span className="text-white text-sm font-semibold">
+                  {post.username
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("")}
+                </span>
+              )}
             </div>
             <div>
               <span className="text-white text-base font-medium">
@@ -242,14 +262,29 @@ export default function FeedbackDetails({
           {/* Tags */}
           {post.tags && post.tags.length > 0 && (
             <div className="flex flex-wrap gap-2 mb-4">
-              {post.tags.map((tag) => (
-                <span
-                  key={tag.id}
-                  className="px-3 py-1.5 text-sm rounded-full bg-[#4A4A4A] text-gray-300"
-                >
-                  {tag.name}
-                </span>
-              ))}
+              {post.tags.map((tag) => {
+                const tagColors = {
+                  question: { bg: "#5B8DEE", text: "#FFFFFF" },
+                  improvement: { bg: "#9B59B6", text: "#FFFFFF" },
+                  idea: { bg: "#A8C256", text: "#FFFFFF" },
+                };
+                const colors = tagColors[
+                  tag.name.toLowerCase() as keyof typeof tagColors
+                ] || { bg: "#6B7280", text: "#FFFFFF" };
+
+                return (
+                  <span
+                    key={tag.id}
+                    className="px-3 py-1.5 text-sm rounded-full font-medium capitalize"
+                    style={{
+                      backgroundColor: colors.bg,
+                      color: colors.text,
+                    }}
+                  >
+                    {tag.name}
+                  </span>
+                );
+              })}
             </div>
           )}
 

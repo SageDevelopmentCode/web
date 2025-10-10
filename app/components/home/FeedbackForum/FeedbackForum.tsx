@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Plus, ChevronLeft } from "lucide-react";
+import Image from "next/image";
 import { PresetEmoji } from "../../Twemoji";
 import FeedbackList from "./FeedbackList";
 import FeedbackDetails from "./FeedbackDetails";
@@ -12,6 +13,10 @@ import {
   FeedbackService,
   FeedbackWithUserAndTags,
 } from "../../../../lib/supabase/feedback";
+import {
+  getCharacterImageSrc,
+  getCharacterImageStyles,
+} from "../../../../lib/character-utils";
 
 interface FeedbackForumProps {
   isUserSignedIn?: boolean;
@@ -76,6 +81,7 @@ export default function FeedbackForum({
     return dbFeedback.map((fb, index) => ({
       id: index + 1, // Use sequential numbers starting from 1
       username: fb.user?.display_name || "Anonymous",
+      profile_picture: fb.user?.profile_picture,
       timestamp: formatRelativeTime(fb.created_at),
       title: fb.title,
       description: fb.description || "",
@@ -515,27 +521,57 @@ export default function FeedbackForum({
                 {/* Tags */}
                 {post.tags && post.tags.length > 0 && (
                   <div className="flex flex-wrap gap-2 mb-3">
-                    {post.tags.map((tag) => (
-                      <span
-                        key={tag.id}
-                        className="px-2 py-1 text-xs rounded-full bg-[#4A4A4A] text-gray-300"
-                      >
-                        {tag.name}
-                      </span>
-                    ))}
+                    {post.tags.map((tag) => {
+                      const tagColors = {
+                        question: { bg: "#5B8DEE", text: "#FFFFFF" },
+                        improvement: { bg: "#9B59B6", text: "#FFFFFF" },
+                        idea: { bg: "#A8C256", text: "#FFFFFF" },
+                      };
+                      const colors = tagColors[
+                        tag.name.toLowerCase() as keyof typeof tagColors
+                      ] || { bg: "#6B7280", text: "#FFFFFF" };
+
+                      return (
+                        <span
+                          key={tag.id}
+                          className="px-2 py-1 text-xs rounded-full font-medium capitalize"
+                          style={{
+                            backgroundColor: colors.bg,
+                            color: colors.text,
+                          }}
+                        >
+                          {tag.name}
+                        </span>
+                      );
+                    })}
                   </div>
                 )}
 
                 {/* Combined User Info and Post Actions */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
-                      <span className="text-white text-xs font-semibold">
-                        {post.username
-                          .split(" ")
-                          .map((n) => n[0])
-                          .join("")}
-                      </span>
+                    <div
+                      className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden border-2 border-gray-300"
+                      style={{ backgroundColor: "#D6E5E2" }}
+                    >
+                      {post.profile_picture ? (
+                        <Image
+                          src={getCharacterImageSrc(post.profile_picture)}
+                          alt={post.profile_picture}
+                          width={200}
+                          height={200}
+                          className="w-auto h-full object-cover opacity-100 grayscale-0"
+                          style={getCharacterImageStyles(post.profile_picture)}
+                          quality={100}
+                        />
+                      ) : (
+                        <span className="text-white text-xs font-semibold">
+                          {post.username
+                            .split(" ")
+                            .map((n) => n[0])
+                            .join("")}
+                        </span>
+                      )}
                     </div>
                     <div>
                       <span className="text-gray-300 text-sm font-medium">
