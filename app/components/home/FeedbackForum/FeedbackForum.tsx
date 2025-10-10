@@ -6,7 +6,7 @@ import { PresetEmoji } from "../../Twemoji";
 import FeedbackList from "./FeedbackList";
 import FeedbackDetails from "./FeedbackDetails";
 import CreatePostModal from "./CreatePostModal";
-import { mockFeedbackPosts, FeedbackPost } from "./types";
+import { FeedbackPost } from "./types";
 import { useSectionLazyLoad } from "../../../../lib/hooks/useSectionLazyLoad";
 import {
   FeedbackService,
@@ -35,7 +35,7 @@ export default function FeedbackForum({
   userProfile,
   user,
 }: FeedbackForumProps) {
-  const [posts, setPosts] = useState<FeedbackPost[]>(mockFeedbackPosts);
+  const [posts, setPosts] = useState<FeedbackPost[]>([]);
   const [selectedPostId, setSelectedPostId] = useState<number | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [showBottomSheet, setShowBottomSheet] = useState(false);
