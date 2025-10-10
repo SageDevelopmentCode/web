@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import {
   getCharacterImageSrc,
   getCharacterImageStyles,
 } from "../../../../lib/character-utils";
 import FeatureSelector from "./FeatureSelector";
+import { Tag, TagsService } from "../../../../lib/supabase/tags";
 
 interface Feature {
   id: string;
@@ -105,29 +106,29 @@ function SuggestedAndSubmit({
   selectedFeature,
   onFeatureButtonClick,
   onSubmit,
-  tags,
-  isAddingTag,
-  tagInputValue,
-  onAddTagClick,
-  onConfirmTag,
-  onTagInputChange,
-  onTagInputBlur,
-  onEditTag,
+  availableTags,
+  selectedTagIds,
+  isTagDropdownOpen,
+  onToggleTagDropdown,
+  onSelectTag,
   onDeleteTag,
+  dropdownRef,
 }: {
   selectedFeature: Feature | undefined;
   onFeatureButtonClick: () => void;
   onSubmit: () => void;
-  tags: string[];
-  isAddingTag: boolean;
-  tagInputValue: string;
-  onAddTagClick: () => void;
-  onConfirmTag: () => void;
-  onTagInputChange: (value: string) => void;
-  onTagInputBlur: () => void;
-  onEditTag: (index: number) => void;
-  onDeleteTag: (index: number) => void;
+  availableTags: Tag[];
+  selectedTagIds: string[];
+  isTagDropdownOpen: boolean;
+  onToggleTagDropdown: () => void;
+  onSelectTag: (tagId: string) => void;
+  onDeleteTag: (tagId: string) => void;
+  dropdownRef: React.RefObject<HTMLDivElement | null>;
 }) {
+  // Get selected tags objects
+  const selectedTags = availableTags.filter((tag) =>
+    selectedTagIds.includes(tag.id)
+  );
   return (
     <>
       {/* Suggested Section */}
@@ -146,34 +147,15 @@ function SuggestedAndSubmit({
             {selectedFeature ? selectedFeature.title : "+ Select a Feature"}
           </button>
 
-          {/* Render existing tags */}
-          {tags.map((tag, index) => (
+          {/* Render selected tags */}
+          {selectedTags.map((tag) => (
             <div
-              key={index}
-              className="flex items-center gap-2 px-4 py-2 bg-[#3B3B3B] rounded-full text-sm text-white font-medium cursor-pointer"
+              key={tag.id}
+              className="flex items-center gap-2 px-4 py-2 bg-[#3B3B3B] rounded-full text-sm text-white font-medium"
             >
-              <span>{tag}</span>
+              <span className="capitalize">{tag.name}</span>
               <button
-                onClick={() => onEditTag(index)}
-                className="hover:opacity-70 transition-opacity cursor-pointer"
-                title="Edit tag"
-              >
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                </svg>
-              </button>
-              <button
-                onClick={() => onDeleteTag(index)}
+                onClick={() => onDeleteTag(tag.id)}
                 className="hover:opacity-70 transition-opacity cursor-pointer"
                 title="Delete tag"
               >
@@ -194,53 +176,44 @@ function SuggestedAndSubmit({
             </div>
           ))}
 
-          {/* Tag input or Add button */}
-          {isAddingTag ? (
-            <div className="flex items-center gap-2 px-4 py-2 bg-[#3B3B3B] rounded-full">
-              <input
-                type="text"
-                value={tagInputValue}
-                onChange={(e) => onTagInputChange(e.target.value)}
-                onBlur={onTagInputBlur}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    onConfirmTag();
-                  }
-                }}
-                placeholder="Tag name"
-                autoFocus
-                className="bg-transparent border-none outline-none text-white text-sm font-medium placeholder-gray-400 w-24"
-              />
-              <button
-                onClick={onConfirmTag}
-                className="hover:opacity-70 transition-opacity cursor-pointer"
-                title="Confirm tag"
-              >
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="#4ADE80"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+          {/* Tag dropdown button */}
+          {availableTags.length > 0 &&
+            selectedTagIds.length < availableTags.length && (
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  onClick={onToggleTagDropdown}
+                  className="px-4 py-2 text-white font-medium rounded-full text-sm cursor-pointer transition-all hover:bg-opacity-80 bg-[#3B3B3B]"
                 >
-                  <polyline points="20 6 9 17 4 12"></polyline>
-                </svg>
-              </button>
-            </div>
-          ) : (
-            tags.length < 3 && (
-              <button
-                onClick={onAddTagClick}
-                className="px-4 py-2 text-white font-medium rounded-full text-sm cursor-pointer transition-all hover:bg-opacity-80 bg-[#3B3B3B]"
-              >
-                + Add a Tag
-              </button>
-            )
-          )}
+                  + Add a Tag
+                </button>
+
+                {/* Dropdown menu */}
+                {isTagDropdownOpen && (
+                  <div
+                    className="absolute bottom-full left-0 mb-2 w-48 max-h-60 overflow-y-auto bg-[#3B3B3B] rounded-lg shadow-lg z-50"
+                    style={{ scrollbarWidth: "thin" }}
+                  >
+                    {availableTags.map((tag) => {
+                      const isSelected = selectedTagIds.includes(tag.id);
+                      return (
+                        <button
+                          key={tag.id}
+                          onClick={() => onSelectTag(tag.id)}
+                          disabled={isSelected}
+                          className={`w-full text-left px-4 py-2 text-sm transition-colors ${
+                            isSelected
+                              ? "text-gray-500 cursor-not-allowed bg-[#2A2A2A]"
+                              : "text-white hover:bg-[#4A4A4A] cursor-pointer"
+                          }`}
+                        >
+                          <span className="capitalize">{tag.name}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
         </div>
       </div>
 
@@ -278,10 +251,10 @@ export default function CreatePostModal({
     "form"
   );
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [tags, setTags] = useState<string[]>([]);
-  const [isAddingTag, setIsAddingTag] = useState(false);
-  const [tagInputValue, setTagInputValue] = useState("");
-  const [editingTagIndex, setEditingTagIndex] = useState<number | null>(null);
+  const [availableTags, setAvailableTags] = useState<Tag[]>([]);
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
+  const [isTagDropdownOpen, setIsTagDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Check for mobile viewport
   useEffect(() => {
@@ -298,6 +271,14 @@ export default function CreatePostModal({
   useEffect(() => {
     if (isOpen) {
       setIsVisible(true);
+      // Fetch tags when modal opens
+      const fetchTags = async () => {
+        const { tags, error } = await TagsService.getAllTags();
+        if (!error && tags) {
+          setAvailableTags(tags);
+        }
+      };
+      fetchTags();
     } else {
       setIsVisible(false);
     }
@@ -333,6 +314,25 @@ export default function CreatePostModal({
     }
   }, [isVisible]);
 
+  // Handle click outside dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsTagDropdownOpen(false);
+      }
+    };
+
+    if (isTagDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }
+  }, [isTagDropdownOpen]);
+
   const handleClose = () => {
     setIsVisible(false);
     // Reset form
@@ -341,10 +341,8 @@ export default function CreatePostModal({
     setShowFeatureSelector(false);
     setSelectedFeatureId(null);
     setMobileStep("form");
-    setTags([]);
-    setIsAddingTag(false);
-    setTagInputValue("");
-    setEditingTagIndex(null);
+    setSelectedTagIds([]);
+    setIsTagDropdownOpen(false);
     // Delay the actual close to allow exit animation
     setTimeout(() => {
       onClose();
@@ -385,60 +383,29 @@ export default function CreatePostModal({
 
   const selectedFeature = features.find((f) => f.id === selectedFeatureId);
 
-  const handleAddTagClick = () => {
-    setIsAddingTag(true);
-    setEditingTagIndex(null);
-    setTagInputValue("");
+  const handleToggleTagDropdown = () => {
+    setIsTagDropdownOpen(!isTagDropdownOpen);
   };
 
-  const handleConfirmTag = () => {
-    if (tagInputValue.trim()) {
-      if (editingTagIndex !== null) {
-        // Editing existing tag
-        const updatedTags = [...tags];
-        updatedTags[editingTagIndex] = tagInputValue.trim();
-        setTags(updatedTags);
-        setEditingTagIndex(null);
-      } else {
-        // Adding new tag (only if under limit)
-        if (tags.length < 3) {
-          setTags([...tags, tagInputValue.trim()]);
-        }
-      }
-      setTagInputValue("");
-      setIsAddingTag(false);
+  const handleSelectTag = (tagId: string) => {
+    if (!selectedTagIds.includes(tagId)) {
+      setSelectedTagIds([...selectedTagIds, tagId]);
     }
+    setIsTagDropdownOpen(false);
   };
 
-  const handleTagInputChange = (value: string) => {
-    setTagInputValue(value);
-  };
-
-  const handleTagInputBlur = () => {
-    // Auto-save on blur if input has value
-    if (tagInputValue.trim()) {
-      handleConfirmTag();
-    } else {
-      // If empty, just close the input
-      setIsAddingTag(false);
-      setEditingTagIndex(null);
-      setTagInputValue("");
-    }
-  };
-
-  const handleEditTag = (index: number) => {
-    setTagInputValue(tags[index]);
-    setEditingTagIndex(index);
-    setIsAddingTag(true);
-  };
-
-  const handleDeleteTag = (index: number) => {
-    setTags(tags.filter((_, i) => i !== index));
+  const handleDeleteTag = (tagId: string) => {
+    setSelectedTagIds(selectedTagIds.filter((id) => id !== tagId));
   };
 
   const handleSubmit = () => {
     // TODO: Handle post submission
-    console.log("Post submitted:", { title, description, tags });
+    console.log("Post submitted:", {
+      title,
+      description,
+      selectedTagIds,
+      feature_id: selectedFeatureId,
+    });
   };
 
   if (!isOpen) return null;
@@ -523,15 +490,13 @@ export default function CreatePostModal({
                   selectedFeature={selectedFeature}
                   onFeatureButtonClick={handleFeatureButtonClick}
                   onSubmit={handleSubmit}
-                  tags={tags}
-                  isAddingTag={isAddingTag}
-                  tagInputValue={tagInputValue}
-                  onAddTagClick={handleAddTagClick}
-                  onConfirmTag={handleConfirmTag}
-                  onTagInputChange={handleTagInputChange}
-                  onTagInputBlur={handleTagInputBlur}
-                  onEditTag={handleEditTag}
+                  availableTags={availableTags}
+                  selectedTagIds={selectedTagIds}
+                  isTagDropdownOpen={isTagDropdownOpen}
+                  onToggleTagDropdown={handleToggleTagDropdown}
+                  onSelectTag={handleSelectTag}
                   onDeleteTag={handleDeleteTag}
+                  dropdownRef={dropdownRef}
                 />
               </div>
             </div>
@@ -640,15 +605,13 @@ export default function CreatePostModal({
               selectedFeature={selectedFeature}
               onFeatureButtonClick={handleFeatureButtonClick}
               onSubmit={handleSubmit}
-              tags={tags}
-              isAddingTag={isAddingTag}
-              tagInputValue={tagInputValue}
-              onAddTagClick={handleAddTagClick}
-              onConfirmTag={handleConfirmTag}
-              onTagInputChange={handleTagInputChange}
-              onTagInputBlur={handleTagInputBlur}
-              onEditTag={handleEditTag}
+              availableTags={availableTags}
+              selectedTagIds={selectedTagIds}
+              isTagDropdownOpen={isTagDropdownOpen}
+              onToggleTagDropdown={handleToggleTagDropdown}
+              onSelectTag={handleSelectTag}
               onDeleteTag={handleDeleteTag}
+              dropdownRef={dropdownRef}
             />
           </div>
 
