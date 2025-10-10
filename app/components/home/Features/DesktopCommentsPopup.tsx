@@ -171,7 +171,7 @@ export default function DesktopCommentsPopup({
       {/* Popup */}
       <div
         ref={popupRef}
-        className={`relative bg-[#1a1a1a] rounded-lg shadow-2xl w-full max-w-7xl h-[80vh] mx-4 flex flex-col transition-all duration-200 ${
+        className={`relative bg-[#1a1a1a] rounded-lg shadow-2xl w-full max-w-6xl h-[80vh] mx-4 flex flex-col transition-all duration-200 ${
           isAnimating
             ? "opacity-100 scale-100 translate-y-0"
             : "opacity-0 scale-95 translate-y-4"
