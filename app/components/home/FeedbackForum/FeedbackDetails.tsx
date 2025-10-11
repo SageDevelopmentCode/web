@@ -12,7 +12,7 @@ import {
 
 interface FeedbackDetailsProps {
   post: FeedbackPost | null;
-  onTogglePostHeart: (postId: number) => void;
+  onTogglePostHeart: (postId: number) => Promise<void>;
   onToggleCommentHeart: (commentId: number) => void;
   onToggleReplyHeart: (commentId: number, replyId: number) => void;
   onToggleReplies: (commentId: number) => void;
@@ -139,12 +139,17 @@ export default function FeedbackDetails({
   };
 
   // Enhanced heart handlers
-  const handlePostHeartClick = () => {
+  const handlePostHeartClick = async () => {
     if (!post) return;
     const buttonId = `post-${post.id}`;
-    setAnimatingHeart(buttonId);
-    createEmojiFlurry(buttonId);
-    onTogglePostHeart(post.id);
+
+    // Only show animation if user is signed in
+    if (isUserSignedIn) {
+      setAnimatingHeart(buttonId);
+      createEmojiFlurry(buttonId);
+    }
+
+    await onTogglePostHeart(post.id);
   };
 
   const handleCommentHeartClick = (commentId: number) => {

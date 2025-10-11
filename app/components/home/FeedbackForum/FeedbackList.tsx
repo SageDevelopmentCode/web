@@ -14,8 +14,9 @@ interface FeedbackListProps {
   posts: FeedbackPost[];
   selectedPostId: number | null;
   onSelectPost: (postId: number) => void;
-  onToggleHeart: (postId: number) => void;
+  onToggleHeart: (postId: number) => Promise<void>;
   isMobile?: boolean;
+  isUserSignedIn?: boolean;
 }
 
 interface FloatingEmoji {
@@ -34,6 +35,7 @@ export default function FeedbackList({
   onSelectPost,
   onToggleHeart,
   isMobile = false,
+  isUserSignedIn = false,
 }: FeedbackListProps) {
   const [activeFilter, setActiveFilter] = useState<
     "top" | "new" | "upcoming" | "all"
@@ -89,11 +91,16 @@ export default function FeedbackList({
   };
 
   // Enhanced heart handler
-  const handleHeartClick = (e: React.MouseEvent, postId: number) => {
+  const handleHeartClick = async (e: React.MouseEvent, postId: number) => {
     e.stopPropagation();
-    setAnimatingHeart(postId);
-    createEmojiFlurry(postId);
-    onToggleHeart(postId);
+
+    // Only show animation if user is signed in
+    if (isUserSignedIn) {
+      setAnimatingHeart(postId);
+      createEmojiFlurry(postId);
+    }
+
+    await onToggleHeart(postId);
   };
 
   return (

@@ -13,6 +13,7 @@ import {
   FeedbackService,
   FeedbackWithUserAndTags,
 } from "../../../../lib/supabase/feedback";
+import { FeedbackReactionService } from "../../../../lib/supabase/feedback_reactions";
 import {
   getCharacterImageSrc,
   getCharacterImageStyles,
@@ -50,6 +51,9 @@ export default function FeedbackForum({
   );
   const [showCreatePostModal, setShowCreatePostModal] = useState(false);
   const [isLoadingFeedback, setIsLoadingFeedback] = useState(false);
+  const [feedbackIdMap, setFeedbackIdMap] = useState<Map<number, string>>(
+    new Map()
+  ); // Maps sequential ID to actual UUID
 
   // Section lazy loading
   const { ref: sectionRef, hasLoaded } = useSectionLazyLoad({
@@ -75,23 +79,55 @@ export default function FeedbackForum({
   };
 
   // Transform database feedback to FeedbackPost format
-  const transformFeedbackData = (
+  const transformFeedbackData = async (
     dbFeedback: FeedbackWithUserAndTags[]
-  ): FeedbackPost[] => {
-    return dbFeedback.map((fb, index) => ({
-      id: index + 1, // Use sequential numbers starting from 1
-      username: fb.user?.display_name || "Anonymous",
-      profile_picture: fb.user?.profile_picture,
-      timestamp: formatRelativeTime(fb.created_at),
-      title: fb.title,
-      description: fb.description || "",
-      category: "new" as const, // Default category for now
-      heartsCount: 0, // Placeholder
-      commentsCount: 0, // Placeholder
-      isHearted: false, // Placeholder
-      comments: [], // Placeholder
-      tags: fb.tags || [],
-    }));
+  ): Promise<{ posts: FeedbackPost[]; idMap: Map<number, string> }> => {
+    const idMap = new Map<number, string>();
+    const postsWithReactions = await Promise.all(
+      dbFeedback.map(async (fb, index) => {
+        const sequentialId = index + 1;
+        idMap.set(sequentialId, fb.id); // Map sequential ID to actual UUID
+
+        // Fetch reaction count and user's reaction status
+        let heartsCount = 0;
+        let isHearted = false;
+
+        const { count, error: countError } =
+          await FeedbackReactionService.getFeedbackReactionCount(fb.id);
+        if (!countError) {
+          heartsCount = count;
+        }
+
+        // Check if current user has hearted this feedback
+        if (user?.id) {
+          const { hasReacted, error: reactionError } =
+            await FeedbackReactionService.hasUserReactedToFeedback(
+              fb.id,
+              user.id
+            );
+          if (!reactionError) {
+            isHearted = hasReacted;
+          }
+        }
+
+        return {
+          id: sequentialId, // Use sequential numbers starting from 1
+          username: fb.user?.display_name || "Anonymous",
+          profile_picture: fb.user?.profile_picture,
+          timestamp: formatRelativeTime(fb.created_at),
+          title: fb.title,
+          description: fb.description || "",
+          category: "new" as const, // Default category for now
+          heartsCount,
+          commentsCount: 0, // Placeholder
+          isHearted,
+          comments: [], // Placeholder
+          tags: fb.tags || [],
+        };
+      })
+    );
+
+    return { posts: postsWithReactions, idMap };
   };
 
   // Function to fetch feedback data
@@ -107,8 +143,11 @@ export default function FeedbackForum({
       console.log("Total count:", count);
 
       if (feedback && feedback.length > 0) {
-        const transformedPosts = transformFeedbackData(feedback);
+        const { posts: transformedPosts, idMap } = await transformFeedbackData(
+          feedback
+        );
         setPosts(transformedPosts);
+        setFeedbackIdMap(idMap);
       }
     }
     setIsLoadingFeedback(false);
@@ -310,7 +349,21 @@ export default function FeedbackForum({
     setSelectedPostId(null);
   };
 
-  const handleTogglePostHeart = (postId: number) => {
+  const handleTogglePostHeart = async (postId: number) => {
+    // Check if user is signed in
+    if (!isUserSignedIn || !user?.id) {
+      onOpenSignupModal();
+      return;
+    }
+
+    // Get the actual feedback UUID from the map
+    const feedbackId = feedbackIdMap.get(postId);
+    if (!feedbackId) {
+      console.error("Feedback ID not found for post:", postId);
+      return;
+    }
+
+    // Optimistically update UI
     setPosts((prev) =>
       prev.map((post) =>
         post.id === postId
@@ -324,6 +377,30 @@ export default function FeedbackForum({
           : post
       )
     );
+
+    // Call the API to toggle the reaction
+    const { reaction, error } =
+      await FeedbackReactionService.toggleUserReaction(feedbackId, user.id);
+
+    if (error) {
+      console.error("Error toggling feedback reaction:", error);
+      // Revert the optimistic update on error
+      setPosts((prev) =>
+        prev.map((post) =>
+          post.id === postId
+            ? {
+                ...post,
+                isHearted: !post.isHearted,
+                heartsCount: post.isHearted
+                  ? post.heartsCount - 1
+                  : post.heartsCount + 1,
+              }
+            : post
+        )
+      );
+    } else {
+      console.log(reaction ? "Reaction added:" : "Reaction removed:", reaction);
+    }
   };
 
   const handleToggleCommentHeart = (commentId: number) => {
@@ -478,6 +555,7 @@ export default function FeedbackForum({
                 selectedPostId={selectedPostId}
                 onSelectPost={handleSelectPost}
                 onToggleHeart={handleTogglePostHeart}
+                isUserSignedIn={isUserSignedIn}
               />
             </div>
 
@@ -688,6 +766,7 @@ export default function FeedbackForum({
                     onSelectPost={handleSelectPost}
                     onToggleHeart={handleTogglePostHeart}
                     isMobile={true}
+                    isUserSignedIn={isUserSignedIn}
                   />
                 ) : (
                   <div className="p-4 h-full">
