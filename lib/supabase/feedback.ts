@@ -752,6 +752,7 @@ export class FeedbackService {
         const userHasLiked = userId
           ? feedbackReactions.some((r) => r.user_id === userId)
           : false;
+
         reactionsMap.set(feedbackId, { count, userHasLiked });
       });
 

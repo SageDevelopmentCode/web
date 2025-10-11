@@ -128,7 +128,6 @@ export default function FeedbackForum({
   // Function to fetch feedback data with complete information
   const fetchFeedback = async () => {
     setIsLoadingFeedback(true);
-    console.log("🔄 Fetching complete feedback data...");
 
     const { feedback, error, count } =
       await FeedbackService.getFeedbackWithComplete(
@@ -139,74 +138,27 @@ export default function FeedbackForum({
       );
 
     if (error) {
-      console.error("❌ Error fetching feedback:", error);
+      console.error("Error fetching feedback:", error);
     } else {
-      console.log("✅ Fetched complete feedback data:");
-      console.log("📊 Total count:", count);
-      console.log("📦 Feedback with complete data:", feedback);
+      console.log("Feedback with complete data:", feedback);
 
       if (feedback && feedback.length > 0) {
-        // Log detailed information for each feedback
-        feedback.forEach((fb, index) => {
-          console.log(`\n📄 Feedback ${index + 1}: "${fb.title}"`);
-          console.log(`   👤 User: ${fb.user?.display_name || "Anonymous"}`);
-          console.log(
-            `   🏷️  Tags: ${fb.tags?.map((t) => t.name).join(", ") || "None"}`
-          );
-          console.log(
-            `   ❤️  Reactions: ${fb.reaction_count} (User reacted: ${fb.user_has_reacted})`
-          );
-          console.log(`   💬 Comments: ${fb.comment_count} total`);
-          console.log(`   📝 Top-level comments: ${fb.comments.length}`);
-
-          // Log comment details
-          if (fb.comments.length > 0) {
-            fb.comments.forEach((comment, cIndex) => {
-              console.log(
-                `      Comment ${cIndex + 1}: "${comment.content.substring(
-                  0,
-                  50
-                )}..."`
-              );
-              console.log(
-                `         👍 Likes: ${comment.like_count} (User liked: ${comment.user_has_liked})`
-              );
-              console.log(`         💬 Replies: ${comment.reply_count}`);
-
-              // Log nested replies
-              if (comment.replies && comment.replies.length > 0) {
-                comment.replies.forEach((reply, rIndex) => {
-                  console.log(
-                    `            Reply ${
-                      rIndex + 1
-                    }: "${reply.content.substring(0, 40)}..."`
-                  );
-                  console.log(
-                    `               👍 Likes: ${reply.like_count} (User liked: ${reply.user_has_liked})`
-                  );
-                });
-              }
-            });
-          }
-        });
-
         const { posts: transformedPosts, idMap } =
           transformFeedbackData(feedback);
         setPosts(transformedPosts);
         setFeedbackIdMap(idMap);
-
-        console.log("\n🎉 Transformed posts ready for UI:", transformedPosts);
       }
     }
     setIsLoadingFeedback(false);
   };
 
-  // Fetch feedback with users and tags when section loads
+  // Fetch feedback with users and tags when section loads or user changes
   useEffect(() => {
     if (hasLoaded) {
       fetchFeedback();
     }
-  }, [hasLoaded]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasLoaded, user?.id]); // Re-fetch when user ID changes
 
   // Define gradient options for feature cards
   const gradientOptions = [
