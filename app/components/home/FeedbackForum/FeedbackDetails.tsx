@@ -13,9 +13,9 @@ import {
 interface FeedbackDetailsProps {
   post: FeedbackPost | null;
   onTogglePostHeart: (postId: number) => Promise<void>;
-  onToggleCommentHeart: (commentId: number) => void;
-  onToggleReplyHeart: (commentId: number, replyId: number) => void;
-  onToggleReplies: (commentId: number) => void;
+  onToggleCommentHeart: (commentId: string) => void;
+  onToggleReplyHeart: (commentId: string, replyId: string) => void;
+  onToggleReplies: (commentId: string) => void;
   isMobile?: boolean;
   isUserSignedIn?: boolean;
   onOpenSignupModal?: () => void;
@@ -152,14 +152,14 @@ export default function FeedbackDetails({
     await onTogglePostHeart(post.id);
   };
 
-  const handleCommentHeartClick = (commentId: number) => {
+  const handleCommentHeartClick = (commentId: string) => {
     const buttonId = `comment-${commentId}`;
     setAnimatingHeart(buttonId);
     createEmojiFlurry(buttonId);
     onToggleCommentHeart(commentId);
   };
 
-  const handleReplyHeartClick = (commentId: number, replyId: number) => {
+  const handleReplyHeartClick = (commentId: string, replyId: string) => {
     const buttonId = `reply-${commentId}-${replyId}`;
     setAnimatingHeart(buttonId);
     createEmojiFlurry(buttonId);

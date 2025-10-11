@@ -11,7 +11,7 @@ import { FeedbackPost } from "./types";
 import { useSectionLazyLoad } from "../../../../lib/hooks/useSectionLazyLoad";
 import {
   FeedbackService,
-  FeedbackWithUserAndTags,
+  FeedbackWithUserAndTagsComplete,
 } from "../../../../lib/supabase/feedback";
 import { FeedbackReactionService } from "../../../../lib/supabase/feedback_reactions";
 import {
@@ -79,75 +79,123 @@ export default function FeedbackForum({
   };
 
   // Transform database feedback to FeedbackPost format
-  const transformFeedbackData = async (
-    dbFeedback: FeedbackWithUserAndTags[]
-  ): Promise<{ posts: FeedbackPost[]; idMap: Map<number, string> }> => {
+  const transformFeedbackData = (
+    dbFeedback: FeedbackWithUserAndTagsComplete[]
+  ): { posts: FeedbackPost[]; idMap: Map<number, string> } => {
     const idMap = new Map<number, string>();
-    const postsWithReactions = await Promise.all(
-      dbFeedback.map(async (fb, index) => {
-        const sequentialId = index + 1;
-        idMap.set(sequentialId, fb.id); // Map sequential ID to actual UUID
 
-        // Fetch reaction count and user's reaction status
-        let heartsCount = 0;
-        let isHearted = false;
+    const posts = dbFeedback.map((fb, index) => {
+      const sequentialId = index + 1;
+      idMap.set(sequentialId, fb.id); // Map sequential ID to actual UUID
 
-        const { count, error: countError } =
-          await FeedbackReactionService.getFeedbackReactionCount(fb.id);
-        if (!countError) {
-          heartsCount = count;
-        }
+      // Transform nested comments to match FeedbackPost format
+      const transformComments = (
+        comments: typeof fb.comments
+      ): FeedbackPost["comments"] => {
+        return comments.map((comment) => ({
+          id: comment.id,
+          username: comment.user?.display_name || "Anonymous",
+          content: comment.content,
+          timestamp: formatRelativeTime(comment.created_at),
+          heartsCount: comment.like_count || 0,
+          isHearted: comment.user_has_liked || false,
+          replies: comment.replies
+            ? transformComments(comment.replies as any)
+            : [],
+          showReplies: false,
+        }));
+      };
 
-        // Check if current user has hearted this feedback
-        if (user?.id) {
-          const { hasReacted, error: reactionError } =
-            await FeedbackReactionService.hasUserReactedToFeedback(
-              fb.id,
-              user.id
-            );
-          if (!reactionError) {
-            isHearted = hasReacted;
-          }
-        }
+      return {
+        id: sequentialId, // Use sequential numbers starting from 1
+        username: fb.user?.display_name || "Anonymous",
+        profile_picture: fb.user?.profile_picture,
+        timestamp: formatRelativeTime(fb.created_at),
+        title: fb.title,
+        description: fb.description || "",
+        category: "new" as const, // Default category for now
+        heartsCount: fb.reaction_count,
+        commentsCount: fb.comment_count,
+        isHearted: fb.user_has_reacted,
+        comments: transformComments(fb.comments),
+        tags: fb.tags || [],
+      };
+    });
 
-        return {
-          id: sequentialId, // Use sequential numbers starting from 1
-          username: fb.user?.display_name || "Anonymous",
-          profile_picture: fb.user?.profile_picture,
-          timestamp: formatRelativeTime(fb.created_at),
-          title: fb.title,
-          description: fb.description || "",
-          category: "new" as const, // Default category for now
-          heartsCount,
-          commentsCount: 0, // Placeholder
-          isHearted,
-          comments: [], // Placeholder
-          tags: fb.tags || [],
-        };
-      })
-    );
-
-    return { posts: postsWithReactions, idMap };
+    return { posts, idMap };
   };
 
-  // Function to fetch feedback data
+  // Function to fetch feedback data with complete information
   const fetchFeedback = async () => {
     setIsLoadingFeedback(true);
+    console.log("🔄 Fetching complete feedback data...");
+
     const { feedback, error, count } =
-      await FeedbackService.getFeedbackWithUsersAndTags();
+      await FeedbackService.getFeedbackWithComplete(
+        undefined, // filters
+        undefined, // limit
+        undefined, // offset
+        user?.id // userId for reaction/like status
+      );
 
     if (error) {
-      console.error("Error fetching feedback:", error);
+      console.error("❌ Error fetching feedback:", error);
     } else {
-      console.log("Fetched feedback with users and tags:", feedback);
-      console.log("Total count:", count);
+      console.log("✅ Fetched complete feedback data:");
+      console.log("📊 Total count:", count);
+      console.log("📦 Feedback with complete data:", feedback);
 
       if (feedback && feedback.length > 0) {
-        const { posts: transformedPosts, idMap } = await transformFeedbackData(
-          feedback
-        );
+        // Log detailed information for each feedback
+        feedback.forEach((fb, index) => {
+          console.log(`\n📄 Feedback ${index + 1}: "${fb.title}"`);
+          console.log(`   👤 User: ${fb.user?.display_name || "Anonymous"}`);
+          console.log(
+            `   🏷️  Tags: ${fb.tags?.map((t) => t.name).join(", ") || "None"}`
+          );
+          console.log(
+            `   ❤️  Reactions: ${fb.reaction_count} (User reacted: ${fb.user_has_reacted})`
+          );
+          console.log(`   💬 Comments: ${fb.comment_count} total`);
+          console.log(`   📝 Top-level comments: ${fb.comments.length}`);
+
+          // Log comment details
+          if (fb.comments.length > 0) {
+            fb.comments.forEach((comment, cIndex) => {
+              console.log(
+                `      Comment ${cIndex + 1}: "${comment.content.substring(
+                  0,
+                  50
+                )}..."`
+              );
+              console.log(
+                `         👍 Likes: ${comment.like_count} (User liked: ${comment.user_has_liked})`
+              );
+              console.log(`         💬 Replies: ${comment.reply_count}`);
+
+              // Log nested replies
+              if (comment.replies && comment.replies.length > 0) {
+                comment.replies.forEach((reply, rIndex) => {
+                  console.log(
+                    `            Reply ${
+                      rIndex + 1
+                    }: "${reply.content.substring(0, 40)}..."`
+                  );
+                  console.log(
+                    `               👍 Likes: ${reply.like_count} (User liked: ${reply.user_has_liked})`
+                  );
+                });
+              }
+            });
+          }
+        });
+
+        const { posts: transformedPosts, idMap } =
+          transformFeedbackData(feedback);
         setPosts(transformedPosts);
         setFeedbackIdMap(idMap);
+
+        console.log("\n🎉 Transformed posts ready for UI:", transformedPosts);
       }
     }
     setIsLoadingFeedback(false);
@@ -403,7 +451,7 @@ export default function FeedbackForum({
     }
   };
 
-  const handleToggleCommentHeart = (commentId: number) => {
+  const handleToggleCommentHeart = (commentId: string) => {
     if (!selectedPost) return;
 
     setPosts((prev) =>
@@ -422,7 +470,7 @@ export default function FeedbackForum({
     );
   };
 
-  const handleToggleReplyHeart = (commentId: number, replyId: number) => {
+  const handleToggleReplyHeart = (commentId: string, replyId: string) => {
     if (!selectedPost) return;
 
     setPosts((prev) =>
@@ -448,7 +496,7 @@ export default function FeedbackForum({
     );
   };
 
-  const handleToggleReplies = (commentId: number) => {
+  const handleToggleReplies = (commentId: string) => {
     if (!selectedPost) return;
 
     setPosts((prev) =>

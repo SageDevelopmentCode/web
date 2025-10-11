@@ -61,6 +61,36 @@ export interface FeedbackWithUserAndTags extends FeedbackWithUser {
   }>;
 }
 
+// Extended comment interface with user information for complete fetch
+export interface FeedbackCommentWithUserComplete {
+  id: string;
+  feedback_id: string;
+  user_id: string;
+  parent_comment_id: string | null;
+  content: string;
+  created_at: string;
+  updated_at: string;
+  is_deleted: boolean;
+  user?: {
+    user_id: string;
+    display_name?: string;
+    profile_picture?: string;
+  };
+  replies?: FeedbackCommentWithUserComplete[];
+  reply_count?: number;
+  like_count?: number;
+  user_has_liked?: boolean;
+}
+
+// Complete feedback interface with reactions, comments, and nested replies
+export interface FeedbackWithUserAndTagsComplete
+  extends FeedbackWithUserAndTags {
+  reaction_count: number;
+  user_has_reacted: boolean;
+  comment_count: number;
+  comments: FeedbackCommentWithUserComplete[];
+}
+
 // Feedback CRUD operations
 export class FeedbackService {
   // Create a new feedback
@@ -613,6 +643,264 @@ export class FeedbackService {
       return { feedback: data, error: null, count: count || 0 };
     } catch (error) {
       console.error("Error searching feedback:", error);
+      return { feedback: null, error, count: 0 };
+    }
+  }
+
+  // COMPREHENSIVE FETCH: Get feedback with users, tags, reactions, comments, and nested replies
+  // This method fetches everything in optimized batch queries to minimize network calls
+  static async getFeedbackWithComplete(
+    filters?: FeedbackFilters,
+    limit?: number,
+    offset?: number,
+    userId?: string
+  ): Promise<{
+    feedback: FeedbackWithUserAndTagsComplete[] | null;
+    error: any;
+    count?: number;
+  }> {
+    try {
+      // QUERY 1: Fetch all feedback
+      const {
+        feedback,
+        error: feedbackError,
+        count,
+      } = await this.getFeedback(filters, limit, offset);
+
+      if (feedbackError) throw feedbackError;
+      if (!feedback || feedback.length === 0) {
+        return { feedback: [], error: null, count: 0 };
+      }
+
+      const feedbackIds = feedback.map((f) => f.id);
+      const uniqueUserIds = [...new Set(feedback.map((f) => f.user_id))];
+
+      // QUERY 2, 3, 4, 5, 6: Batch fetch all data in parallel
+      const [usersResult, tagsResult, reactionsResult, commentsResult] =
+        await Promise.all([
+          // Fetch users
+          supabase
+            .from("users")
+            .select("user_id, display_name, profile_picture")
+            .in("user_id", uniqueUserIds),
+
+          // Fetch tags
+          supabase
+            .from("feedback_tags")
+            .select(
+              `
+              feedback_id,
+              tags (
+                id,
+                name,
+                description
+              )
+            `
+            )
+            .in("feedback_id", feedbackIds)
+            .eq("is_deleted", false),
+
+          // Fetch reactions with counts
+          supabase
+            .from("feedback_reactions")
+            .select("feedback_id, user_id")
+            .in("feedback_id", feedbackIds)
+            .eq("is_deleted", false),
+
+          // Fetch ALL comments (parents + replies) for all feedback
+          supabase
+            .from("feedback_comments")
+            .select("*")
+            .in("feedback_id", feedbackIds)
+            .eq("is_deleted", false)
+            .order("created_at", { ascending: false }),
+        ]);
+
+      if (usersResult.error) throw usersResult.error;
+      if (tagsResult.error) throw tagsResult.error;
+      if (reactionsResult.error) throw reactionsResult.error;
+      if (commentsResult.error) throw commentsResult.error;
+
+      // Create user lookup map
+      const usersMap = new Map(
+        usersResult.data?.map((user) => [user.user_id, user]) || []
+      );
+
+      // Create tags map
+      const tagsMap = new Map<string, any[]>();
+      tagsResult.data?.forEach((item: any) => {
+        if (item.tags) {
+          if (!tagsMap.has(item.feedback_id)) {
+            tagsMap.set(item.feedback_id, []);
+          }
+          tagsMap.get(item.feedback_id)?.push(item.tags);
+        }
+      });
+
+      // Process reaction data
+      const reactionsData = reactionsResult.data || [];
+      const reactionsMap = new Map<
+        string,
+        { count: number; userHasLiked: boolean }
+      >();
+
+      feedbackIds.forEach((feedbackId) => {
+        const feedbackReactions = reactionsData.filter(
+          (r) => r.feedback_id === feedbackId
+        );
+        const count = feedbackReactions.length;
+        const userHasLiked = userId
+          ? feedbackReactions.some((r) => r.user_id === userId)
+          : false;
+        reactionsMap.set(feedbackId, { count, userHasLiked });
+      });
+
+      // Process comments data - group by feedback_id
+      const allComments = commentsResult.data || [];
+      const commentsByFeedback = new Map<string, typeof allComments>();
+      allComments.forEach((comment) => {
+        if (!commentsByFeedback.has(comment.feedback_id)) {
+          commentsByFeedback.set(comment.feedback_id, []);
+        }
+        commentsByFeedback.get(comment.feedback_id)?.push(comment);
+      });
+
+      // Collect all comment IDs and user IDs from comments
+      const allCommentIds = allComments.map((c) => c.id);
+      const commentUserIds = new Set<string>(allComments.map((c) => c.user_id));
+
+      // QUERY 7, 8: Fetch comment users and likes in parallel
+      const [commentUsersResult, commentLikesResult] = await Promise.all([
+        // Fetch users for comments
+        supabase
+          .from("users")
+          .select("user_id, display_name, profile_picture")
+          .in("user_id", Array.from(commentUserIds)),
+
+        // Fetch comment likes
+        allCommentIds.length > 0
+          ? supabase
+              .from("feedback_comments_likes")
+              .select("comment_id, user_id")
+              .in("comment_id", allCommentIds)
+              .eq("is_deleted", false)
+          : Promise.resolve({ data: [], error: null }),
+      ]);
+
+      if (commentUsersResult.error) throw commentUsersResult.error;
+      if (commentLikesResult.error) throw commentLikesResult.error;
+
+      // Create comment users map
+      const commentUsersMap = new Map(
+        commentUsersResult.data?.map((user) => [user.user_id, user]) || []
+      );
+
+      // Process comment likes data
+      const commentLikesData = commentLikesResult.data || [];
+      const commentLikesMap = new Map<
+        string,
+        { likeCount: number; userHasLiked: boolean }
+      >();
+
+      allCommentIds.forEach((commentId) => {
+        const commentLikes = commentLikesData.filter(
+          (l) => l.comment_id === commentId
+        );
+        const likeCount = commentLikes.length;
+        const userHasLiked = userId
+          ? commentLikes.some((l) => l.user_id === userId)
+          : false;
+        commentLikesMap.set(commentId, { likeCount, userHasLiked });
+      });
+
+      // Helper function to build nested comment structure for a feedback
+      const buildCommentsForFeedback = (
+        feedbackId: string
+      ): FeedbackCommentWithUserComplete[] => {
+        const feedbackComments = commentsByFeedback.get(feedbackId) || [];
+
+        // Separate parent comments and replies
+        const parentComments = feedbackComments.filter(
+          (c) => c.parent_comment_id === null
+        );
+        const allReplies = feedbackComments.filter(
+          (c) => c.parent_comment_id !== null
+        );
+
+        // Build replies map
+        const repliesMap = new Map<string, typeof allReplies>();
+        allReplies.forEach((reply) => {
+          const parentId = reply.parent_comment_id!;
+          if (!repliesMap.has(parentId)) {
+            repliesMap.set(parentId, []);
+          }
+          repliesMap.get(parentId)?.push(reply);
+        });
+
+        // Recursive function to build nested replies
+        const buildNestedReplies = (
+          parentId: string
+        ): FeedbackCommentWithUserComplete[] => {
+          const directReplies = repliesMap.get(parentId) || [];
+
+          return directReplies.map((reply) => {
+            const replyUserData = commentUsersMap.get(reply.user_id);
+            const replyLikeData = commentLikesMap.get(reply.id);
+            const nestedReplies = buildNestedReplies(reply.id);
+
+            return {
+              ...reply,
+              user: replyUserData || undefined,
+              like_count: replyLikeData?.likeCount || 0,
+              user_has_liked: replyLikeData?.userHasLiked || false,
+              replies: nestedReplies,
+              reply_count: nestedReplies.length,
+            };
+          });
+        };
+
+        // Build parent comments with nested replies
+        return parentComments.map((comment) => {
+          const userData = commentUsersMap.get(comment.user_id);
+          const likeData = commentLikesMap.get(comment.id);
+          const directReplies = repliesMap.get(comment.id) || [];
+          const nestedReplies = buildNestedReplies(comment.id);
+
+          return {
+            ...comment,
+            user: userData || undefined,
+            like_count: likeData?.likeCount || 0,
+            user_has_liked: likeData?.userHasLiked || false,
+            replies: nestedReplies,
+            reply_count: directReplies.length, // Only count direct replies
+          };
+        });
+      };
+
+      // Build final structure with all data
+      const feedbackWithComplete: FeedbackWithUserAndTagsComplete[] =
+        feedback.map((fb) => {
+          const reactionData = reactionsMap.get(fb.id) || {
+            count: 0,
+            userHasLiked: false,
+          };
+          const comments = buildCommentsForFeedback(fb.id);
+          const totalCommentCount = commentsByFeedback.get(fb.id)?.length || 0;
+
+          return {
+            ...fb,
+            user: usersMap.get(fb.user_id) || undefined,
+            tags: tagsMap.get(fb.id) || [],
+            reaction_count: reactionData.count,
+            user_has_reacted: reactionData.userHasLiked,
+            comment_count: totalCommentCount,
+            comments: comments,
+          };
+        });
+
+      return { feedback: feedbackWithComplete, error: null, count };
+    } catch (error) {
+      console.error("Error fetching complete feedback data:", error);
       return { feedback: null, error, count: 0 };
     }
   }

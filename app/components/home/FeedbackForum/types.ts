@@ -1,5 +1,5 @@
 export interface FeedbackComment {
-  id: number;
+  id: string; // Changed from number to string (UUID from database)
   username: string;
   content: string;
   timestamp: string;
@@ -10,7 +10,7 @@ export interface FeedbackComment {
 }
 
 export interface FeedbackReply {
-  id: number;
+  id: string; // Changed from number to string (UUID from database)
   username: string;
   content: string;
   timestamp: string;
