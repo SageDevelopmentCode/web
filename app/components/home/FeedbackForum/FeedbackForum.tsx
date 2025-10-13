@@ -548,169 +548,211 @@ export default function FeedbackForum({
         {/* Desktop Layout */}
         {!isMobile && (
           <div className="flex gap-6" style={{ height: "80vh" }}>
-            {/* Left Side - Feedback List (40%) */}
-            <div className="w-2/5 flex-shrink-0 h-full">
-              <FeedbackList
-                posts={posts}
-                selectedPostId={selectedPostId}
-                onSelectPost={handleSelectPost}
-                onToggleHeart={handleTogglePostHeart}
-                isUserSignedIn={isUserSignedIn}
-              />
-            </div>
+            {isLoadingFeedback ? (
+              /* Loading State */
+              <div
+                className="w-full h-full flex items-center justify-center rounded-3xl"
+                style={{ backgroundColor: "#323817" }}
+              >
+                <div className="flex flex-col items-center gap-4">
+                  <div className="relative w-16 h-16">
+                    <div className="absolute inset-0 rounded-full border-4 border-gray-600"></div>
+                    <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-white animate-spin"></div>
+                  </div>
+                  <p className="text-white text-lg font-medium">
+                    Loading feedback...
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <>
+                {/* Left Side - Feedback List (40%) */}
+                <div className="w-2/5 flex-shrink-0 h-full">
+                  <FeedbackList
+                    posts={posts}
+                    selectedPostId={selectedPostId}
+                    onSelectPost={handleSelectPost}
+                    onToggleHeart={handleTogglePostHeart}
+                    isUserSignedIn={isUserSignedIn}
+                  />
+                </div>
 
-            {/* Right Side - Feedback Details (60%) */}
-            <div
-              className="w-3/5 flex-shrink-0 rounded-3xl p-6 h-full"
-              style={{ backgroundColor: "#323817" }}
-            >
-              <FeedbackDetails
-                post={selectedPost}
-                onTogglePostHeart={handleTogglePostHeart}
-                onToggleCommentHeart={handleToggleCommentHeart}
-                onToggleReplyHeart={handleToggleReplyHeart}
-                onToggleReplies={handleToggleReplies}
-                isUserSignedIn={isUserSignedIn}
-                onOpenSignupModal={() => {
-                  onCloseFeedbackForum();
-                  onOpenSignupModal();
-                }}
-              />
-            </div>
+                {/* Right Side - Feedback Details (60%) */}
+                <div
+                  className="w-3/5 flex-shrink-0 rounded-3xl p-6 h-full"
+                  style={{ backgroundColor: "#323817" }}
+                >
+                  <FeedbackDetails
+                    post={selectedPost}
+                    onTogglePostHeart={handleTogglePostHeart}
+                    onToggleCommentHeart={handleToggleCommentHeart}
+                    onToggleReplyHeart={handleToggleReplyHeart}
+                    onToggleReplies={handleToggleReplies}
+                    isUserSignedIn={isUserSignedIn}
+                    onOpenSignupModal={() => {
+                      onCloseFeedbackForum();
+                      onOpenSignupModal();
+                    }}
+                  />
+                </div>
+              </>
+            )}
           </div>
         )}
 
         {/* Mobile Layout - Top 3 Posts */}
         {isMobile && (
           <div className="space-y-4">
-            {posts.slice(0, 3).map((post) => (
+            {isLoadingFeedback ? (
+              /* Mobile Loading State */
               <div
-                key={post.id}
-                onClick={() => handleSelectPost(post.id)}
-                className="p-4 rounded-2xl cursor-pointer transition-all duration-200"
+                className="w-full py-20 flex items-center justify-center rounded-3xl"
                 style={{ backgroundColor: "#323817" }}
               >
-                {/* Post Content */}
-                <h3 className="text-white font-semibold text-base mb-2 line-clamp-2">
-                  {post.title}
-                </h3>
-                <p className="text-gray-300 text-sm line-clamp-3 mb-3">
-                  {post.description}
-                </p>
-
-                {/* Tags */}
-                {post.tags && post.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mb-3">
-                    {post.tags.map((tag) => {
-                      const tagColors = {
-                        question: { bg: "#5B8DEE", text: "#FFFFFF" },
-                        improvement: { bg: "#9B59B6", text: "#FFFFFF" },
-                        idea: { bg: "#A8C256", text: "#FFFFFF" },
-                      };
-                      const colors = tagColors[
-                        tag.name.toLowerCase() as keyof typeof tagColors
-                      ] || { bg: "#6B7280", text: "#FFFFFF" };
-
-                      return (
-                        <span
-                          key={tag.id}
-                          className="px-2 py-1 text-xs rounded-full font-medium capitalize"
-                          style={{
-                            backgroundColor: colors.bg,
-                            color: colors.text,
-                          }}
-                        >
-                          {tag.name}
-                        </span>
-                      );
-                    })}
+                <div className="flex flex-col items-center gap-4">
+                  <div className="relative w-12 h-12">
+                    <div className="absolute inset-0 rounded-full border-4 border-gray-600"></div>
+                    <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-white animate-spin"></div>
                   </div>
-                )}
-
-                {/* Combined User Info and Post Actions */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div
-                      className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden border-2 border-gray-300"
-                      style={{ backgroundColor: "#D6E5E2" }}
-                    >
-                      {post.profile_picture ? (
-                        <Image
-                          src={getCharacterImageSrc(post.profile_picture)}
-                          alt={post.profile_picture}
-                          width={200}
-                          height={200}
-                          className="w-auto h-full object-cover opacity-100 grayscale-0"
-                          style={getCharacterImageStyles(post.profile_picture)}
-                          quality={100}
-                        />
-                      ) : (
-                        <span className="text-white text-xs font-semibold">
-                          {post.username
-                            .split(" ")
-                            .map((n) => n[0])
-                            .join("")}
-                        </span>
-                      )}
-                    </div>
-                    <div>
-                      <span className="text-gray-300 text-sm font-medium">
-                        {post.username}
-                      </span>
-                      <span className="text-gray-500 text-sm ml-2">
-                        {post.timestamp}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Post Actions */}
-                  <div className="flex items-center gap-3">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleTogglePostHeart(post.id);
-                      }}
-                      className="px-3 py-2 rounded-xl flex items-center gap-2 text-sm transition-all duration-300 cursor-pointer transform hover:scale-105 active:scale-95"
-                      style={{
-                        backgroundColor: post.isHearted
-                          ? "transparent"
-                          : "#282828",
-                        background: post.isHearted
-                          ? "linear-gradient(90.81deg, #9D638D 0.58%, #BF8EFF 99.31%)"
-                          : "#282828",
-                      }}
-                    >
-                      <PresetEmoji type="HEART" size={16} />
-                      <span className="text-white font-medium">
-                        {post.heartsCount}
-                      </span>
-                    </button>
-                    <div
-                      className="px-3 py-2 rounded-xl flex items-center gap-2 text-sm"
-                      style={{ backgroundColor: "#282828" }}
-                    >
-                      <PresetEmoji type="SPEECH_BUBBLE" size={16} />
-                      <span className="text-white font-medium">
-                        {post.commentsCount}
-                      </span>
-                    </div>
-                  </div>
+                  <p className="text-white text-base font-medium">
+                    Loading feedback...
+                  </p>
                 </div>
               </div>
-            ))}
+            ) : (
+              <>
+                {posts.slice(0, 3).map((post) => (
+                  <div
+                    key={post.id}
+                    onClick={() => handleSelectPost(post.id)}
+                    className="p-4 rounded-2xl cursor-pointer transition-all duration-200"
+                    style={{ backgroundColor: "#323817" }}
+                  >
+                    {/* Post Content */}
+                    <h3 className="text-white font-semibold text-base mb-2 line-clamp-2">
+                      {post.title}
+                    </h3>
+                    <p className="text-gray-300 text-sm line-clamp-3 mb-3">
+                      {post.description}
+                    </p>
 
-            {/* View All Button */}
-            <button
-              onClick={handleViewAll}
-              className="w-full py-4 mt-6 text-white font-semibold rounded-2xl transition-opacity hover:opacity-90"
-              style={{
-                background:
-                  "linear-gradient(90.81deg, #9D638D 0.58%, #BF8EFF 99.31%)",
-                boxShadow: "0px 4px 0px 1px #764B6F",
-              }}
-            >
-              View All Feedback
-            </button>
+                    {/* Tags */}
+                    {post.tags && post.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mb-3">
+                        {post.tags.map((tag) => {
+                          const tagColors = {
+                            question: { bg: "#5B8DEE", text: "#FFFFFF" },
+                            improvement: { bg: "#9B59B6", text: "#FFFFFF" },
+                            idea: { bg: "#A8C256", text: "#FFFFFF" },
+                          };
+                          const colors = tagColors[
+                            tag.name.toLowerCase() as keyof typeof tagColors
+                          ] || { bg: "#6B7280", text: "#FFFFFF" };
+
+                          return (
+                            <span
+                              key={tag.id}
+                              className="px-2 py-1 text-xs rounded-full font-medium capitalize"
+                              style={{
+                                backgroundColor: colors.bg,
+                                color: colors.text,
+                              }}
+                            >
+                              {tag.name}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* Combined User Info and Post Actions */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden border-2 border-gray-300"
+                          style={{ backgroundColor: "#D6E5E2" }}
+                        >
+                          {post.profile_picture ? (
+                            <Image
+                              src={getCharacterImageSrc(post.profile_picture)}
+                              alt={post.profile_picture}
+                              width={200}
+                              height={200}
+                              className="w-auto h-full object-cover opacity-100 grayscale-0"
+                              style={getCharacterImageStyles(
+                                post.profile_picture
+                              )}
+                              quality={100}
+                            />
+                          ) : (
+                            <span className="text-white text-xs font-semibold">
+                              {post.username
+                                .split(" ")
+                                .map((n) => n[0])
+                                .join("")}
+                            </span>
+                          )}
+                        </div>
+                        <div>
+                          <span className="text-gray-300 text-sm font-medium">
+                            {post.username}
+                          </span>
+                          <span className="text-gray-500 text-sm ml-2">
+                            {post.timestamp}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Post Actions */}
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleTogglePostHeart(post.id);
+                          }}
+                          className="px-3 py-2 rounded-xl flex items-center gap-2 text-sm transition-all duration-300 cursor-pointer transform hover:scale-105 active:scale-95"
+                          style={{
+                            backgroundColor: post.isHearted
+                              ? "transparent"
+                              : "#282828",
+                            background: post.isHearted
+                              ? "linear-gradient(90.81deg, #9D638D 0.58%, #BF8EFF 99.31%)"
+                              : "#282828",
+                          }}
+                        >
+                          <PresetEmoji type="HEART" size={16} />
+                          <span className="text-white font-medium">
+                            {post.heartsCount}
+                          </span>
+                        </button>
+                        <div
+                          className="px-3 py-2 rounded-xl flex items-center gap-2 text-sm"
+                          style={{ backgroundColor: "#282828" }}
+                        >
+                          <PresetEmoji type="SPEECH_BUBBLE" size={16} />
+                          <span className="text-white font-medium">
+                            {post.commentsCount}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                {/* View All Button */}
+                <button
+                  onClick={handleViewAll}
+                  className="w-full py-4 mt-6 text-white font-semibold rounded-2xl transition-opacity hover:opacity-90"
+                  style={{
+                    background:
+                      "linear-gradient(90.81deg, #9D638D 0.58%, #BF8EFF 99.31%)",
+                    boxShadow: "0px 4px 0px 1px #764B6F",
+                  }}
+                >
+                  View All Feedback
+                </button>
+              </>
+            )}
           </div>
         )}
 
