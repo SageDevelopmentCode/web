@@ -152,6 +152,28 @@ export default function FeedbackForum({
     setIsLoadingFeedback(false);
   };
 
+  // Silent refetch for background updates (no loading spinner)
+  const silentRefetchFeedback = async () => {
+    const { feedback, error, count } =
+      await FeedbackService.getFeedbackWithComplete(
+        undefined, // filters
+        undefined, // limit
+        undefined, // offset
+        user?.id // userId for reaction/like status
+      );
+
+    if (error) {
+      console.error("Error silently refetching feedback:", error);
+    } else {
+      if (feedback && feedback.length > 0) {
+        const { posts: transformedPosts, idMap } =
+          transformFeedbackData(feedback);
+        setPosts(transformedPosts);
+        setFeedbackIdMap(idMap);
+      }
+    }
+  };
+
   // Fetch feedback with users and tags when section loads or user changes
   useEffect(() => {
     if (hasLoaded) {
@@ -467,6 +489,23 @@ export default function FeedbackForum({
     );
   };
 
+  // Handle optimistic comment addition
+  const handleCommentAdded = (newComment: FeedbackPost["comments"][0]) => {
+    if (!selectedPostId) return;
+
+    setPosts((prev) =>
+      prev.map((post) =>
+        post.id === selectedPostId
+          ? {
+              ...post,
+              comments: [newComment, ...post.comments], // Add new comment at the top
+              commentsCount: post.commentsCount + 1, // Increment count
+            }
+          : post
+      )
+    );
+  };
+
   return (
     <section
       ref={sectionRef}
@@ -597,7 +636,10 @@ export default function FeedbackForum({
                     feedbackId={
                       selectedPostId ? feedbackIdMap.get(selectedPostId) : undefined
                     }
-                    onCommentSubmitted={fetchFeedback}
+                    userDisplayName={user?.user_metadata?.display_name}
+                    userProfilePicture={userProfile?.profile_picture}
+                    onCommentAdded={handleCommentAdded}
+                    onCommentSubmitted={silentRefetchFeedback}
                   />
                 </div>
               </>
@@ -835,7 +877,10 @@ export default function FeedbackForum({
                           ? feedbackIdMap.get(selectedPostId)
                           : undefined
                       }
-                      onCommentSubmitted={fetchFeedback}
+                      userDisplayName={user?.user_metadata?.display_name}
+                      userProfilePicture={userProfile?.profile_picture}
+                      onCommentAdded={handleCommentAdded}
+                      onCommentSubmitted={silentRefetchFeedback}
                     />
                   </div>
                 )}

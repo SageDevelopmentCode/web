@@ -22,6 +22,9 @@ interface FeedbackDetailsProps {
   onOpenSignupModal?: () => void;
   userId?: string;
   feedbackId?: string;
+  userDisplayName?: string;
+  userProfilePicture?: string;
+  onCommentAdded?: (comment: FeedbackComment) => void;
   onCommentSubmitted?: () => void;
 }
 
@@ -46,6 +49,9 @@ export default function FeedbackDetails({
   onOpenSignupModal = () => {},
   userId,
   feedbackId,
+  userDisplayName,
+  userProfilePicture,
+  onCommentAdded = () => {},
   onCommentSubmitted = () => {},
 }: FeedbackDetailsProps) {
   const [showScrollHint, setShowScrollHint] = useState(true);
@@ -194,7 +200,7 @@ export default function FeedbackDetails({
     setReplyText("");
   };
 
-  // Handle main comment submission
+  // Handle main comment submission with optimistic update
   const handleCommentSubmit = async () => {
     if (!commentText.trim()) return;
 
@@ -210,29 +216,48 @@ export default function FeedbackDetails({
       return;
     }
 
-    setIsSubmittingComment(true);
+    const contentToSubmit = commentText.trim();
 
+    // Create optimistic comment
+    const optimisticComment: FeedbackComment = {
+      id: `temp-${Date.now()}`, // Temporary ID
+      username: userDisplayName || "You",
+      content: contentToSubmit,
+      timestamp: "Just now",
+      heartsCount: 0,
+      isHearted: false,
+      replies: [],
+      showReplies: false,
+    };
+
+    // Optimistically update UI immediately
+    onCommentAdded(optimisticComment);
+    setCommentText(""); // Clear input immediately for better UX
+    setIsSubmittingComment(false); // Remove loading state immediately
+
+    // Submit to backend in the background (non-blocking)
     try {
       const { comment, error } =
         await FeedbackCommentService.createFeedbackComment({
           feedback_id: feedbackId,
           user_id: userId,
-          content: commentText.trim(),
+          content: contentToSubmit,
           parent_comment_id: null, // This is a top-level comment
         });
 
       if (error) {
         console.error("Error creating comment:", error);
         // TODO: Show error toast/notification to user
+        // Note: We keep the optimistic comment even on error since it was "submitted"
       } else {
         console.log("Comment created successfully:", comment);
-        setCommentText(""); // Clear input on success
-        onCommentSubmitted(); // Refresh feedback data
       }
+
+      // Silently refetch in the background to sync with server data
+      onCommentSubmitted();
     } catch (error) {
       console.error("Failed to submit comment:", error);
-    } finally {
-      setIsSubmittingComment(false);
+      // Keep the optimistic update visible even on error
     }
   };
 
@@ -516,7 +541,7 @@ export default function FeedbackDetails({
                       onChange={(e) => setReplyText(e.target.value)}
                       className="w-full text-white placeholder-gray-400 rounded-xl px-4 py-3 pr-24 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
                       style={{ backgroundColor: "#4B5563" }}
-                      onKeyPress={(e) => {
+                      onKeyDown={(e) => {
                         if (e.key === "Enter") {
                           handleReplySubmit(`comment-${comment.id}`);
                         }
