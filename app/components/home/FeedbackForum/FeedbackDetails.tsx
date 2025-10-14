@@ -9,6 +9,7 @@ import {
   getCharacterImageSrc,
   getCharacterImageStyles,
 } from "../../../../lib/character-utils";
+import { FeedbackCommentService } from "../../../../lib/supabase/feedback_comments";
 
 interface FeedbackDetailsProps {
   post: FeedbackPost | null;
@@ -19,6 +20,9 @@ interface FeedbackDetailsProps {
   isMobile?: boolean;
   isUserSignedIn?: boolean;
   onOpenSignupModal?: () => void;
+  userId?: string;
+  feedbackId?: string;
+  onCommentSubmitted?: () => void;
 }
 
 interface FloatingEmoji {
@@ -40,6 +44,9 @@ export default function FeedbackDetails({
   isMobile = false,
   isUserSignedIn = false,
   onOpenSignupModal = () => {},
+  userId,
+  feedbackId,
+  onCommentSubmitted = () => {},
 }: FeedbackDetailsProps) {
   const [showScrollHint, setShowScrollHint] = useState(true);
   const [commentText, setCommentText] = useState("");
@@ -48,6 +55,7 @@ export default function FeedbackDetails({
   const [activeReplyInput, setActiveReplyInput] = useState<string | null>(null);
   const [replyText, setReplyText] = useState("");
   const [isContentScrollable, setIsContentScrollable] = useState(false);
+  const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const commentsContainerRef = useRef<HTMLDivElement>(null);
   const mobileScrollContainerRef = useRef<HTMLDivElement>(null);
   const buttonRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
@@ -184,6 +192,48 @@ export default function FeedbackDetails({
   const handleReplyCancel = () => {
     setActiveReplyInput(null);
     setReplyText("");
+  };
+
+  // Handle main comment submission
+  const handleCommentSubmit = async () => {
+    if (!commentText.trim()) return;
+
+    // Check if user is signed in
+    if (!isUserSignedIn || !userId) {
+      onOpenSignupModal();
+      return;
+    }
+
+    // Check if we have the feedback ID
+    if (!feedbackId) {
+      console.error("Feedback ID is required to submit a comment");
+      return;
+    }
+
+    setIsSubmittingComment(true);
+
+    try {
+      const { comment, error } =
+        await FeedbackCommentService.createFeedbackComment({
+          feedback_id: feedbackId,
+          user_id: userId,
+          content: commentText.trim(),
+          parent_comment_id: null, // This is a top-level comment
+        });
+
+      if (error) {
+        console.error("Error creating comment:", error);
+        // TODO: Show error toast/notification to user
+      } else {
+        console.log("Comment created successfully:", comment);
+        setCommentText(""); // Clear input on success
+        onCommentSubmitted(); // Refresh feedback data
+      }
+    } catch (error) {
+      console.error("Failed to submit comment:", error);
+    } finally {
+      setIsSubmittingComment(false);
+    }
   };
 
   if (!post) {
@@ -340,10 +390,20 @@ export default function FeedbackDetails({
                   placeholder="Add a comment..."
                   value={commentText}
                   onChange={(e) => setCommentText(e.target.value)}
-                  className="w-full text-white placeholder-gray-400 rounded-xl px-4 py-3 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !isSubmittingComment) {
+                      handleCommentSubmit();
+                    }
+                  }}
+                  disabled={isSubmittingComment}
+                  className="w-full text-white placeholder-gray-400 rounded-xl px-4 py-3 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50"
                   style={{ backgroundColor: "#4B5563" }}
                 />
-                <button className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white hover:text-purple-400 cursor-pointer transition-all duration-300">
+                <button
+                  onClick={handleCommentSubmit}
+                  disabled={isSubmittingComment || !commentText.trim()}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white hover:text-purple-400 cursor-pointer transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
                   <Send size={20} />
                 </button>
               </div>
@@ -626,10 +686,20 @@ export default function FeedbackDetails({
                   placeholder="Add a comment..."
                   value={commentText}
                   onChange={(e) => setCommentText(e.target.value)}
-                  className="w-full text-white placeholder-gray-400 rounded-xl px-4 py-3 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !isSubmittingComment) {
+                      handleCommentSubmit();
+                    }
+                  }}
+                  disabled={isSubmittingComment}
+                  className="w-full text-white placeholder-gray-400 rounded-xl px-4 py-3 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50"
                   style={{ backgroundColor: "#4B5563" }}
                 />
-                <button className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white hover:text-purple-400 cursor-pointer transition-all duration-300">
+                <button
+                  onClick={handleCommentSubmit}
+                  disabled={isSubmittingComment || !commentText.trim()}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white hover:text-purple-400 cursor-pointer transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
                   <Send size={20} />
                 </button>
               </div>

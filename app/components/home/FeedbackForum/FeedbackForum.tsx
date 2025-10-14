@@ -593,6 +593,11 @@ export default function FeedbackForum({
                       onCloseFeedbackForum();
                       onOpenSignupModal();
                     }}
+                    userId={user?.id}
+                    feedbackId={
+                      selectedPostId ? feedbackIdMap.get(selectedPostId) : undefined
+                    }
+                    onCommentSubmitted={fetchFeedback}
                   />
                 </div>
               </>
@@ -824,6 +829,13 @@ export default function FeedbackForum({
                         handleCloseBottomSheet();
                         onOpenSignupModal();
                       }}
+                      userId={user?.id}
+                      feedbackId={
+                        selectedPostId
+                          ? feedbackIdMap.get(selectedPostId)
+                          : undefined
+                      }
+                      onCommentSubmitted={fetchFeedback}
                     />
                   </div>
                 )}
