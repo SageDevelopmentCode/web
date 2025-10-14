@@ -506,6 +506,50 @@ export default function FeedbackForum({
     );
   };
 
+  // Handle optimistic reply addition
+  const handleReplyAdded = (
+    parentCommentId: string,
+    newReply: FeedbackPost["comments"][0]
+  ) => {
+    if (!selectedPostId) return;
+
+    setPosts((prev) =>
+      prev.map((post) => {
+        if (post.id !== selectedPostId) return post;
+
+        // Recursive function to add reply to the correct parent
+        const addReplyToComment = (
+          comments: FeedbackPost["comments"]
+        ): FeedbackPost["comments"] => {
+          return comments.map((comment) => {
+            // Found the parent comment
+            if (comment.id === parentCommentId) {
+              return {
+                ...comment,
+                replies: [newReply, ...(comment.replies || [])], // Add reply at the top
+                showReplies: true, // Auto-expand to show new reply
+              };
+            }
+            // Check nested replies recursively
+            if (comment.replies && comment.replies.length > 0) {
+              return {
+                ...comment,
+                replies: addReplyToComment(comment.replies),
+              };
+            }
+            return comment;
+          });
+        };
+
+        return {
+          ...post,
+          comments: addReplyToComment(post.comments),
+          commentsCount: post.commentsCount + 1, // Increment total count
+        };
+      })
+    );
+  };
+
   return (
     <section
       ref={sectionRef}
@@ -639,6 +683,7 @@ export default function FeedbackForum({
                     userDisplayName={user?.user_metadata?.display_name}
                     userProfilePicture={userProfile?.profile_picture}
                     onCommentAdded={handleCommentAdded}
+                    onReplyAdded={handleReplyAdded}
                     onCommentSubmitted={silentRefetchFeedback}
                   />
                 </div>
@@ -880,6 +925,7 @@ export default function FeedbackForum({
                       userDisplayName={user?.user_metadata?.display_name}
                       userProfilePicture={userProfile?.profile_picture}
                       onCommentAdded={handleCommentAdded}
+                      onReplyAdded={handleReplyAdded}
                       onCommentSubmitted={silentRefetchFeedback}
                     />
                   </div>

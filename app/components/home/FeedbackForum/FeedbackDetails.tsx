@@ -25,6 +25,7 @@ interface FeedbackDetailsProps {
   userDisplayName?: string;
   userProfilePicture?: string;
   onCommentAdded?: (comment: FeedbackComment) => void;
+  onReplyAdded?: (parentCommentId: string, reply: FeedbackComment) => void;
   onCommentSubmitted?: () => void;
 }
 
@@ -52,6 +53,7 @@ export default function FeedbackDetails({
   userDisplayName,
   userProfilePicture,
   onCommentAdded = () => {},
+  onReplyAdded = () => {},
   onCommentSubmitted = () => {},
 }: FeedbackDetailsProps) {
   const [showScrollHint, setShowScrollHint] = useState(true);
@@ -186,12 +188,76 @@ export default function FeedbackDetails({
     setReplyText("");
   };
 
-  const handleReplySubmit = (replyId: string) => {
-    if (replyText.trim()) {
-      // Handle reply submission here
-      console.log(`Submitting reply for ${replyId}:`, replyText);
-      setReplyText("");
-      setActiveReplyInput(null);
+  const handleReplySubmit = async (replyId: string) => {
+    if (!replyText.trim()) return;
+
+    // Check if user is signed in
+    if (!isUserSignedIn || !userId) {
+      onOpenSignupModal();
+      return;
+    }
+
+    // Check if we have the feedback ID
+    if (!feedbackId) {
+      console.error("Feedback ID is required to submit a reply");
+      return;
+    }
+
+    // Extract parent comment ID from replyId
+    // Format: "comment-{commentId}" or "reply-{commentId}-{replyId}"
+    let parentCommentId: string;
+    if (replyId.startsWith("comment-")) {
+      parentCommentId = replyId.replace("comment-", "");
+    } else if (replyId.startsWith("reply-")) {
+      // For nested replies, extract the first ID (the parent comment)
+      const parts = replyId.replace("reply-", "").split("-");
+      parentCommentId = parts[0];
+    } else {
+      console.error("Invalid reply ID format:", replyId);
+      return;
+    }
+
+    const contentToSubmit = replyText.trim();
+
+    // Create optimistic reply
+    const optimisticReply: FeedbackComment = {
+      id: `temp-${Date.now()}`,
+      username: userDisplayName || "You",
+      content: contentToSubmit,
+      timestamp: "Just now",
+      heartsCount: 0,
+      isHearted: false,
+      replies: [],
+      showReplies: false,
+    };
+
+    // Optimistically update UI immediately
+    onReplyAdded(parentCommentId, optimisticReply);
+    setReplyText(""); // Clear input immediately
+    setActiveReplyInput(null); // Close reply form
+
+    // Submit to backend in the background (non-blocking)
+    try {
+      const { comment, error } =
+        await FeedbackCommentService.createFeedbackComment({
+          feedback_id: feedbackId,
+          user_id: userId,
+          content: contentToSubmit,
+          parent_comment_id: parentCommentId, // Set parent for nested reply
+        });
+
+      if (error) {
+        console.error("Error creating reply:", error);
+        // TODO: Show error toast/notification to user
+      } else {
+        console.log("Reply created successfully:", comment);
+      }
+
+      // Silently refetch in the background to sync with server data
+      onCommentSubmitted();
+    } catch (error) {
+      console.error("Failed to submit reply:", error);
+      // Keep the optimistic update visible even on error
     }
   };
 
@@ -661,7 +727,7 @@ export default function FeedbackDetails({
                             onChange={(e) => setReplyText(e.target.value)}
                             className="w-full text-white placeholder-gray-400 rounded-xl px-4 py-3 pr-24 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
                             style={{ backgroundColor: "#4B5563" }}
-                            onKeyPress={(e) => {
+                            onKeyDown={(e) => {
                               if (e.key === "Enter") {
                                 handleReplySubmit(activeReplyInput!);
                               }
