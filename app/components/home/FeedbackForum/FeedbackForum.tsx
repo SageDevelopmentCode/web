@@ -88,7 +88,7 @@ export default function FeedbackForum({
       const sequentialId = index + 1;
       idMap.set(sequentialId, fb.id); // Map sequential ID to actual UUID
 
-      // Transform nested comments to match FeedbackPost format
+      // Transform nested comments to match FeedbackPost format (recursive)
       const transformComments = (
         comments: typeof fb.comments
       ): FeedbackPost["comments"] => {
@@ -99,9 +99,10 @@ export default function FeedbackForum({
           timestamp: formatRelativeTime(comment.created_at),
           heartsCount: comment.like_count || 0,
           isHearted: comment.user_has_liked || false,
-          replies: comment.replies
+          replies: comment.replies && comment.replies.length > 0
             ? transformComments(comment.replies as any)
             : [],
+          reply_count: comment.reply_count || 0,
           showReplies: false,
         }));
       };
@@ -447,23 +448,32 @@ export default function FeedbackForum({
   const handleToggleReplyHeart = (commentId: string, replyId: string) => {
     if (!selectedPost) return;
 
+    // Recursive function to toggle reply heart at any nesting level
+    const toggleReplyHeartRecursive = (
+      comments: FeedbackPost["comments"]
+    ): FeedbackPost["comments"] => {
+      return comments.map((comment) => {
+        // Check if this is the reply we're looking for
+        if (comment.id === replyId) {
+          return { ...comment, isHearted: !comment.isHearted };
+        }
+        // Recursively check nested replies
+        if (comment.replies && comment.replies.length > 0) {
+          return {
+            ...comment,
+            replies: toggleReplyHeartRecursive(comment.replies),
+          };
+        }
+        return comment;
+      });
+    };
+
     setPosts((prev) =>
       prev.map((post) =>
         post.id === selectedPost.id
           ? {
               ...post,
-              comments: post.comments.map((comment) =>
-                comment.id === commentId
-                  ? {
-                      ...comment,
-                      replies: comment.replies?.map((reply) =>
-                        reply.id === replyId
-                          ? { ...reply, isHearted: !reply.isHearted }
-                          : reply
-                      ),
-                    }
-                  : comment
-              ),
+              comments: toggleReplyHeartRecursive(post.comments),
             }
           : post
       )
@@ -473,16 +483,31 @@ export default function FeedbackForum({
   const handleToggleReplies = (commentId: string) => {
     if (!selectedPost) return;
 
+    // Recursive function to toggle replies at any nesting level
+    const toggleRepliesRecursive = (
+      comments: FeedbackPost["comments"]
+    ): FeedbackPost["comments"] => {
+      return comments.map((comment) => {
+        if (comment.id === commentId) {
+          return { ...comment, showReplies: !comment.showReplies };
+        }
+        // Recursively check nested replies
+        if (comment.replies && comment.replies.length > 0) {
+          return {
+            ...comment,
+            replies: toggleRepliesRecursive(comment.replies),
+          };
+        }
+        return comment;
+      });
+    };
+
     setPosts((prev) =>
       prev.map((post) =>
         post.id === selectedPost.id
           ? {
               ...post,
-              comments: post.comments.map((comment) =>
-                comment.id === commentId
-                  ? { ...comment, showReplies: !comment.showReplies }
-                  : comment
-              ),
+              comments: toggleRepliesRecursive(post.comments),
             }
           : post
       )

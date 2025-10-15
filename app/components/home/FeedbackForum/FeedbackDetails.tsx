@@ -10,6 +10,7 @@ import {
   getCharacterImageStyles,
 } from "../../../../lib/character-utils";
 import { FeedbackCommentService } from "../../../../lib/supabase/feedback_comments";
+import FeedbackReplyItem from "./FeedbackReplyItem";
 
 interface FeedbackDetailsProps {
   post: FeedbackPost | null;
@@ -183,13 +184,11 @@ export default function FeedbackDetails({
   };
 
   // Reply input handlers
-  const handleReplyClick = (replyId: string) => {
-    setActiveReplyInput(activeReplyInput === replyId ? null : replyId);
-    setReplyText("");
-  };
-
-  const handleReplySubmit = async (replyId: string) => {
-    if (!replyText.trim()) return;
+  const handleReplySubmit = async (
+    parentCommentId: string,
+    replyContent: string
+  ) => {
+    if (!replyContent.trim()) return;
 
     // Check if user is signed in
     if (!isUserSignedIn || !userId) {
@@ -203,21 +202,7 @@ export default function FeedbackDetails({
       return;
     }
 
-    // Extract parent comment ID from replyId
-    // Format: "comment-{commentId}" or "reply-{commentId}-{replyId}"
-    let parentCommentId: string;
-    if (replyId.startsWith("comment-")) {
-      parentCommentId = replyId.replace("comment-", "");
-    } else if (replyId.startsWith("reply-")) {
-      // For nested replies, extract the first ID (the parent comment)
-      const parts = replyId.replace("reply-", "").split("-");
-      parentCommentId = parts[0];
-    } else {
-      console.error("Invalid reply ID format:", replyId);
-      return;
-    }
-
-    const contentToSubmit = replyText.trim();
+    const contentToSubmit = replyContent.trim();
 
     // Create optimistic reply
     const optimisticReply: FeedbackComment = {
@@ -233,8 +218,6 @@ export default function FeedbackDetails({
 
     // Optimistically update UI immediately
     onReplyAdded(parentCommentId, optimisticReply);
-    setReplyText(""); // Clear input immediately
-    setActiveReplyInput(null); // Close reply form
 
     // Submit to backend in the background (non-blocking)
     try {
@@ -568,7 +551,15 @@ export default function FeedbackDetails({
                       </span>
                     </button>
                     <button
-                      onClick={() => handleReplyClick(`comment-${comment.id}`)}
+                      onClick={() => {
+                        if (!isUserSignedIn) {
+                          onOpenSignupModal();
+                        } else {
+                          setActiveReplyInput(
+                            activeReplyInput === comment.id ? null : comment.id
+                          );
+                        }
+                      }}
                       className="px-3 py-2 rounded-xl text-white text-sm transition-colors hover:bg-gray-600 cursor-pointer"
                       style={{ backgroundColor: "#282828" }}
                     >
@@ -597,7 +588,7 @@ export default function FeedbackDetails({
               </div>
 
               {/* Reply Input for Comment */}
-              {activeReplyInput === `comment-${comment.id}` && (
+              {activeReplyInput === comment.id && (
                 <div className="ml-12 mt-4">
                   <div className="relative">
                     <input
@@ -608,16 +599,22 @@ export default function FeedbackDetails({
                       className="w-full text-white placeholder-gray-400 rounded-xl px-4 py-3 pr-24 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
                       style={{ backgroundColor: "#4B5563" }}
                       onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          handleReplySubmit(`comment-${comment.id}`);
+                        if (e.key === "Enter" && replyText.trim()) {
+                          handleReplySubmit(comment.id, replyText);
+                          setReplyText("");
+                          setActiveReplyInput(null);
                         }
                       }}
                     />
                     <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex gap-2">
                       <button
-                        onClick={() =>
-                          handleReplySubmit(`comment-${comment.id}`)
-                        }
+                        onClick={() => {
+                          if (replyText.trim()) {
+                            handleReplySubmit(comment.id, replyText);
+                            setReplyText("");
+                            setActiveReplyInput(null);
+                          }
+                        }}
                         className="text-white hover:text-purple-400 cursor-pointer transition-all duration-300 p-1"
                       >
                         <Send size={16} />
@@ -639,119 +636,25 @@ export default function FeedbackDetails({
                 comment.replies.length > 0 && (
                   <div className="ml-12 space-y-4 border-l-2 border-gray-700 pl-6">
                     {comment.replies.map((reply) => (
-                      <div key={reply.id} className="flex space-x-3">
-                        <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
-                          <span className="text-white text-xs font-semibold">
-                            {reply.username.charAt(0)}
-                          </span>
-                        </div>
-                        <div className="flex-1 space-y-1">
-                          <div className="flex items-center space-x-2">
-                            <span className="text-gray-300 text-sm font-medium">
-                              {reply.username}
-                            </span>
-                            <span className="text-gray-500 text-xs">
-                              {reply.timestamp}
-                            </span>
-                          </div>
-                          <p className="text-white text-sm leading-relaxed">
-                            {reply.content}
-                          </p>
-                          <div className="flex items-center space-x-4 pt-2">
-                            <button
-                              ref={(el) => {
-                                buttonRefs.current[
-                                  `reply-${comment.id}-${reply.id}`
-                                ] = el;
-                              }}
-                              onClick={() =>
-                                handleReplyHeartClick(comment.id, reply.id)
-                              }
-                              className="px-3 py-2 rounded-xl flex items-center gap-1.5 text-sm transition-all duration-300 cursor-pointer transform hover:scale-105 active:scale-95"
-                              style={{
-                                backgroundColor: reply.isHearted
-                                  ? "transparent"
-                                  : "#282828",
-                                background: reply.isHearted
-                                  ? "linear-gradient(90.81deg, #9D638D 0.58%, #BF8EFF 99.31%)"
-                                  : "#282828",
-                              }}
-                            >
-                              <PresetEmoji type="HEART" size={12} />
-                              <span className="text-white font-medium">
-                                {reply.heartsCount}
-                              </span>
-                            </button>
-                            <button
-                              onClick={() =>
-                                handleReplyClick(
-                                  `reply-${comment.id}-${reply.id}`
-                                )
-                              }
-                              className="px-3 py-2 rounded-xl text-white text-sm transition-colors hover:bg-gray-600 cursor-pointer"
-                              style={{ backgroundColor: "#282828" }}
-                            >
-                              Reply
-                            </button>
-                            <button
-                              onClick={() => {
-                                // Handle more options menu for reply
-                              }}
-                              className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-600 transition-all duration-200 cursor-pointer ml-auto"
-                              style={{ backgroundColor: "#282828" }}
-                            >
-                              <MoreHorizontal size={12} />
-                            </button>
-                          </div>
-                        </div>
-                      </div>
+                      <FeedbackReplyItem
+                        key={reply.id}
+                        reply={reply}
+                        parentCommentId={comment.id}
+                        activeReplyInput={activeReplyInput}
+                        setActiveReplyInput={setActiveReplyInput}
+                        replyText={replyText}
+                        setReplyText={setReplyText}
+                        onToggleReplyHeart={onToggleReplyHeart}
+                        onSubmitReply={handleReplySubmit}
+                        onToggleReplies={onToggleReplies}
+                        buttonRefs={buttonRefs}
+                        handleReplyHeartClick={handleReplyHeartClick}
+                        handleReplyCancel={handleReplyCancel}
+                        isUserSignedIn={isUserSignedIn}
+                        onClose={() => {}}
+                        onOpenSignupModal={onOpenSignupModal}
+                      />
                     ))}
-
-                    {/* Reply Input for Nested Replies - appears at bottom of all replies */}
-                    {comment.replies?.some(
-                      (reply) =>
-                        activeReplyInput === `reply-${comment.id}-${reply.id}`
-                    ) && (
-                      <div className="mt-4">
-                        <div className="relative">
-                          <input
-                            type="text"
-                            placeholder={`Reply to ${
-                              comment.replies?.find(
-                                (reply) =>
-                                  activeReplyInput ===
-                                  `reply-${comment.id}-${reply.id}`
-                              )?.username
-                            }...`}
-                            value={replyText}
-                            onChange={(e) => setReplyText(e.target.value)}
-                            className="w-full text-white placeholder-gray-400 rounded-xl px-4 py-3 pr-24 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-                            style={{ backgroundColor: "#4B5563" }}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter") {
-                                handleReplySubmit(activeReplyInput!);
-                              }
-                            }}
-                          />
-                          <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex gap-2">
-                            <button
-                              onClick={() =>
-                                handleReplySubmit(activeReplyInput!)
-                              }
-                              className="text-white hover:text-purple-400 cursor-pointer transition-all duration-300 p-1"
-                            >
-                              <Send size={16} />
-                            </button>
-                            <button
-                              onClick={handleReplyCancel}
-                              className="text-gray-400 hover:text-white cursor-pointer transition-all duration-300 p-1"
-                            >
-                              ✕
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    )}
                   </div>
                 )}
             </div>

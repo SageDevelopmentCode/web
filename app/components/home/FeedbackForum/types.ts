@@ -16,6 +16,9 @@ export interface FeedbackReply {
   timestamp: string;
   isHearted?: boolean;
   heartsCount: number;
+  replies?: FeedbackReply[]; // Support nested replies
+  reply_count?: number;
+  showReplies?: boolean;
 }
 
 export interface FeedbackTag {
