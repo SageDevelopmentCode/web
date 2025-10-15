@@ -71,7 +71,7 @@ export default function CharacterDex() {
 
             .scroll-container {
               display: flex;
-              animation: scroll 60s linear infinite;
+              animation: scroll 40s linear infinite;
               width: fit-content;
             }
 
