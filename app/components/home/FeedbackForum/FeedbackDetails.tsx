@@ -27,6 +27,8 @@ interface FeedbackDetailsProps {
   userProfilePicture?: string;
   onCommentAdded?: (comment: FeedbackComment) => void;
   onReplyAdded?: (parentCommentId: string, reply: FeedbackComment) => void;
+  onCommentUpdated?: (tempId: string, realComment: FeedbackComment) => void;
+  onReplyUpdated?: (tempId: string, realReply: FeedbackComment) => void;
   onCommentSubmitted?: () => void;
 }
 
@@ -55,6 +57,8 @@ export default function FeedbackDetails({
   userProfilePicture,
   onCommentAdded = () => {},
   onReplyAdded = () => {},
+  onCommentUpdated = () => {},
+  onReplyUpdated = () => {},
   onCommentSubmitted = () => {},
 }: FeedbackDetailsProps) {
   const [showScrollHint, setShowScrollHint] = useState(true);
@@ -234,6 +238,20 @@ export default function FeedbackDetails({
         // TODO: Show error toast/notification to user
       } else {
         console.log("Reply created successfully:", comment);
+        // Update the optimistic reply with the real data from server
+        if (comment) {
+          const realReply: FeedbackComment = {
+            id: comment.id,
+            username: userDisplayName || "You",
+            content: comment.content,
+            timestamp: "Just now",
+            heartsCount: 0,
+            isHearted: false,
+            replies: [],
+            showReplies: false,
+          };
+          onReplyUpdated(optimisticReply.id, realReply);
+        }
       }
     } catch (error) {
       console.error("Failed to submit reply:", error);
@@ -297,6 +315,20 @@ export default function FeedbackDetails({
         // Note: We keep the optimistic comment even on error since it was "submitted"
       } else {
         console.log("Comment created successfully:", comment);
+        // Update the optimistic comment with the real data from server
+        if (comment) {
+          const realComment: FeedbackComment = {
+            id: comment.id,
+            username: userDisplayName || "You",
+            content: comment.content,
+            timestamp: "Just now",
+            heartsCount: 0,
+            isHearted: false,
+            replies: [],
+            showReplies: false,
+          };
+          onCommentUpdated(optimisticComment.id, realComment);
+        }
       }
     } catch (error) {
       console.error("Failed to submit comment:", error);

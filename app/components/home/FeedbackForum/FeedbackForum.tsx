@@ -575,6 +575,66 @@ export default function FeedbackForum({
     );
   };
 
+  // Handle comment update (replace temp ID with real UUID)
+  const handleCommentUpdated = (
+    tempId: string,
+    realComment: FeedbackPost["comments"][0]
+  ) => {
+    if (!selectedPostId) return;
+
+    setPosts((prev) =>
+      prev.map((post) =>
+        post.id === selectedPostId
+          ? {
+              ...post,
+              comments: post.comments.map((comment) =>
+                comment.id === tempId ? realComment : comment
+              ),
+            }
+          : post
+      )
+    );
+  };
+
+  // Handle reply update (replace temp ID with real UUID recursively)
+  const handleReplyUpdated = (
+    tempId: string,
+    realReply: FeedbackPost["comments"][0]
+  ) => {
+    if (!selectedPostId) return;
+
+    setPosts((prev) =>
+      prev.map((post) => {
+        if (post.id !== selectedPostId) return post;
+
+        // Recursive function to update reply with temp ID
+        const updateReplyRecursive = (
+          comments: FeedbackPost["comments"]
+        ): FeedbackPost["comments"] => {
+          return comments.map((comment) => {
+            // Check if this is the reply to update
+            if (comment.id === tempId) {
+              return realReply;
+            }
+            // Recursively check nested replies
+            if (comment.replies && comment.replies.length > 0) {
+              return {
+                ...comment,
+                replies: updateReplyRecursive(comment.replies),
+              };
+            }
+            return comment;
+          });
+        };
+
+        return {
+          ...post,
+          comments: updateReplyRecursive(post.comments),
+        };
+      })
+    );
+  };
+
   return (
     <section
       ref={sectionRef}
@@ -709,6 +769,8 @@ export default function FeedbackForum({
                     userProfilePicture={userProfile?.profile_picture}
                     onCommentAdded={handleCommentAdded}
                     onReplyAdded={handleReplyAdded}
+                    onCommentUpdated={handleCommentUpdated}
+                    onReplyUpdated={handleReplyUpdated}
                     onCommentSubmitted={silentRefetchFeedback}
                   />
                 </div>
@@ -951,6 +1013,8 @@ export default function FeedbackForum({
                       userProfilePicture={userProfile?.profile_picture}
                       onCommentAdded={handleCommentAdded}
                       onReplyAdded={handleReplyAdded}
+                      onCommentUpdated={handleCommentUpdated}
+                      onReplyUpdated={handleReplyUpdated}
                       onCommentSubmitted={silentRefetchFeedback}
                     />
                   </div>
