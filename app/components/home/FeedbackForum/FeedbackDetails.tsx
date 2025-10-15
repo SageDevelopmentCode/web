@@ -235,9 +235,6 @@ export default function FeedbackDetails({
       } else {
         console.log("Reply created successfully:", comment);
       }
-
-      // Silently refetch in the background to sync with server data
-      onCommentSubmitted();
     } catch (error) {
       console.error("Failed to submit reply:", error);
       // Keep the optimistic update visible even on error
@@ -301,9 +298,6 @@ export default function FeedbackDetails({
       } else {
         console.log("Comment created successfully:", comment);
       }
-
-      // Silently refetch in the background to sync with server data
-      onCommentSubmitted();
     } catch (error) {
       console.error("Failed to submit comment:", error);
       // Keep the optimistic update visible even on error
