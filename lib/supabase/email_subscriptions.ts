@@ -182,7 +182,7 @@ export class EmailSubscriptionService {
     email: string
   ): Promise<{ success: boolean; error: any }> {
     try {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from("email_subscriptions")
         .update({
           unsubscribed: true,
