@@ -47,10 +47,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const checkUser = async () => {
       try {
         const currentUser = await SupabaseAuth.getCurrentUser();
-        setUser(currentUser);
         if (currentUser?.id) {
           await fetchUserProfile(currentUser.id);
         }
+        setUser(currentUser);
       } catch (error) {
         // Don't log errors for missing sessions - this is expected when no one is signed in
         const errorMessage = error instanceof Error ? error.message : "";
@@ -77,7 +77,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       data: { subscription },
     } = SupabaseAuth.onAuthStateChange(async (event, session) => {
       const newUser = session?.user ?? null;
-      setUser(newUser);
 
       if (newUser?.id) {
         await fetchUserProfile(newUser.id);
@@ -85,6 +84,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setUserProfile(null);
       }
 
+      setUser(newUser);
       setIsLoading(false);
     });
 
