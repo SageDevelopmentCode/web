@@ -56,7 +56,7 @@ export default function FeedbackForum({
   ); // Maps sequential ID to actual UUID
 
   // Section lazy loading
-  const { ref: sectionRef, hasLoaded } = useSectionLazyLoad({
+  const { ref: sectionRef, hasLoaded, isVisible, hasBeenInvisible } = useSectionLazyLoad({
     threshold: 0.2,
     rootMargin: "100px",
     triggerOnce: true,
@@ -182,6 +182,39 @@ export default function FeedbackForum({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasLoaded, user?.id]); // Re-fetch when user ID changes
+
+  // Re-fetch data when section becomes visible again after being hidden
+  useEffect(() => {
+    if (!hasLoaded || !hasBeenInvisible || !isVisible) return;
+
+    const refetchFeedback = async () => {
+      try {
+        const { feedback, error } =
+          await FeedbackService.getFeedbackWithComplete(
+            undefined, // filters
+            undefined, // limit
+            undefined, // offset
+            user?.id // userId for reaction/like status
+          );
+
+        if (error) {
+          console.error("Error refetching feedback:", error);
+        } else {
+          if (feedback && feedback.length > 0) {
+            const { posts: transformedPosts, idMap } =
+              transformFeedbackData(feedback);
+            setPosts(transformedPosts);
+            setFeedbackIdMap(idMap);
+          }
+        }
+      } catch (error) {
+        console.error("Error in refetchFeedback:", error);
+      }
+    };
+
+    refetchFeedback();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isVisible, hasBeenInvisible, hasLoaded, user?.id]);
 
   // Define gradient options for feature cards
   const gradientOptions = [

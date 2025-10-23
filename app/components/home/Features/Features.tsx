@@ -31,7 +31,7 @@ export default function Features() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Section lazy loading
-  const { ref: sectionRef, hasLoaded } = useSectionLazyLoad({
+  const { ref: sectionRef, hasLoaded, isVisible, hasBeenInvisible } = useSectionLazyLoad({
     threshold: 0.2,
     rootMargin: "100px",
     triggerOnce: true,
@@ -76,6 +76,32 @@ export default function Features() {
     loadBatchReactions();
   }, [hasLoaded, user?.id]);
 
+  // Re-fetch data when section becomes visible again after being hidden
+  useEffect(() => {
+    if (!hasLoaded || !hasBeenInvisible || !isVisible) return;
+
+    const refetchBatchReactions = async () => {
+      try {
+        const featureIds = featureCards.map((card) => card.id);
+        const { features, error } =
+          await FeatureReactionBatchService.getFeatureReactionsBatch(
+            featureIds,
+            user?.id
+          );
+
+        if (error) {
+          console.error("Error refetching batch reactions:", error);
+        } else {
+          setFeatureReactions(features);
+        }
+      } catch (error) {
+        console.error("Error in refetchBatchReactions:", error);
+      }
+    };
+
+    refetchBatchReactions();
+  }, [isVisible, hasBeenInvisible, hasLoaded, user?.id]);
+
   // Detect mobile screen size
   useEffect(() => {
     const checkMobile = () => {
@@ -101,8 +127,7 @@ export default function Features() {
       id: string;
       title: string;
       images: { src: string; alt: string }[];
-    },
-    commentsData?: Comment[]
+    }
   ) => {
     // Set current feature for both mobile and desktop (needed for reply submission)
     if (isOpen && featureData) {
@@ -117,49 +142,44 @@ export default function Features() {
       if (isOpen && featureData) {
         setIsLoadingComments(true); // Start loading when opening
 
-        // If we don't have comments data, fetch it
-        if (!commentsData || commentsData.length === 0) {
-          try {
-            const { comments: apiComments, error } =
-              await FeatureCommentService.getFeatureCommentsWithUsers(
-                featureData.id,
-                true,
-                undefined,
-                undefined,
-                user?.id
-              );
-            if (error) {
-              console.error("Error fetching feature comments:", error);
-            } else {
-              console.log("Feature comments with reply counts:", apiComments);
-              if (apiComments) {
-                apiComments.forEach((comment, index) => {
-                  console.log(
-                    `Comment ${index + 1} (${comment.id}): ${
-                      comment.reply_count
-                    } replies, ${comment.like_count} likes`
-                  );
-                });
-                // Update comments state with API data
-                const formattedComments = apiComments.map((comment) => ({
-                  ...comment,
-                  showReplies: false,
-                  isHearted: comment.user_has_liked || false,
-                  replies:
-                    comment.replies?.map((reply) => ({
-                      ...reply,
-                      isHearted: reply.user_has_liked || false,
-                    })) || [],
-                }));
-                setComments(formattedComments);
-              }
+        // Always fetch fresh comments to avoid stale data issues
+        try {
+          const { comments: apiComments, error } =
+            await FeatureCommentService.getFeatureCommentsWithUsers(
+              featureData.id,
+              true,
+              undefined,
+              undefined,
+              user?.id
+            );
+          if (error) {
+            console.error("Error fetching feature comments:", error);
+          } else {
+            console.log("Feature comments with reply counts:", apiComments);
+            if (apiComments) {
+              apiComments.forEach((comment, index) => {
+                console.log(
+                  `Comment ${index + 1} (${comment.id}): ${
+                    comment.reply_count
+                  } replies, ${comment.like_count} likes`
+                );
+              });
+              // Update comments state with API data
+              const formattedComments = apiComments.map((comment) => ({
+                ...comment,
+                showReplies: false,
+                isHearted: comment.user_has_liked || false,
+                replies:
+                  comment.replies?.map((reply) => ({
+                    ...reply,
+                    isHearted: reply.user_has_liked || false,
+                  })) || [],
+              }));
+              setComments(formattedComments);
             }
-          } catch (error) {
-            console.error("Error in comment fetch:", error);
           }
-        } else {
-          // Use provided comments data
-          setComments(commentsData);
+        } catch (error) {
+          console.error("Error in comment fetch:", error);
         }
         setIsLoadingComments(false); // Stop loading
       } else if (!isOpen) {
