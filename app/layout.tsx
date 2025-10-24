@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Nunito } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "../contexts/auth-context";
+import { Toaster } from "sonner";
 
 const nunito = Nunito({
   variable: "--font-nunito",
@@ -26,6 +27,7 @@ export default function RootLayout({
         style={{ overflowX: "hidden" }}
       >
         <AuthProvider>{children}</AuthProvider>
+        <Toaster position="top-center" richColors />
       </body>
     </html>
   );

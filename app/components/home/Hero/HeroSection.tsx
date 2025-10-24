@@ -3,14 +3,11 @@
 import { useState } from "react";
 import { useAuth } from "../../../../contexts/auth-context";
 import { EmailSubscriptionService } from "../../../../lib/supabase/email_subscriptions";
+import { toast } from "sonner";
 
 export default function HeroSection() {
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [message, setMessage] = useState<{
-    type: "success" | "error";
-    text: string;
-  } | null>(null);
   const [emailError, setEmailError] = useState("");
   const { user } = useAuth();
 
@@ -22,7 +19,6 @@ export default function HeroSection() {
 
   const handleSubscribe = async () => {
     // Clear previous messages
-    setMessage(null);
     setEmailError("");
 
     // Determine email and user_id based on auth state
@@ -35,10 +31,7 @@ export default function HeroSection() {
       userId = user.id;
 
       if (!emailToSubscribe) {
-        setMessage({
-          type: "error",
-          text: "Unable to find your email. Please try again.",
-        });
+        toast.error("Unable to find your email. Please try again.");
         return;
       }
     } else {
@@ -68,10 +61,7 @@ export default function HeroSection() {
       }
 
       if (exists && isActive) {
-        setMessage({
-          type: "error",
-          text: "This email is already subscribed!",
-        });
+        toast.error("This email is already subscribed!");
         setIsSubmitting(false);
         return;
       }
@@ -88,15 +78,9 @@ export default function HeroSection() {
 
       if (error) {
         console.error("Error creating subscription:", error);
-        setMessage({
-          type: "error",
-          text: "Something went wrong. Please try again.",
-        });
+        toast.error("Something went wrong. Please try again.");
       } else if (subscription) {
-        setMessage({
-          type: "success",
-          text: "Successfully subscribed! We'll keep you updated.",
-        });
+        toast.success("Successfully subscribed! We'll keep you updated.");
         // Clear email input for non-logged-in users
         if (!user) {
           setEmail("");
@@ -104,10 +88,7 @@ export default function HeroSection() {
       }
     } catch (error) {
       console.error("Subscription error:", error);
-      setMessage({
-        type: "error",
-        text: "Something went wrong. Please try again.",
-      });
+      toast.error("Something went wrong. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -153,7 +134,6 @@ export default function HeroSection() {
               onChange={(e) => {
                 setEmail(e.target.value);
                 setEmailError("");
-                setMessage(null);
               }}
               className="w-full text-white placeholder-gray-400 px-6 py-4 rounded-full focus:outline-none text-sm"
               style={{
@@ -181,15 +161,6 @@ export default function HeroSection() {
         >
           {isSubmitting ? "Subscribing..." : "Subscribe for Early Access"}
         </button>
-        {message && (
-          <p
-            className={`text-sm text-center ${
-              message.type === "success" ? "text-green-400" : "text-red-400"
-            }`}
-          >
-            {message.text}
-          </p>
-        )}
       </div>
 
       {/* Desktop Layout - Connected Components */}
@@ -211,15 +182,6 @@ export default function HeroSection() {
             >
               {isSubmitting ? "Subscribing..." : "Subscribe"}
             </button>
-            {message && (
-              <p
-                className={`text-sm text-center ${
-                  message.type === "success" ? "text-green-400" : "text-red-400"
-                }`}
-              >
-                {message.text}
-              </p>
-            )}
           </div>
         ) : (
           // Not logged in - show email input with subscribe button
@@ -238,7 +200,6 @@ export default function HeroSection() {
                 onChange={(e) => {
                   setEmail(e.target.value);
                   setEmailError("");
-                  setMessage(null);
                 }}
                 className="flex-1 bg-transparent text-white placeholder-gray-400 px-4 py-2 rounded-full focus:outline-none text-base"
                 disabled={isSubmitting}
@@ -259,15 +220,6 @@ export default function HeroSection() {
             </div>
             {emailError && (
               <p className="text-red-400 text-xs px-2">{emailError}</p>
-            )}
-            {message && (
-              <p
-                className={`text-sm text-center ${
-                  message.type === "success" ? "text-green-400" : "text-red-400"
-                }`}
-              >
-                {message.text}
-              </p>
             )}
           </div>
         )}

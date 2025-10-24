@@ -11,6 +11,7 @@ import {
 } from "../../../../lib/character-utils";
 import { FeedbackCommentService } from "../../../../lib/supabase/feedback_comments";
 import FeedbackReplyItem from "./FeedbackReplyItem";
+import { toast } from "sonner";
 
 interface FeedbackDetailsProps {
   post: FeedbackPost | null;
@@ -235,7 +236,7 @@ export default function FeedbackDetails({
 
       if (error) {
         console.error("Error creating reply:", error);
-        // TODO: Show error toast/notification to user
+        toast.error("Failed to submit reply. Please try again.");
       } else {
         console.log("Reply created successfully:", comment);
         // Update the optimistic reply with the real data from server
@@ -255,6 +256,7 @@ export default function FeedbackDetails({
       }
     } catch (error) {
       console.error("Failed to submit reply:", error);
+      toast.error("Failed to submit reply. Please try again.");
       // Keep the optimistic update visible even on error
     }
   };
@@ -311,7 +313,7 @@ export default function FeedbackDetails({
 
       if (error) {
         console.error("Error creating comment:", error);
-        // TODO: Show error toast/notification to user
+        toast.error("Failed to submit comment. Please try again.");
         // Note: We keep the optimistic comment even on error since it was "submitted"
       } else {
         console.log("Comment created successfully:", comment);
@@ -332,6 +334,7 @@ export default function FeedbackDetails({
       }
     } catch (error) {
       console.error("Failed to submit comment:", error);
+      toast.error("Failed to submit comment. Please try again.");
       // Keep the optimistic update visible even on error
     }
   };
