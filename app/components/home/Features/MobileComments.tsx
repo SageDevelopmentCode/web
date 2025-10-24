@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useEffect, useState } from "react";
-import { Send, MoreVertical } from "lucide-react";
+import { Send, MoreVertical, Check, X } from "lucide-react";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import Image from "next/image";
@@ -53,6 +53,8 @@ export default function MobileComments({
   const [replyText, setReplyText] = useState<string>("");
   const [commentText, setCommentText] = useState<string>("");
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [editCommentText, setEditCommentText] = useState<string>("");
   const commentsContainerRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -92,6 +94,24 @@ export default function MobileComments({
         document.removeEventListener("mousedown", handleClickOutsideMenu);
     }
   }, [openMenuId]);
+
+  // Handle comment edit
+  const handleEditComment = (commentId: string, content: string) => {
+    setEditingCommentId(commentId);
+    setEditCommentText(content);
+    setOpenMenuId(null);
+  };
+
+  const handleSaveCommentEdit = () => {
+    // Save functionality (not implemented)
+    console.log("Saving comment edit:", editCommentText);
+    setEditingCommentId(null);
+  };
+
+  const handleCancelCommentEdit = () => {
+    setEditingCommentId(null);
+    setEditCommentText("");
+  };
 
   if (!isOpen) return null;
 
@@ -209,10 +229,12 @@ export default function MobileComments({
                                   className="absolute right-0 mt-1 w-32 bg-[#2a2a2a] rounded-lg shadow-lg border border-gray-700 z-10"
                                 >
                                   <button
-                                    onClick={() => {
-                                      // Edit functionality (not implemented)
-                                      setOpenMenuId(null);
-                                    }}
+                                    onClick={() =>
+                                      handleEditComment(
+                                        comment.id,
+                                        comment.content
+                                      )
+                                    }
                                     className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-t-lg cursor-pointer transition-colors"
                                   >
                                     Edit
@@ -231,9 +253,38 @@ export default function MobileComments({
                             </div>
                           )}
                       </div>
-                      <p className="text-white text-sm leading-relaxed">
-                        {comment.content}
-                      </p>
+                      {editingCommentId === comment.id ? (
+                        <div className="relative">
+                          <input
+                            type="text"
+                            value={editCommentText}
+                            onChange={(e) => setEditCommentText(e.target.value)}
+                            className="w-full text-white placeholder-white rounded-xl px-4 py-3 pr-20 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            style={{ backgroundColor: "#4B5563" }}
+                            autoFocus
+                          />
+                          <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center space-x-1">
+                            <button
+                              onClick={handleSaveCommentEdit}
+                              className="p-1.5 text-green-400 hover:text-green-300 cursor-pointer transition-colors rounded hover:bg-gray-600"
+                              title="Save"
+                            >
+                              <Check size={18} />
+                            </button>
+                            <button
+                              onClick={handleCancelCommentEdit}
+                              className="p-1.5 text-red-400 hover:text-red-300 cursor-pointer transition-colors rounded hover:bg-gray-600"
+                              title="Cancel"
+                            >
+                              <X size={18} />
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="text-white text-sm leading-relaxed">
+                          {comment.content}
+                        </p>
+                      )}
                       <div className="flex items-center space-x-4 pt-1">
                         <button
                           onClick={() => onToggleCommentHeart(comment.id)}

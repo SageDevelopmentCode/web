@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Send, MoreVertical } from "lucide-react";
+import { Send, MoreVertical, Check, X } from "lucide-react";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import Image from "next/image";
@@ -48,6 +48,8 @@ export default function ReplyItem({
   isMobile = false,
 }: ReplyItemProps) {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editText, setEditText] = useState(reply.content);
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Handle click outside menu to close it
@@ -64,6 +66,24 @@ export default function ReplyItem({
         document.removeEventListener("mousedown", handleClickOutsideMenu);
     }
   }, [openMenuId]);
+
+  // Handle edit mode
+  const handleEdit = () => {
+    setIsEditing(true);
+    setEditText(reply.content);
+    setOpenMenuId(null);
+  };
+
+  const handleSaveEdit = () => {
+    // Save functionality (not implemented)
+    console.log("Saving edit:", editText);
+    setIsEditing(false);
+  };
+
+  const handleCancelEdit = () => {
+    setEditText(reply.content);
+    setIsEditing(false);
+  };
 
   return (
     <div className="space-y-3">
@@ -109,10 +129,7 @@ export default function ReplyItem({
                     className="absolute right-0 mt-1 w-32 bg-[#2a2a2a] rounded-lg shadow-lg border border-gray-700 z-10"
                   >
                     <button
-                      onClick={() => {
-                        // Edit functionality (not implemented)
-                        setOpenMenuId(null);
-                      }}
+                      onClick={handleEdit}
                       className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-t-lg cursor-pointer transition-colors"
                     >
                       Edit
@@ -131,7 +148,38 @@ export default function ReplyItem({
               </div>
             )}
           </div>
-          <p className="text-white text-sm leading-relaxed">{reply.content}</p>
+          {isEditing ? (
+            <div className="relative">
+              <input
+                type="text"
+                value={editText}
+                onChange={(e) => setEditText(e.target.value)}
+                className="w-full text-white placeholder-white rounded-xl px-4 py-3 pr-20 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                style={{ backgroundColor: "#4B5563" }}
+                autoFocus
+              />
+              <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center space-x-1">
+                <button
+                  onClick={handleSaveEdit}
+                  className="p-1.5 text-green-400 hover:text-green-300 cursor-pointer transition-colors rounded hover:bg-gray-600"
+                  title="Save"
+                >
+                  <Check size={18} />
+                </button>
+                <button
+                  onClick={handleCancelEdit}
+                  className="p-1.5 text-red-400 hover:text-red-300 cursor-pointer transition-colors rounded hover:bg-gray-600"
+                  title="Cancel"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+            </div>
+          ) : (
+            <p className="text-white text-sm leading-relaxed">
+              {reply.content}
+            </p>
+          )}
           <div className="flex items-center space-x-4 pt-1">
             <button
               onClick={() => onToggleReplyHeart(parentCommentId, reply.id)}
