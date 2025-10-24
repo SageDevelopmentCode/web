@@ -180,8 +180,10 @@ export default function Features() {
           }
         } catch (error) {
           console.error("Error in comment fetch:", error);
+        } finally {
+          // Always stop loading, even if there's an error
+          setIsLoadingComments(false);
         }
-        setIsLoadingComments(false); // Stop loading
       } else if (!isOpen) {
         setIsLoadingComments(false);
       }

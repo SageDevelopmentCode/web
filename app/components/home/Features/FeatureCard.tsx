@@ -419,6 +419,7 @@ export default function FeatureCard({
   // Handle bottom sheet close with animation
   const handleCloseBottomSheet = () => {
     setIsClosingBottomSheet(true);
+    setIsLoadingComments(false); // Reset loading state when closing
     setTimeout(() => {
       setIsCommentPressed(false);
       setIsClosingBottomSheet(false);

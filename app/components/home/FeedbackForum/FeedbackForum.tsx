@@ -130,27 +130,33 @@ export default function FeedbackForum({
   const fetchFeedback = async () => {
     setIsLoadingFeedback(true);
 
-    const { feedback, error, count } =
-      await FeedbackService.getFeedbackWithComplete(
-        undefined, // filters
-        undefined, // limit
-        undefined, // offset
-        user?.id // userId for reaction/like status
-      );
+    try {
+      const { feedback, error, count } =
+        await FeedbackService.getFeedbackWithComplete(
+          undefined, // filters
+          undefined, // limit
+          undefined, // offset
+          user?.id // userId for reaction/like status
+        );
 
-    if (error) {
-      console.error("Error fetching feedback:", error);
-    } else {
-      console.log("Feedback with complete data:", feedback);
+      if (error) {
+        console.error("Error fetching feedback:", error);
+      } else {
+        console.log("Feedback with complete data:", feedback);
 
-      if (feedback && feedback.length > 0) {
-        const { posts: transformedPosts, idMap } =
-          transformFeedbackData(feedback);
-        setPosts(transformedPosts);
-        setFeedbackIdMap(idMap);
+        if (feedback && feedback.length > 0) {
+          const { posts: transformedPosts, idMap } =
+            transformFeedbackData(feedback);
+          setPosts(transformedPosts);
+          setFeedbackIdMap(idMap);
+        }
       }
+    } catch (error) {
+      console.error("Exception in fetchFeedback:", error);
+    } finally {
+      // Always stop loading, even if there's an error
+      setIsLoadingFeedback(false);
     }
-    setIsLoadingFeedback(false);
   };
 
   // Silent refetch for background updates (no loading spinner)
