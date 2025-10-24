@@ -46,18 +46,18 @@ export default function Starters() {
       title: "I'm a Student",
       emoji: EmojiMap.STUDENT,
       character: {
-        name: "Gabriel",
-        src: "/assets/Gabriel.png",
-        rarity: "Rare",
-        title: "MESSENGER",
+        name: "Daniel",
+        src: "/assets/Characters/Daniel.PNG",
+        rarity: "Epic",
+        title: "INTEGRITY",
         description:
-          "Gabriel is known as God's messenger, delivering divine announcements and revelations to prophets and people throughout biblical history.",
+          "Daniel was taken from his home as a teenager and forced into Babylon's royal academy—a foreign education system that challenged everything he believed.",
         bestFor:
-          "People who value clear communication, are in leadership positions, or work in teaching and guidance roles.",
-        superEffectiveAgainst: ["Doubt", "Fear", "Confusion"],
+          "Academic pressure (exams, grades, performance anxiety), peer pressure to compromise values, feeling like an outsider, balancing excellence with integrity, career anxiety, standing firm in beliefs while staying kind.",
+        superEffectiveAgainst: ["Compromise", "Pressure", "Fear"],
         verseCollection: {
-          title: "Divine Messages",
-          subtitle: "Collection • 42 Verses",
+          title: "Unwavering Faith",
+          subtitle: "Collection • 52 Verses",
         },
       },
     },
@@ -66,18 +66,18 @@ export default function Starters() {
       title: "I'm a Professional",
       emoji: EmojiMap.PROFESSIONAL,
       character: {
-        name: "Solomon",
-        src: "/assets/Solomon.PNG",
+        name: "Esther",
+        src: "/assets/Characters/Esther.PNG",
         rarity: "Legendary",
-        title: "WISDOM",
+        title: "INFLUENCE",
         description:
-          "Solomon's pursuit of wisdom above all else shows us the value of seeking divine understanding in all life decisions.",
+          "Esther found herself in a position of influence she never expected—queen of a vast empire.",
         bestFor:
-          "People making important decisions, seeking guidance, or wanting to grow in understanding.",
-        superEffectiveAgainst: ["Foolishness", "Confusion", "Poor Judgment"],
+          "Leadership positions, speaking up when something's wrong, advocating for marginalized colleagues, using influence for good, imposter syndrome, balancing ambition with purpose.",
+        superEffectiveAgainst: ["Fear", "Silence", "Injustice"],
         verseCollection: {
-          title: "Proverbs of Life",
-          subtitle: "Collection • 156 Verses",
+          title: "Courageous Advocacy",
+          subtitle: "Collection • 48 Verses",
         },
       },
     },
@@ -86,18 +86,18 @@ export default function Starters() {
       title: "I'm Struggling",
       emoji: EmojiMap.STRUGGLING,
       character: {
-        name: "David",
-        src: "/assets/David.png",
-        rarity: "Epic",
-        title: "COURAGE",
+        name: "Job",
+        src: "/assets/Characters/Job.png",
+        rarity: "Legendary",
+        title: "ENDURANCE",
         description:
-          "David shows us that with faith in God, even the smallest person can overcome the greatest giants and obstacles in life.",
+          "Job lost everything in a single day—career, wealth, family, health. His friends told him it was his fault. His faith was tested to the absolute breaking point.",
         bestFor:
-          "People facing overwhelming challenges, dealing with fear, or needing to step up as leaders.",
-        superEffectiveAgainst: ["Fear", "Pride", "Oppression"],
+          "Grief and loss, depression and mental health struggles, financial crisis or job loss, health issues, when nothing makes sense.",
+        superEffectiveAgainst: ["Despair", "Doubt", "Suffering"],
         verseCollection: {
-          title: "Songs of Victory",
-          subtitle: "Collection • 73 Verses",
+          title: "Perseverance in Pain",
+          subtitle: "Collection • 67 Verses",
         },
       },
     },
@@ -111,9 +111,9 @@ export default function Starters() {
         rarity: "Legendary",
         title: "LOYALTY",
         description:
-          "Ruth's unwavering loyalty and faithfulness demonstrate how dedication and love can transform lives and create lasting legacies.",
+          "Ruth lost her husband young and faced an uncertain future. She chose loyalty to her mother-in-law even when it meant hardship.",
         bestFor:
-          "People working on relationships, dealing with family transitions, or learning about commitment.",
+          "Breakup or divorce recovery, complicated family relationships, loneliness, learning to trust again after betrayal.",
         superEffectiveAgainst: ["Abandonment", "Betrayal", "Isolation"],
         verseCollection: {
           title: "Faithful Devotion",
@@ -126,18 +126,18 @@ export default function Starters() {
       title: "I Want Growth",
       emoji: EmojiMap.GROWTH,
       character: {
-        name: "Deborah",
-        src: "/assets/Deborah.png",
-        rarity: "Rare",
-        title: "PATIENCE",
+        name: "Paul",
+        src: "/assets/Characters/Paul.png",
+        rarity: "Legendary",
+        title: "TRANSFORMATION",
         description:
-          "Deborah's life teaches us that walking with God may set us apart, but it positions us for preservation, purpose, and legacy.",
+          "Paul's life was a dramatic transformation story. From religious zealot persecuting Christians to the greatest missionary in history.",
         bestFor:
-          "People who struggle with impatience, are in waiting seasons, or working on long-term dreams.",
-        superEffectiveAgainst: ["Doubt", "Delay", "Impatience"],
+          "Wanting to change but not knowing how, breaking free from past patterns, discovering your purpose and calling, becoming more like Christ in character, learning from failure and mistakes.",
+        superEffectiveAgainst: ["Stagnation", "Past Shame", "Purposelessness"],
         verseCollection: {
-          title: "Promises in the storm",
-          subtitle: "Collection • 28 Verses",
+          title: "Journey of Change",
+          subtitle: "Collection • 89 Verses",
         },
       },
     },
@@ -146,18 +146,18 @@ export default function Starters() {
       title: "I'm Seeking God",
       emoji: EmojiMap.SEEKING_GOD,
       character: {
-        name: "Solomon", // Duplicate as requested
-        src: "/assets/Solomon.PNG",
+        name: "Moses",
+        src: "/assets/Characters/Moses.PNG",
         rarity: "Legendary",
-        title: "WISDOM",
+        title: "INTIMACY",
         description:
-          "Solomon's pursuit of wisdom above all else shows us the value of seeking divine understanding in all life decisions.",
+          "Moses had the most intimate relationship with God in the Old Testament—he spoke with God face to face, like a friend. He encountered God in the burning bush, on Mount Sinai, in the tabernacle.",
         bestFor:
-          "People making important decisions, seeking guidance, or wanting to grow in understanding.",
-        superEffectiveAgainst: ["Foolishness", "Confusion", "Poor Judgment"],
+          "Wanting to know God personally (not just about Him), learning to hear God's voice, longing for deeper intimacy with God, feeling distant from God, encountering God in meaningful ways, prioritizing God's presence over success.",
+        superEffectiveAgainst: ["Distance", "Doubt", "Spiritual Dryness"],
         verseCollection: {
-          title: "Proverbs of Life",
-          subtitle: "Collection • 156 Verses",
+          title: "Face to Face",
+          subtitle: "Collection • 94 Verses",
         },
       },
     },
