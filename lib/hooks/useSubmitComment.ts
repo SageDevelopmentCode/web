@@ -1,5 +1,6 @@
 import { useCallback } from "react";
 import { FeatureCommentService } from "../supabase/feature_comments";
+import { UserService } from "../supabase/users";
 
 interface Comment {
   id: string;
@@ -40,7 +41,7 @@ interface Reply {
 export function useSubmitComment(
   featureId: string | undefined,
   userId: string | undefined,
-  setComments: (comments: Comment[]) => void,
+  setComments: (updateFn: (prevComments: Comment[]) => Comment[]) => void,
   setIsLoadingComments: (loading: boolean) => void
 ) {
   const handleSubmitComment = useCallback(
@@ -50,49 +51,66 @@ export function useSubmitComment(
       }
 
       try {
-        // Create the comment using createFeatureComment without parent_comment_id
-        const { error } = await FeatureCommentService.createFeatureComment({
-          feature_id: featureId,
-          user_id: userId,
-          content: commentContent.trim(),
-          parent_comment_id: null, // This makes it a top-level comment
-        });
+        // Get user profile for optimistic update
+        const { user: userProfile } = await UserService.getUserById(userId);
 
-        if (error) {
+        // Generate temporary ID for optimistic update
+        const tempId = `temp-${Date.now()}`;
+        const now = new Date().toISOString();
+
+        // Optimistic update - add new comment to the top
+        const optimisticComment: Comment = {
+          id: tempId,
+          content: commentContent.trim(),
+          created_at: now,
+          user: userProfile
+            ? {
+                user_id: userProfile.user_id,
+                display_name: userProfile.display_name,
+                profile_picture: userProfile.profile_picture,
+              }
+            : { user_id: userId },
+          replies: [],
+          reply_count: 0,
+          showReplies: false,
+          isHearted: false,
+          like_count: 0,
+        };
+
+        setComments((prevComments) => [optimisticComment, ...prevComments]);
+
+        // Create the comment using createFeatureComment without parent_comment_id
+        const { comment, error } =
+          await FeatureCommentService.createFeatureComment({
+            feature_id: featureId,
+            user_id: userId,
+            content: commentContent.trim(),
+            parent_comment_id: null, // This makes it a top-level comment
+          });
+
+        if (error || !comment) {
           console.error("Error creating comment:", error);
+          // Revert optimistic update on error
+          setComments((prevComments) =>
+            prevComments.filter((c) => c.id !== tempId)
+          );
           return;
         }
 
-        // Refresh comments to show the new comment
-        setIsLoadingComments(true);
-        const { comments: apiComments, error: fetchError } =
-          await FeatureCommentService.getFeatureCommentsWithUsers(
-            featureId,
-            true,
-            undefined,
-            undefined,
-            userId
-          );
-
-        if (fetchError) {
-          console.error("Error fetching updated comments:", fetchError);
-        } else if (apiComments) {
-          const formattedComments = apiComments.map((comment) => ({
-            ...comment,
-            showReplies: false,
-            isHearted: comment.user_has_liked || false,
-            replies:
-              comment.replies?.map((reply) => ({
-                ...reply,
-                isHearted: reply.user_has_liked || false,
-              })) || [],
-          }));
-          setComments(formattedComments);
-        }
-        setIsLoadingComments(false);
+        // Replace temporary comment with real one
+        setComments((prevComments) =>
+          prevComments.map((c) =>
+            c.id === tempId
+              ? {
+                  ...optimisticComment,
+                  id: comment.id,
+                  created_at: comment.created_at,
+                }
+              : c
+          )
+        );
       } catch (error) {
         console.error("Error in handleSubmitComment:", error);
-        setIsLoadingComments(false);
       }
     },
     [userId, featureId, setComments, setIsLoadingComments]
