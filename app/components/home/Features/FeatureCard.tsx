@@ -416,6 +416,42 @@ export default function FeatureCard({
     }
   };
 
+  // Update comment content (optimistic update)
+  const handleUpdateComment = (commentId: string, newContent: string) => {
+    // Recursive function to update comment/reply content
+    const updateCommentContent = (comments: Comment[]): Comment[] => {
+      return comments.map((comment) => {
+        if (comment.id === commentId) {
+          return { ...comment, content: newContent };
+        }
+        if (comment.replies && comment.replies.length > 0) {
+          return {
+            ...comment,
+            replies: updateRepliesContent(comment.replies),
+          };
+        }
+        return comment;
+      });
+    };
+
+    const updateRepliesContent = (replies: Reply[]): Reply[] => {
+      return replies.map((reply) => {
+        if (reply.id === commentId) {
+          return { ...reply, content: newContent };
+        }
+        if (reply.replies && reply.replies.length > 0) {
+          return {
+            ...reply,
+            replies: updateRepliesContent(reply.replies),
+          };
+        }
+        return reply;
+      });
+    };
+
+    setComments((prevComments) => updateCommentContent(prevComments));
+  };
+
   // Handle bottom sheet close with animation
   const handleCloseBottomSheet = () => {
     setIsClosingBottomSheet(true);
@@ -725,6 +761,7 @@ export default function FeatureCard({
           onOpenSignupModal={onOpenSignupModal || (() => {})}
           isLoadingComments={isLoadingComments}
           currentUserId={user?.id}
+          onUpdateComment={handleUpdateComment}
         />
 
         {/* Floating Emoji Animation */}

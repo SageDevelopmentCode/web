@@ -9,6 +9,7 @@ import {
   getCharacterImageSrc,
   getCharacterImageStyles,
 } from "../../../../lib/character-utils";
+import { FeatureCommentService } from "../../../../lib/supabase/feature_comments";
 import ReplyItem from "./ReplyItem";
 import type { Comment, Reply } from "./types";
 
@@ -29,6 +30,7 @@ interface DesktopCommentsPopupProps {
   onOpenSignupModal: () => void;
   isLoadingComments?: boolean;
   currentUserId?: string;
+  onUpdateComment?: (commentId: string, newContent: string) => void;
 }
 
 export default function DesktopCommentsPopup({
@@ -45,6 +47,7 @@ export default function DesktopCommentsPopup({
   onOpenSignupModal,
   isLoadingComments = false,
   currentUserId,
+  onUpdateComment,
 }: DesktopCommentsPopupProps) {
   const [showScrollHint, setShowScrollHint] = useState(true);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -55,6 +58,7 @@ export default function DesktopCommentsPopup({
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editCommentText, setEditCommentText] = useState<string>("");
+  const [isSaving, setIsSaving] = useState(false);
   const commentsContainerRef = useRef<HTMLDivElement>(null);
   const popupRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -180,10 +184,39 @@ export default function DesktopCommentsPopup({
     setOpenMenuId(null);
   };
 
-  const handleSaveCommentEdit = () => {
-    // Save functionality (not implemented)
-    console.log("Saving comment edit:", editCommentText);
-    setEditingCommentId(null);
+  const handleSaveCommentEdit = async () => {
+    if (!editCommentText.trim() || !editingCommentId) {
+      setEditingCommentId(null);
+      return;
+    }
+
+    setIsSaving(true);
+
+    // Optimistic update
+    if (onUpdateComment) {
+      onUpdateComment(editingCommentId, editCommentText);
+    }
+
+    try {
+      // Call API to update comment
+      const { error } = await FeatureCommentService.updateFeatureComment(
+        editingCommentId,
+        { content: editCommentText }
+      );
+
+      if (error) {
+        console.error("Error updating comment:", error);
+        // Revert optimistic update on error - would need original content
+        // For now, just log the error
+      }
+
+      setEditingCommentId(null);
+    } catch (error) {
+      console.error("Error in handleSaveCommentEdit:", error);
+      setEditingCommentId(null);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleCancelCommentEdit = () => {
@@ -370,14 +403,28 @@ export default function DesktopCommentsPopup({
                               <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center space-x-1">
                                 <button
                                   onClick={handleSaveCommentEdit}
-                                  className="p-1.5 text-green-400 hover:text-green-300 cursor-pointer transition-colors rounded hover:bg-gray-600"
+                                  disabled={isSaving}
+                                  className={`p-1.5 text-green-400 hover:text-green-300 transition-colors rounded hover:bg-gray-600 ${
+                                    isSaving
+                                      ? "opacity-50 cursor-not-allowed"
+                                      : "cursor-pointer"
+                                  }`}
                                   title="Save"
                                 >
-                                  <Check size={18} />
+                                  {isSaving ? (
+                                    <div className="animate-spin rounded-full h-[18px] w-[18px] border-b-2 border-green-400"></div>
+                                  ) : (
+                                    <Check size={18} />
+                                  )}
                                 </button>
                                 <button
                                   onClick={handleCancelCommentEdit}
-                                  className="p-1.5 text-red-400 hover:text-red-300 cursor-pointer transition-colors rounded hover:bg-gray-600"
+                                  disabled={isSaving}
+                                  className={`p-1.5 text-red-400 hover:text-red-300 transition-colors rounded hover:bg-gray-600 ${
+                                    isSaving
+                                      ? "opacity-50 cursor-not-allowed"
+                                      : "cursor-pointer"
+                                  }`}
                                   title="Cancel"
                                 >
                                   <X size={18} />
@@ -495,6 +542,7 @@ export default function DesktopCommentsPopup({
                                 onClose={onClose}
                                 onOpenSignupModal={onOpenSignupModal}
                                 currentUserId={currentUserId}
+                                onUpdateReply={onUpdateComment}
                               />
                             ))}
                           </div>

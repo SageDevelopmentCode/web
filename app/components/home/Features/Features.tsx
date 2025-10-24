@@ -399,6 +399,42 @@ export default function Features() {
     }
   };
 
+  // Update comment content (optimistic update)
+  const handleUpdateComment = (commentId: string, newContent: string) => {
+    // Recursive function to update comment/reply content
+    const updateCommentContent = (comments: Comment[]): Comment[] => {
+      return comments.map((comment) => {
+        if (comment.id === commentId) {
+          return { ...comment, content: newContent };
+        }
+        if (comment.replies && comment.replies.length > 0) {
+          return {
+            ...comment,
+            replies: updateRepliesContent(comment.replies),
+          };
+        }
+        return comment;
+      });
+    };
+
+    const updateRepliesContent = (replies: Reply[]): Reply[] => {
+      return replies.map((reply) => {
+        if (reply.id === commentId) {
+          return { ...reply, content: newContent };
+        }
+        if (reply.replies && reply.replies.length > 0) {
+          return {
+            ...reply,
+            replies: updateRepliesContent(reply.replies),
+          };
+        }
+        return reply;
+      });
+    };
+
+    setComments((prevComments) => updateCommentContent(prevComments));
+  };
+
   // Define gradient options for alternating cards
   const gradientOptions = [
     "linear-gradient(90.81deg, #4AA78B 0.58%, #68AFFF 99.31%)", // Teal to Blue
@@ -731,6 +767,7 @@ export default function Features() {
           onOpenSignupModal={handleOpenSignupModal}
           isLoadingComments={isLoadingComments}
           currentUserId={user?.id}
+          onUpdateComment={handleUpdateComment}
         />
 
         {/* Signup Modal */}

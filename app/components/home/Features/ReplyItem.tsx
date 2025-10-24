@@ -9,6 +9,7 @@ import {
   getCharacterImageSrc,
   getCharacterImageStyles,
 } from "../../../../lib/character-utils";
+import { FeatureCommentService } from "../../../../lib/supabase/feature_comments";
 import type { Reply } from "./types";
 
 interface ReplyItemProps {
@@ -29,6 +30,7 @@ interface ReplyItemProps {
   onOpenSignupModal: () => void;
   currentUserId?: string;
   isMobile?: boolean;
+  onUpdateReply?: (replyId: string, newContent: string) => void;
 }
 
 export default function ReplyItem({
@@ -46,10 +48,12 @@ export default function ReplyItem({
   onOpenSignupModal,
   currentUserId,
   isMobile = false,
+  onUpdateReply,
 }: ReplyItemProps) {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(reply.content);
+  const [isSaving, setIsSaving] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Handle click outside menu to close it
@@ -74,10 +78,47 @@ export default function ReplyItem({
     setOpenMenuId(null);
   };
 
-  const handleSaveEdit = () => {
-    // Save functionality (not implemented)
-    console.log("Saving edit:", editText);
-    setIsEditing(false);
+  const handleSaveEdit = async () => {
+    if (!editText.trim() || editText === reply.content) {
+      setIsEditing(false);
+      return;
+    }
+
+    setIsSaving(true);
+
+    // Optimistic update
+    if (onUpdateReply) {
+      onUpdateReply(reply.id, editText);
+    }
+
+    try {
+      // Call API to update comment
+      const { error } = await FeatureCommentService.updateFeatureComment(
+        reply.id,
+        { content: editText }
+      );
+
+      if (error) {
+        console.error("Error updating reply:", error);
+        // Revert optimistic update on error
+        if (onUpdateReply) {
+          onUpdateReply(reply.id, reply.content);
+        }
+        setEditText(reply.content);
+      }
+
+      setIsEditing(false);
+    } catch (error) {
+      console.error("Error in handleSaveEdit:", error);
+      // Revert optimistic update on error
+      if (onUpdateReply) {
+        onUpdateReply(reply.id, reply.content);
+      }
+      setEditText(reply.content);
+      setIsEditing(false);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleCancelEdit = () => {
@@ -161,14 +202,28 @@ export default function ReplyItem({
               <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center space-x-1">
                 <button
                   onClick={handleSaveEdit}
-                  className="p-1.5 text-green-400 hover:text-green-300 cursor-pointer transition-colors rounded hover:bg-gray-600"
+                  disabled={isSaving}
+                  className={`p-1.5 text-green-400 hover:text-green-300 transition-colors rounded hover:bg-gray-600 ${
+                    isSaving
+                      ? "opacity-50 cursor-not-allowed"
+                      : "cursor-pointer"
+                  }`}
                   title="Save"
                 >
-                  <Check size={18} />
+                  {isSaving ? (
+                    <div className="animate-spin rounded-full h-[18px] w-[18px] border-b-2 border-green-400"></div>
+                  ) : (
+                    <Check size={18} />
+                  )}
                 </button>
                 <button
                   onClick={handleCancelEdit}
-                  className="p-1.5 text-red-400 hover:text-red-300 cursor-pointer transition-colors rounded hover:bg-gray-600"
+                  disabled={isSaving}
+                  className={`p-1.5 text-red-400 hover:text-red-300 transition-colors rounded hover:bg-gray-600 ${
+                    isSaving
+                      ? "opacity-50 cursor-not-allowed"
+                      : "cursor-pointer"
+                  }`}
                   title="Cancel"
                 >
                   <X size={18} />
@@ -281,6 +336,7 @@ export default function ReplyItem({
               onOpenSignupModal={onOpenSignupModal}
               currentUserId={currentUserId}
               isMobile={isMobile}
+              onUpdateReply={onUpdateReply}
             />
           ))}
         </div>
