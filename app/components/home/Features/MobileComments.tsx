@@ -109,6 +109,7 @@ export default function MobileComments({
   const handleSaveCommentEdit = async () => {
     if (!editCommentText.trim() || !editingCommentId) {
       setEditingCommentId(null);
+      setIsSaving(false);
       return;
     }
 
@@ -129,13 +130,11 @@ export default function MobileComments({
       if (error) {
         console.error("Error updating comment:", error);
       }
-
-      setEditingCommentId(null);
     } catch (error) {
       console.error("Error in handleSaveCommentEdit:", error);
-      setEditingCommentId(null);
     } finally {
       setIsSaving(false);
+      setEditingCommentId(null);
     }
   };
 

@@ -81,6 +81,7 @@ export default function ReplyItem({
   const handleSaveEdit = async () => {
     if (!editText.trim() || editText === reply.content) {
       setIsEditing(false);
+      setIsSaving(false);
       return;
     }
 
@@ -106,8 +107,6 @@ export default function ReplyItem({
         }
         setEditText(reply.content);
       }
-
-      setIsEditing(false);
     } catch (error) {
       console.error("Error in handleSaveEdit:", error);
       // Revert optimistic update on error
@@ -115,9 +114,9 @@ export default function ReplyItem({
         onUpdateReply(reply.id, reply.content);
       }
       setEditText(reply.content);
-      setIsEditing(false);
     } finally {
       setIsSaving(false);
+      setIsEditing(false);
     }
   };
 

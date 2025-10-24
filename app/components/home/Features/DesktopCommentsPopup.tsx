@@ -187,6 +187,7 @@ export default function DesktopCommentsPopup({
   const handleSaveCommentEdit = async () => {
     if (!editCommentText.trim() || !editingCommentId) {
       setEditingCommentId(null);
+      setIsSaving(false);
       return;
     }
 
@@ -209,13 +210,11 @@ export default function DesktopCommentsPopup({
         // Revert optimistic update on error - would need original content
         // For now, just log the error
       }
-
-      setEditingCommentId(null);
     } catch (error) {
       console.error("Error in handleSaveCommentEdit:", error);
-      setEditingCommentId(null);
     } finally {
       setIsSaving(false);
+      setEditingCommentId(null);
     }
   };
 
