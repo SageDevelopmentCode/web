@@ -620,6 +620,7 @@ export default function Features() {
 
   return (
     <section
+      id="features-section"
       ref={sectionRef}
       className={`pt-10 pb-16 sm:px-6 md:px-50 w-full max-w-full overflow-x-visible relative transition-opacity duration-700 ${
         hasLoaded ? "opacity-100" : "opacity-0"

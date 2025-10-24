@@ -671,7 +671,7 @@ export default function FeedbackForum({
   return (
     <section
       ref={sectionRef}
-      id="feedback-forum"
+      id="feedback-section"
       className={`pt-10 pb-16 px-4 sm:px-6 md:px-8 w-full transition-opacity duration-700 ${
         hasLoaded ? "opacity-100" : "opacity-0"
       }`}
