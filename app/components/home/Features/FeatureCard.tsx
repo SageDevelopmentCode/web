@@ -724,6 +724,7 @@ export default function FeatureCard({
           isUserSignedIn={isUserSignedIn}
           onOpenSignupModal={onOpenSignupModal || (() => {})}
           isLoadingComments={isLoadingComments}
+          currentUserId={user?.id}
         />
 
         {/* Floating Emoji Animation */}

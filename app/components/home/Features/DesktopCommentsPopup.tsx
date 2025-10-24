@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useEffect, useState } from "react";
-import { Send, X } from "lucide-react";
+import { Send, X, MoreVertical } from "lucide-react";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import Image from "next/image";
@@ -28,6 +28,7 @@ interface DesktopCommentsPopupProps {
   isUserSignedIn: boolean;
   onOpenSignupModal: () => void;
   isLoadingComments?: boolean;
+  currentUserId?: string;
 }
 
 export default function DesktopCommentsPopup({
@@ -43,6 +44,7 @@ export default function DesktopCommentsPopup({
   isUserSignedIn,
   onOpenSignupModal,
   isLoadingComments = false,
+  currentUserId,
 }: DesktopCommentsPopupProps) {
   const [showScrollHint, setShowScrollHint] = useState(true);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -50,8 +52,10 @@ export default function DesktopCommentsPopup({
   const [activeReplyInput, setActiveReplyInput] = useState<string | null>(null);
   const [replyText, setReplyText] = useState<string>("");
   const [commentText, setCommentText] = useState<string>("");
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const commentsContainerRef = useRef<HTMLDivElement>(null);
   const popupRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   // Handle animation states
   useEffect(() => {
@@ -151,6 +155,21 @@ export default function DesktopCommentsPopup({
       setShowScrollHint(false);
     }
   };
+
+  // Handle click outside menu to close it
+  useEffect(() => {
+    const handleClickOutsideMenu = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setOpenMenuId(null);
+      }
+    };
+
+    if (openMenuId) {
+      document.addEventListener("mousedown", handleClickOutsideMenu);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutsideMenu);
+    }
+  }, [openMenuId]);
 
   if (!shouldRender) return null;
 
@@ -265,10 +284,54 @@ export default function DesktopCommentsPopup({
                           )}
                         </div>
                         <div className="flex-1 space-y-1">
-                          <div className="flex items-center space-x-2">
-                            <span className="text-gray-300 text-sm font-medium">
-                              {comment.user?.display_name || "Anonymous"}
-                            </span>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-2">
+                              <span className="text-gray-300 text-sm font-medium">
+                                {comment.user?.display_name || "Anonymous"}
+                              </span>
+                            </div>
+                            {currentUserId &&
+                              comment.user?.user_id === currentUserId && (
+                                <div className="relative">
+                                  <button
+                                    onClick={() =>
+                                      setOpenMenuId(
+                                        openMenuId === comment.id
+                                          ? null
+                                          : comment.id
+                                      )
+                                    }
+                                    className="text-gray-400 hover:text-white transition-colors p-1 cursor-pointer"
+                                  >
+                                    <MoreVertical size={16} />
+                                  </button>
+                                  {openMenuId === comment.id && (
+                                    <div
+                                      ref={menuRef}
+                                      className="absolute right-0 mt-1 w-32 bg-[#2a2a2a] rounded-lg shadow-lg border border-gray-700 z-10"
+                                    >
+                                      <button
+                                        onClick={() => {
+                                          // Edit functionality (not implemented)
+                                          setOpenMenuId(null);
+                                        }}
+                                        className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-t-lg cursor-pointer transition-colors"
+                                      >
+                                        Edit
+                                      </button>
+                                      <button
+                                        onClick={() => {
+                                          // Delete functionality (not implemented)
+                                          setOpenMenuId(null);
+                                        }}
+                                        className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-gray-700 rounded-b-lg cursor-pointer transition-colors"
+                                      >
+                                        Delete
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
                           </div>
                           <p className="text-white text-sm leading-relaxed">
                             {comment.content}
@@ -378,6 +441,7 @@ export default function DesktopCommentsPopup({
                                 isUserSignedIn={isUserSignedIn}
                                 onClose={onClose}
                                 onOpenSignupModal={onOpenSignupModal}
+                                currentUserId={currentUserId}
                               />
                             ))}
                           </div>

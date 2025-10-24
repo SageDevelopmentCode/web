@@ -31,7 +31,12 @@ export default function Features() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Section lazy loading
-  const { ref: sectionRef, hasLoaded, isVisible, hasBeenInvisible } = useSectionLazyLoad({
+  const {
+    ref: sectionRef,
+    hasLoaded,
+    isVisible,
+    hasBeenInvisible,
+  } = useSectionLazyLoad({
     threshold: 0.2,
     rootMargin: "100px",
     triggerOnce: true,
@@ -326,7 +331,6 @@ export default function Features() {
       );
     }
   };
-
 
   // Toggle heart for replies
   const toggleReplyHeart = async (commentId: string, replyId: string) => {
@@ -726,6 +730,7 @@ export default function Features() {
           isUserSignedIn={!!user}
           onOpenSignupModal={handleOpenSignupModal}
           isLoadingComments={isLoadingComments}
+          currentUserId={user?.id}
         />
 
         {/* Signup Modal */}

@@ -1,6 +1,7 @@
 "use client";
 
-import { Send } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Send, MoreVertical } from "lucide-react";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import Image from "next/image";
@@ -18,11 +19,16 @@ interface ReplyItemProps {
   replyText: string;
   setReplyText: (text: string) => void;
   onToggleReplyHeart: (commentId: string, replyId: string) => void;
-  onSubmitReply: (parentCommentId: string, replyContent: string) => Promise<void>;
+  onSubmitReply: (
+    parentCommentId: string,
+    replyContent: string
+  ) => Promise<void>;
   onToggleReplies: (commentId: string) => void;
   isUserSignedIn: boolean;
   onClose: () => void;
   onOpenSignupModal: () => void;
+  currentUserId?: string;
+  isMobile?: boolean;
 }
 
 export default function ReplyItem({
@@ -38,7 +44,27 @@ export default function ReplyItem({
   isUserSignedIn,
   onClose,
   onOpenSignupModal,
+  currentUserId,
+  isMobile = false,
 }: ReplyItemProps) {
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Handle click outside menu to close it
+  useEffect(() => {
+    const handleClickOutsideMenu = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setOpenMenuId(null);
+      }
+    };
+
+    if (openMenuId) {
+      document.addEventListener("mousedown", handleClickOutsideMenu);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutsideMenu);
+    }
+  }, [openMenuId]);
+
   return (
     <div className="space-y-3">
       <div className="flex space-x-3">
@@ -61,10 +87,49 @@ export default function ReplyItem({
           )}
         </div>
         <div className="flex-1 space-y-1">
-          <div className="flex items-center space-x-2">
-            <span className="text-gray-300 text-sm font-medium">
-              {reply.user?.display_name || "Anonymous"}
-            </span>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <span className="text-gray-300 text-sm font-medium">
+                {reply.user?.display_name || "Anonymous"}
+              </span>
+            </div>
+            {currentUserId && reply.user?.user_id === currentUserId && (
+              <div className="relative">
+                <button
+                  onClick={() =>
+                    setOpenMenuId(openMenuId === reply.id ? null : reply.id)
+                  }
+                  className="text-gray-400 hover:text-white transition-colors p-1 cursor-pointer"
+                >
+                  <MoreVertical size={14} />
+                </button>
+                {openMenuId === reply.id && (
+                  <div
+                    ref={menuRef}
+                    className="absolute right-0 mt-1 w-32 bg-[#2a2a2a] rounded-lg shadow-lg border border-gray-700 z-10"
+                  >
+                    <button
+                      onClick={() => {
+                        // Edit functionality (not implemented)
+                        setOpenMenuId(null);
+                      }}
+                      className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-t-lg cursor-pointer transition-colors"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => {
+                        // Delete functionality (not implemented)
+                        setOpenMenuId(null);
+                      }}
+                      className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-gray-700 rounded-b-lg cursor-pointer transition-colors"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
           <p className="text-white text-sm leading-relaxed">{reply.content}</p>
           <div className="flex items-center space-x-4 pt-1">
@@ -105,7 +170,8 @@ export default function ReplyItem({
                 onClick={() => onToggleReplies(reply.id)}
                 className="text-gray-400 hover:text-white transition-colors text-sm"
               >
-                {reply.showReplies ? "Hide" : "View"} {reply.reply_count} Replies
+                {reply.showReplies ? "Hide" : "View"} {reply.reply_count}{" "}
+                Replies
               </button>
             ) : null}
           </div>
@@ -165,6 +231,8 @@ export default function ReplyItem({
               isUserSignedIn={isUserSignedIn}
               onClose={onClose}
               onOpenSignupModal={onOpenSignupModal}
+              currentUserId={currentUserId}
+              isMobile={isMobile}
             />
           ))}
         </div>

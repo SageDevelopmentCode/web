@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useEffect, useState } from "react";
-import { Send } from "lucide-react";
+import { Send, MoreVertical } from "lucide-react";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import Image from "next/image";
@@ -21,11 +21,15 @@ interface MobileCommentsProps {
   onToggleReplies: (commentId: string) => void;
   onToggleCommentHeart: (commentId: string) => void;
   onToggleReplyHeart: (commentId: string, replyId: string) => void;
-  onSubmitReply: (parentCommentId: string, replyContent: string) => Promise<void>;
+  onSubmitReply: (
+    parentCommentId: string,
+    replyContent: string
+  ) => Promise<void>;
   onSubmitComment: (commentContent: string) => Promise<void>;
   isUserSignedIn: boolean;
   onOpenSignupModal: () => void;
   isLoadingComments?: boolean;
+  currentUserId?: string;
 }
 
 export default function MobileComments({
@@ -42,12 +46,15 @@ export default function MobileComments({
   isUserSignedIn,
   onOpenSignupModal,
   isLoadingComments = false,
+  currentUserId,
 }: MobileCommentsProps) {
   const [showScrollHint, setShowScrollHint] = useState(true);
   const [activeReplyInput, setActiveReplyInput] = useState<string | null>(null);
   const [replyText, setReplyText] = useState<string>("");
   const [commentText, setCommentText] = useState<string>("");
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const commentsContainerRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   // Check if scrolling is needed and handle scroll hint
   useEffect(() => {
@@ -70,6 +77,21 @@ export default function MobileComments({
       setShowScrollHint(false);
     }
   };
+
+  // Handle click outside menu to close it
+  useEffect(() => {
+    const handleClickOutsideMenu = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setOpenMenuId(null);
+      }
+    };
+
+    if (openMenuId) {
+      document.addEventListener("mousedown", handleClickOutsideMenu);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutsideMenu);
+    }
+  }, [openMenuId]);
 
   if (!isOpen) return null;
 
@@ -160,10 +182,54 @@ export default function MobileComments({
                       )}
                     </div>
                     <div className="flex-1 space-y-1">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-gray-300 text-sm font-medium">
-                          {comment.user?.display_name || "Anonymous"}
-                        </span>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <span className="text-gray-300 text-sm font-medium">
+                            {comment.user?.display_name || "Anonymous"}
+                          </span>
+                        </div>
+                        {currentUserId &&
+                          comment.user?.user_id === currentUserId && (
+                            <div className="relative">
+                              <button
+                                onClick={() =>
+                                  setOpenMenuId(
+                                    openMenuId === comment.id
+                                      ? null
+                                      : comment.id
+                                  )
+                                }
+                                className="text-gray-400 hover:text-white transition-colors p-1 cursor-pointer"
+                              >
+                                <MoreVertical size={16} />
+                              </button>
+                              {openMenuId === comment.id && (
+                                <div
+                                  ref={menuRef}
+                                  className="absolute right-0 mt-1 w-32 bg-[#2a2a2a] rounded-lg shadow-lg border border-gray-700 z-10"
+                                >
+                                  <button
+                                    onClick={() => {
+                                      // Edit functionality (not implemented)
+                                      setOpenMenuId(null);
+                                    }}
+                                    className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-t-lg cursor-pointer transition-colors"
+                                  >
+                                    Edit
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      // Delete functionality (not implemented)
+                                      setOpenMenuId(null);
+                                    }}
+                                    className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-gray-700 rounded-b-lg cursor-pointer transition-colors"
+                                  >
+                                    Delete
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          )}
                       </div>
                       <p className="text-white text-sm leading-relaxed">
                         {comment.content}
@@ -183,7 +249,9 @@ export default function MobileComments({
                             <FavoriteBorderIcon sx={{ fontSize: 20 }} />
                           )}
                           {comment.like_count && comment.like_count > 0 ? (
-                            <span className="text-xs">{comment.like_count}</span>
+                            <span className="text-xs">
+                              {comment.like_count}
+                            </span>
                           ) : null}
                         </button>
                         <button
@@ -192,7 +260,11 @@ export default function MobileComments({
                               onClose();
                               onOpenSignupModal();
                             } else {
-                              setActiveReplyInput(activeReplyInput === comment.id ? null : comment.id);
+                              setActiveReplyInput(
+                                activeReplyInput === comment.id
+                                  ? null
+                                  : comment.id
+                              );
                             }
                           }}
                           className="text-gray-400 hover:text-white transition-colors text-sm cursor-pointer"
@@ -222,7 +294,7 @@ export default function MobileComments({
                           value={replyText}
                           onChange={(e) => setReplyText(e.target.value)}
                           onKeyDown={(e) => {
-                            if (e.key === 'Enter' && replyText.trim()) {
+                            if (e.key === "Enter" && replyText.trim()) {
                               onSubmitReply(comment.id, replyText);
                               setReplyText("");
                               setActiveReplyInput(null);
@@ -267,6 +339,8 @@ export default function MobileComments({
                             isUserSignedIn={isUserSignedIn}
                             onClose={onClose}
                             onOpenSignupModal={onOpenSignupModal}
+                            currentUserId={currentUserId}
+                            isMobile={false}
                           />
                         ))}
                       </div>
@@ -286,7 +360,7 @@ export default function MobileComments({
                   value={commentText}
                   onChange={(e) => setCommentText(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter' && commentText.trim()) {
+                    if (e.key === "Enter" && commentText.trim()) {
                       onSubmitComment(commentText);
                       setCommentText("");
                     }
