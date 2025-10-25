@@ -729,7 +729,64 @@ export default function FeedbackForum({
     );
   };
 
-  // Handle reply update (replace temp ID with real UUID recursively)
+  // Handle comment content update (for editing)
+  const handleUpdateComment = (commentId: string, newContent: string) => {
+    if (!selectedPostId) return;
+
+    setPosts((prev) =>
+      prev.map((post) =>
+        post.id === selectedPostId
+          ? {
+              ...post,
+              comments: post.comments.map((comment) =>
+                comment.id === commentId
+                  ? { ...comment, content: newContent }
+                  : comment
+              ),
+            }
+          : post
+      )
+    );
+  };
+
+  // Handle reply content update (for editing)
+  const handleUpdateReply = (replyId: string, newContent: string) => {
+    if (!selectedPostId) return;
+
+    setPosts((prev) =>
+      prev.map((post) => {
+        if (post.id !== selectedPostId) return post;
+
+        // Recursive function to update reply content
+        const updateReplyContentRecursive = (
+          comments: FeedbackPost["comments"]
+        ): FeedbackPost["comments"] => {
+          return comments.map((comment) => {
+            // Check if this comment is the reply to update
+            if (comment.id === replyId) {
+              return { ...comment, content: newContent };
+            }
+
+            // If this comment has replies, recursively update them
+            if (comment.replies && comment.replies.length > 0) {
+              return {
+                ...comment,
+                replies: updateReplyContentRecursive(comment.replies),
+              };
+            }
+
+            return comment;
+          });
+        };
+
+        return {
+          ...post,
+          comments: updateReplyContentRecursive(post.comments),
+        };
+      })
+    );
+  };
+
   const handleReplyUpdated = (
     tempId: string,
     realReply: FeedbackPost["comments"][0]
@@ -947,6 +1004,8 @@ export default function FeedbackForum({
                     onReplyUpdated={handleReplyUpdated}
                     onCommentSubmitted={silentRefetchFeedback}
                     onEditPost={handleEditPost}
+                    onUpdateComment={handleUpdateComment}
+                    onUpdateReply={handleUpdateReply}
                     featureCards={featureCards}
                   />
                 </div>
@@ -1253,6 +1312,8 @@ export default function FeedbackForum({
                       onReplyUpdated={handleReplyUpdated}
                       onCommentSubmitted={silentRefetchFeedback}
                       onEditPost={handleEditPost}
+                      onUpdateComment={handleUpdateComment}
+                      onUpdateReply={handleUpdateReply}
                       featureCards={featureCards}
                     />
                   </div>

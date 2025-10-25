@@ -32,6 +32,8 @@ interface FeedbackDetailsProps {
   onReplyUpdated?: (tempId: string, realReply: FeedbackComment) => void;
   onCommentSubmitted?: () => void;
   onEditPost?: (postId: number) => void;
+  onUpdateComment?: (commentId: string, newContent: string) => void;
+  onUpdateReply?: (replyId: string, newContent: string) => void;
   featureCards?: Array<{
     id: string;
     title: string;
@@ -68,6 +70,8 @@ export default function FeedbackDetails({
   onReplyUpdated = () => {},
   onCommentSubmitted = () => {},
   onEditPost,
+  onUpdateComment,
+  onUpdateReply,
   featureCards = [],
 }: FeedbackDetailsProps) {
   const [showScrollHint, setShowScrollHint] = useState(true);
@@ -314,14 +318,31 @@ export default function FeedbackDetails({
 
     setIsSaving(true);
 
-    // TODO: Implement actual save functionality
-    console.log("Saving comment:", editingCommentId, editCommentText);
+    // Optimistic update
+    if (onUpdateComment) {
+      onUpdateComment(editingCommentId, editCommentText);
+    }
 
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      // Call API to update comment
+      const { error } = await FeedbackCommentService.updateFeedbackComment(
+        editingCommentId,
+        { content: editCommentText }
+      );
+
+      if (error) {
+        console.error("Error updating comment:", error);
+        toast.error("Failed to update comment. Please try again.");
+      } else {
+        toast.success("Comment updated successfully");
+      }
+    } catch (error) {
+      console.error("Error in handleSaveCommentEdit:", error);
+      toast.error("Failed to update comment. Please try again.");
+    } finally {
       setIsSaving(false);
       setEditingCommentId(null);
-    }, 500);
+    }
   };
 
   const handleCancelCommentEdit = () => {
@@ -909,6 +930,7 @@ export default function FeedbackDetails({
                         onClose={() => {}}
                         onOpenSignupModal={onOpenSignupModal}
                         currentUserId={userId}
+                        onUpdateReply={onUpdateReply}
                       />
                     ))}
                   </div>

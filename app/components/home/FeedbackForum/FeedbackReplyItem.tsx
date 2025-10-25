@@ -9,8 +9,10 @@ import {
   getCharacterImageSrc,
   getCharacterImageStyles,
 } from "../../../../lib/character-utils";
+import { FeedbackCommentService } from "../../../../lib/supabase/feedback_comments";
+import { toast } from "sonner";
 
-interface FeedbackReplyItemProps {
+export interface FeedbackReplyItemProps {
   reply: FeedbackReply;
   parentCommentId: string;
   activeReplyInput: string | null;
@@ -34,6 +36,7 @@ interface FeedbackReplyItemProps {
   onClose: () => void;
   onOpenSignupModal: () => void;
   currentUserId?: string; // Current logged in user's ID
+  onUpdateReply?: (replyId: string, newContent: string) => void;
 }
 
 export default function FeedbackReplyItem({
@@ -53,6 +56,7 @@ export default function FeedbackReplyItem({
   onClose,
   onOpenSignupModal,
   currentUserId,
+  onUpdateReply,
 }: FeedbackReplyItemProps) {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -91,14 +95,41 @@ export default function FeedbackReplyItem({
 
     setIsSaving(true);
 
-    // TODO: Implement actual save functionality
-    console.log("Saving reply:", reply.id, editText);
+    // Optimistic update
+    if (onUpdateReply) {
+      onUpdateReply(reply.id, editText);
+    }
 
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      // Call API to update reply
+      const { error } = await FeedbackCommentService.updateFeedbackComment(
+        reply.id,
+        { content: editText }
+      );
+
+      if (error) {
+        console.error("Error updating reply:", error);
+        toast.error("Failed to update reply. Please try again.");
+        // Revert optimistic update on error
+        if (onUpdateReply) {
+          onUpdateReply(reply.id, reply.content);
+        }
+        setEditText(reply.content);
+      } else {
+        toast.success("Reply updated successfully");
+      }
+    } catch (error) {
+      console.error("Error in handleSaveEdit:", error);
+      toast.error("Failed to update reply. Please try again.");
+      // Revert optimistic update on error
+      if (onUpdateReply) {
+        onUpdateReply(reply.id, reply.content);
+      }
+      setEditText(reply.content);
+    } finally {
       setIsSaving(false);
       setIsEditing(false);
-    }, 500);
+    }
   };
 
   const handleCancelEdit = () => {
@@ -337,6 +368,7 @@ export default function FeedbackReplyItem({
               onClose={onClose}
               onOpenSignupModal={onOpenSignupModal}
               currentUserId={currentUserId}
+              onUpdateReply={onUpdateReply}
             />
           ))}
         </div>
