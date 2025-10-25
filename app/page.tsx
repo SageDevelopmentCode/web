@@ -96,7 +96,7 @@ export default function Home() {
         isUserSignedIn={!!user}
         onOpenSignupModal={() => setIsSignupModalOpen(true)}
         onCloseFeedbackForum={() => {}}
-        userProfile={userProfile || undefined}
+        userProfile={userProfile as { profile_picture: string } | undefined}
         user={user || undefined}
       />
 
