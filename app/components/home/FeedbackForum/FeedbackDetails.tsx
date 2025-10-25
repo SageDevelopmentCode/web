@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Send, MoreHorizontal, Edit, Trash2 } from "lucide-react";
+import { Send, MoreHorizontal, Edit, Trash2, Check, X } from "lucide-react";
 import Image from "next/image";
 import { PresetEmoji } from "../../Twemoji";
 import { FeedbackPost, FeedbackComment } from "./types";
@@ -79,6 +79,9 @@ export default function FeedbackDetails({
   const [isContentScrollable, setIsContentScrollable] = useState(false);
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [editCommentText, setEditCommentText] = useState<string>("");
+  const [isSaving, setIsSaving] = useState(false);
   const commentsContainerRef = useRef<HTMLDivElement>(null);
   const mobileScrollContainerRef = useRef<HTMLDivElement>(null);
   const buttonRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
@@ -293,6 +296,37 @@ export default function FeedbackDetails({
   const handleReplyCancel = () => {
     setActiveReplyInput(null);
     setReplyText("");
+  };
+
+  // Handle comment edit
+  const handleEditComment = (commentId: string, content: string) => {
+    setEditingCommentId(commentId);
+    setEditCommentText(content);
+    setOpenMenuId(null);
+  };
+
+  const handleSaveCommentEdit = async () => {
+    if (!editCommentText.trim() || !editingCommentId) {
+      setEditingCommentId(null);
+      setIsSaving(false);
+      return;
+    }
+
+    setIsSaving(true);
+
+    // TODO: Implement actual save functionality
+    console.log("Saving comment:", editingCommentId, editCommentText);
+
+    // Simulate API call
+    setTimeout(() => {
+      setIsSaving(false);
+      setEditingCommentId(null);
+    }, 500);
+  };
+
+  const handleCancelCommentEdit = () => {
+    setEditingCommentId(null);
+    setEditCommentText("");
   };
 
   // Handle main comment submission with optimistic update
@@ -669,9 +703,52 @@ export default function FeedbackDetails({
                       {comment.timestamp}
                     </span>
                   </div>
-                  <p className="text-white text-sm leading-relaxed">
-                    {comment.content}
-                  </p>
+                  {editingCommentId === comment.id ? (
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={editCommentText}
+                        onChange={(e) => setEditCommentText(e.target.value)}
+                        className="w-full text-white placeholder-gray-400 rounded-xl px-4 py-3 pr-20 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        style={{ backgroundColor: "#4B5563" }}
+                        autoFocus
+                      />
+                      <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center space-x-1">
+                        <button
+                          onClick={handleSaveCommentEdit}
+                          disabled={isSaving}
+                          className={`p-1.5 text-green-400 hover:text-green-300 transition-colors rounded hover:bg-gray-600 ${
+                            isSaving
+                              ? "opacity-50 cursor-not-allowed"
+                              : "cursor-pointer"
+                          }`}
+                          title="Save"
+                        >
+                          {isSaving ? (
+                            <div className="animate-spin rounded-full h-[18px] w-[18px] border-b-2 border-green-400"></div>
+                          ) : (
+                            <Check size={18} />
+                          )}
+                        </button>
+                        <button
+                          onClick={handleCancelCommentEdit}
+                          disabled={isSaving}
+                          className={`p-1.5 text-red-400 hover:text-red-300 transition-colors rounded hover:bg-gray-600 ${
+                            isSaving
+                              ? "opacity-50 cursor-not-allowed"
+                              : "cursor-pointer"
+                          }`}
+                          title="Cancel"
+                        >
+                          <X size={18} />
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-white text-sm leading-relaxed">
+                      {comment.content}
+                    </p>
+                  )}
                   <div className="flex items-center space-x-4 pt-2">
                     <button
                       ref={(el) => {
@@ -738,11 +815,9 @@ export default function FeedbackDetails({
                             className="absolute right-0 mt-1 w-32 bg-[#2a2a2a] rounded-lg shadow-lg border border-gray-700 z-10"
                           >
                             <button
-                              onClick={() => {
-                                setOpenMenuId(null);
-                                // Handle edit comment
-                                console.log("Edit comment:", comment.id);
-                              }}
+                              onClick={() =>
+                                handleEditComment(comment.id, comment.content)
+                              }
                               className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-t-lg cursor-pointer transition-colors flex items-center gap-2"
                             >
                               <Edit size={14} />
