@@ -965,7 +965,13 @@ export default function FeedbackForum({
                     "linear-gradient(90.81deg, #9D638D 0.58%, #BF8EFF 99.31%)",
                 }}
                 type="button"
-                onClick={() => setShowCreatePostModal(true)}
+                onClick={() => {
+                  if (!isUserSignedIn) {
+                    onOpenSignupModal();
+                  } else {
+                    setShowCreatePostModal(true);
+                  }
+                }}
               >
                 <Plus size={20} />
                 Create
@@ -993,7 +999,13 @@ export default function FeedbackForum({
                       "linear-gradient(90.81deg, #9D638D 0.58%, #BF8EFF 99.31%)",
                   }}
                   type="button"
-                  onClick={() => setShowCreatePostModal(true)}
+                  onClick={() => {
+                    if (!isUserSignedIn) {
+                      onOpenSignupModal();
+                    } else {
+                      setShowCreatePostModal(true);
+                    }
+                  }}
                 >
                   <Plus size={20} />
                   Create

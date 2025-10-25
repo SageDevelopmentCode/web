@@ -226,16 +226,17 @@ export default function FeatureCard({
     reactionType: ReactionType,
     emoji: string
   ) => {
+    // Check if user is signed in first
+    if (!user?.id) {
+      // If user is not signed in, open signup modal
+      onOpenSignupModal?.();
+      return;
+    }
+
     setSelectedReaction(reactionType);
     setAnimatingReaction(reactionType);
     setShowReactionCounts(true);
     createEmojiFlurry(emoji, reactionType);
-
-    // Check if user is signed in
-    if (!user?.id) {
-      console.log("User not signed in, cannot react");
-      return;
-    }
 
     // Call toggleUserReaction with feature id, user id, and reaction
     try {
