@@ -39,7 +39,7 @@ export default function LazyImage({
 
   return (
     <div
-      ref={ref}
+      ref={ref as React.RefObject<HTMLDivElement>}
       className={`relative overflow-hidden ${className}`}
       style={{ width, height }}
     >
