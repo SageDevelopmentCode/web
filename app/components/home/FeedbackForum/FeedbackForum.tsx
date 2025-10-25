@@ -14,6 +14,7 @@ import {
   FeedbackWithUserAndTagsComplete,
 } from "../../../../lib/supabase/feedback";
 import { FeedbackReactionService } from "../../../../lib/supabase/feedback_reactions";
+import { FeedbackCommentService } from "../../../../lib/supabase/feedback_comments";
 import {
   getCharacterImageSrc,
   getCharacterImageStyles,
@@ -787,6 +788,105 @@ export default function FeedbackForum({
     );
   };
 
+  // Handle comment deletion
+  const handleDeleteComment = async (commentId: string): Promise<void> => {
+    if (!selectedPostId) return;
+
+    // Optimistically remove the comment from UI
+    setPosts((prev) =>
+      prev.map((post) =>
+        post.id === selectedPostId
+          ? {
+              ...post,
+              comments: post.comments.filter(
+                (comment) => comment.id !== commentId
+              ),
+              commentsCount: Math.max(0, post.commentsCount - 1),
+            }
+          : post
+      )
+    );
+
+    // Call API to delete comment
+    try {
+      const { error } = await FeedbackCommentService.deleteFeedbackComment(
+        commentId
+      );
+
+      if (error) {
+        console.error("Error deleting comment:", error);
+        // TODO: Revert optimistic update on error
+        // Would need to store the deleted comment to restore it
+      }
+    } catch (error) {
+      console.error("Failed to delete comment:", error);
+      // TODO: Revert optimistic update on error
+    }
+  };
+
+  // Handle reply deletion
+  const handleDeleteReply = async (replyId: string): Promise<void> => {
+    if (!selectedPostId) return;
+
+    // Optimistically remove the reply from UI
+    setPosts((prev) =>
+      prev.map((post) => {
+        if (post.id !== selectedPostId) return post;
+
+        // Recursive function to remove reply
+        const removeReplyRecursive = (
+          comments: FeedbackPost["comments"]
+        ): FeedbackPost["comments"] => {
+          return comments.map((comment) => {
+            // If this comment has replies, filter them
+            if (comment.replies && comment.replies.length > 0) {
+              const filteredReplies = comment.replies.filter(
+                (reply) => reply.id !== replyId
+              );
+
+              // If we found and removed the reply
+              if (filteredReplies.length !== comment.replies.length) {
+                return {
+                  ...comment,
+                  replies: filteredReplies,
+                };
+              }
+
+              // Otherwise, recursively search nested replies
+              return {
+                ...comment,
+                replies: removeReplyRecursive(comment.replies),
+              };
+            }
+
+            return comment;
+          });
+        };
+
+        return {
+          ...post,
+          comments: removeReplyRecursive(post.comments),
+          commentsCount: Math.max(0, post.commentsCount - 1),
+        };
+      })
+    );
+
+    // Call API to delete reply
+    try {
+      const { error } = await FeedbackCommentService.deleteFeedbackComment(
+        replyId
+      );
+
+      if (error) {
+        console.error("Error deleting reply:", error);
+        // TODO: Revert optimistic update on error
+      }
+    } catch (error) {
+      console.error("Failed to delete reply:", error);
+      // TODO: Revert optimistic update on error
+    }
+  };
+
   const handleReplyUpdated = (
     tempId: string,
     realReply: FeedbackPost["comments"][0]
@@ -1006,6 +1106,8 @@ export default function FeedbackForum({
                     onEditPost={handleEditPost}
                     onUpdateComment={handleUpdateComment}
                     onUpdateReply={handleUpdateReply}
+                    onDeleteComment={handleDeleteComment}
+                    onDeleteReply={handleDeleteReply}
                     featureCards={featureCards}
                   />
                 </div>
@@ -1314,6 +1416,8 @@ export default function FeedbackForum({
                       onEditPost={handleEditPost}
                       onUpdateComment={handleUpdateComment}
                       onUpdateReply={handleUpdateReply}
+                      onDeleteComment={handleDeleteComment}
+                      onDeleteReply={handleDeleteReply}
                       featureCards={featureCards}
                     />
                   </div>

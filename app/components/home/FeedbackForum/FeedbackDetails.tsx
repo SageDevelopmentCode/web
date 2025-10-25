@@ -34,6 +34,8 @@ interface FeedbackDetailsProps {
   onEditPost?: (postId: number) => void;
   onUpdateComment?: (commentId: string, newContent: string) => void;
   onUpdateReply?: (replyId: string, newContent: string) => void;
+  onDeleteComment?: (commentId: string) => Promise<void>;
+  onDeleteReply?: (replyId: string) => Promise<void>;
   featureCards?: Array<{
     id: string;
     title: string;
@@ -72,6 +74,8 @@ export default function FeedbackDetails({
   onEditPost,
   onUpdateComment,
   onUpdateReply,
+  onDeleteComment,
+  onDeleteReply,
   featureCards = [],
 }: FeedbackDetailsProps) {
   const [showScrollHint, setShowScrollHint] = useState(true);
@@ -86,6 +90,7 @@ export default function FeedbackDetails({
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editCommentText, setEditCommentText] = useState<string>("");
   const [isSaving, setIsSaving] = useState(false);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const commentsContainerRef = useRef<HTMLDivElement>(null);
   const mobileScrollContainerRef = useRef<HTMLDivElement>(null);
   const buttonRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
@@ -348,6 +353,37 @@ export default function FeedbackDetails({
   const handleCancelCommentEdit = () => {
     setEditingCommentId(null);
     setEditCommentText("");
+  };
+
+  // Handle delete click - show confirmation
+  const handleDeleteClick = (commentId: string) => {
+    setDeleteConfirmId(commentId);
+    setOpenMenuId(null);
+  };
+
+  // Handle delete confirmation
+  const handleConfirmDelete = async () => {
+    if (!deleteConfirmId) return;
+
+    // Try to find if it's a top-level comment or a reply
+    const isTopLevelComment = post?.comments.some(
+      (comment) => comment.id === deleteConfirmId
+    );
+
+    if (isTopLevelComment && onDeleteComment) {
+      await onDeleteComment(deleteConfirmId);
+      toast.success("Comment deleted successfully");
+    } else if (onDeleteReply) {
+      await onDeleteReply(deleteConfirmId);
+      toast.success("Reply deleted successfully");
+    }
+
+    setDeleteConfirmId(null);
+  };
+
+  // Handle delete cancellation
+  const handleCancelDelete = () => {
+    setDeleteConfirmId(null);
   };
 
   // Handle main comment submission with optimistic update
@@ -845,11 +881,7 @@ export default function FeedbackDetails({
                               Edit
                             </button>
                             <button
-                              onClick={() => {
-                                setOpenMenuId(null);
-                                // Handle delete comment
-                                console.log("Delete comment:", comment.id);
-                              }}
+                              onClick={() => handleDeleteClick(comment.id)}
                               className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-gray-700 rounded-b-lg cursor-pointer transition-colors flex items-center gap-2"
                             >
                               <Trash2 size={14} />
@@ -931,6 +963,8 @@ export default function FeedbackDetails({
                         onOpenSignupModal={onOpenSignupModal}
                         currentUserId={userId}
                         onUpdateReply={onUpdateReply}
+                        onDeleteReply={onDeleteReply}
+                        onDeleteClick={handleDeleteClick}
                       />
                     ))}
                   </div>
@@ -938,6 +972,43 @@ export default function FeedbackDetails({
             </div>
           ))}
         </div>
+
+        {/* Delete Confirmation Modal */}
+        {deleteConfirmId && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            {/* Backdrop */}
+            <div
+              className="absolute inset-0"
+              style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
+              onClick={handleCancelDelete}
+            />
+
+            {/* Confirmation Dialog */}
+            <div className="relative bg-[#2a2a2a] rounded-lg shadow-xl p-6 max-w-sm mx-4 border border-gray-700">
+              <h3 className="text-white text-lg font-semibold mb-3">
+                Delete Comment?
+              </h3>
+              <p className="text-gray-300 text-sm mb-6">
+                Are you sure you want to delete this comment? This action cannot
+                be undone.
+              </p>
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={handleCancelDelete}
+                  className="px-4 py-2 text-gray-300 hover:text-white transition-colors rounded-lg hover:bg-gray-700 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmDelete}
+                  className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg cursor-pointer transition-colors"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Scroll Hint */}
         {!isMobile && showScrollHint && post.comments.length > 3 && (

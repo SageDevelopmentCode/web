@@ -37,6 +37,8 @@ export interface FeedbackReplyItemProps {
   onOpenSignupModal: () => void;
   currentUserId?: string; // Current logged in user's ID
   onUpdateReply?: (replyId: string, newContent: string) => void;
+  onDeleteReply?: (replyId: string) => Promise<void>;
+  onDeleteClick?: (replyId: string) => void;
 }
 
 export default function FeedbackReplyItem({
@@ -57,6 +59,8 @@ export default function FeedbackReplyItem({
   onOpenSignupModal,
   currentUserId,
   onUpdateReply,
+  onDeleteReply,
+  onDeleteClick,
 }: FeedbackReplyItemProps) {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -287,8 +291,9 @@ export default function FeedbackReplyItem({
                     <button
                       onClick={() => {
                         setOpenMenuId(null);
-                        // Handle delete reply
-                        console.log("Delete reply:", reply.id);
+                        if (onDeleteClick) {
+                          onDeleteClick(reply.id);
+                        }
                       }}
                       className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-gray-700 rounded-b-lg cursor-pointer transition-colors flex items-center gap-2"
                     >
@@ -369,6 +374,8 @@ export default function FeedbackReplyItem({
               onOpenSignupModal={onOpenSignupModal}
               currentUserId={currentUserId}
               onUpdateReply={onUpdateReply}
+              onDeleteReply={onDeleteReply}
+              onDeleteClick={onDeleteClick}
             />
           ))}
         </div>
