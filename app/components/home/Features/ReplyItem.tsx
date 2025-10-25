@@ -32,6 +32,7 @@ interface ReplyItemProps {
   isMobile?: boolean;
   onUpdateReply?: (replyId: string, newContent: string) => void;
   onDeleteReply?: (replyId: string) => Promise<void>;
+  onDeleteClick?: (replyId: string) => void;
 }
 
 export default function ReplyItem({
@@ -51,6 +52,7 @@ export default function ReplyItem({
   isMobile = false,
   onUpdateReply,
   onDeleteReply,
+  onDeleteClick,
 }: ReplyItemProps) {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -177,10 +179,13 @@ export default function ReplyItem({
                       Edit
                     </button>
                     <button
-                      onClick={async () => {
+                      onClick={() => {
                         setOpenMenuId(null);
-                        if (onDeleteReply) {
-                          await onDeleteReply(reply.id);
+                        if (onDeleteClick) {
+                          onDeleteClick(reply.id);
+                        } else if (onDeleteReply) {
+                          // Fallback for mobile (direct delete without confirmation)
+                          onDeleteReply(reply.id);
                         }
                       }}
                       className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-gray-700 rounded-b-lg cursor-pointer transition-colors"
@@ -341,6 +346,7 @@ export default function ReplyItem({
               isMobile={isMobile}
               onUpdateReply={onUpdateReply}
               onDeleteReply={onDeleteReply}
+              onDeleteClick={onDeleteClick}
             />
           ))}
         </div>

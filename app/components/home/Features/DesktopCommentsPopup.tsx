@@ -61,6 +61,7 @@ export default function DesktopCommentsPopup({
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editCommentText, setEditCommentText] = useState<string>("");
   const [isSaving, setIsSaving] = useState(false);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const commentsContainerRef = useRef<HTMLDivElement>(null);
   const popupRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -225,6 +226,22 @@ export default function DesktopCommentsPopup({
     setEditCommentText("");
   };
 
+  const handleDeleteClick = (commentId: string) => {
+    setDeleteConfirmId(commentId);
+    setOpenMenuId(null);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (deleteConfirmId && onDeleteComment) {
+      await onDeleteComment(deleteConfirmId);
+    }
+    setDeleteConfirmId(null);
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteConfirmId(null);
+  };
+
   if (!shouldRender) return null;
 
   return (
@@ -376,12 +393,9 @@ export default function DesktopCommentsPopup({
                                         Edit
                                       </button>
                                       <button
-                                        onClick={async () => {
-                                          setOpenMenuId(null);
-                                          if (onDeleteComment) {
-                                            await onDeleteComment(comment.id);
-                                          }
-                                        }}
+                                        onClick={() =>
+                                          handleDeleteClick(comment.id)
+                                        }
                                         className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-gray-700 rounded-b-lg cursor-pointer transition-colors"
                                       >
                                         Delete
@@ -547,12 +561,50 @@ export default function DesktopCommentsPopup({
                                 currentUserId={currentUserId}
                                 onUpdateReply={onUpdateComment}
                                 onDeleteReply={onDeleteComment}
+                                onDeleteClick={handleDeleteClick}
                               />
                             ))}
                           </div>
                         )}
                     </div>
                   ))
+                )}
+
+                {/* Delete Confirmation Modal */}
+                {deleteConfirmId && (
+                  <div className="fixed inset-0 z-50 flex items-center justify-center">
+                    {/* Backdrop */}
+                    <div
+                      className="absolute inset-0"
+                      style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
+                      onClick={handleCancelDelete}
+                    />
+
+                    {/* Confirmation Dialog */}
+                    <div className="relative bg-[#2a2a2a] rounded-lg shadow-xl p-6 max-w-sm mx-4 border border-gray-700">
+                      <h3 className="text-white text-lg font-semibold mb-3">
+                        Delete Comment?
+                      </h3>
+                      <p className="text-gray-300 text-sm mb-6">
+                        Are you sure you want to delete this comment? This
+                        action cannot be undone.
+                      </p>
+                      <div className="flex gap-3 justify-end">
+                        <button
+                          onClick={handleCancelDelete}
+                          className="px-4 py-2 text-gray-300 hover:text-white transition-colors rounded-lg hover:bg-gray-700 cursor-pointer"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={handleConfirmDelete}
+                          className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg cursor-pointer transition-colors"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 )}
               </div>
 

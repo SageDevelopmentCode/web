@@ -33,6 +33,7 @@ interface MobileCommentsProps {
   currentUserId?: string;
   onUpdateComment?: (commentId: string, newContent: string) => void;
   onDeleteComment?: (commentId: string) => Promise<void>;
+  onDeleteClick?: (commentId: string) => void;
 }
 
 export default function MobileComments({
@@ -52,6 +53,7 @@ export default function MobileComments({
   currentUserId,
   onUpdateComment,
   onDeleteComment,
+  onDeleteClick,
 }: MobileCommentsProps) {
   const [showScrollHint, setShowScrollHint] = useState(true);
   const [activeReplyInput, setActiveReplyInput] = useState<string | null>(null);
@@ -61,6 +63,9 @@ export default function MobileComments({
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editCommentText, setEditCommentText] = useState<string>("");
   const [isSaving, setIsSaving] = useState(false);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [showDeleteSheet, setShowDeleteSheet] = useState(false);
+  const [isClosingDeleteSheet, setIsClosingDeleteSheet] = useState(false);
   const commentsContainerRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -143,6 +148,34 @@ export default function MobileComments({
   const handleCancelCommentEdit = () => {
     setEditingCommentId(null);
     setEditCommentText("");
+  };
+
+  const handleDeleteClickInternal = (commentId: string) => {
+    setOpenMenuId(null);
+    // If parent provides onDeleteClick, use it (for FeatureCard)
+    // Otherwise, show internal confirmation sheet (for standalone use)
+    if (onDeleteClick) {
+      onDeleteClick(commentId);
+    } else {
+      setDeleteConfirmId(commentId);
+      setShowDeleteSheet(true);
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (deleteConfirmId && onDeleteComment) {
+      await onDeleteComment(deleteConfirmId);
+    }
+    handleCloseDeleteSheet();
+  };
+
+  const handleCloseDeleteSheet = () => {
+    setIsClosingDeleteSheet(true);
+    setTimeout(() => {
+      setShowDeleteSheet(false);
+      setIsClosingDeleteSheet(false);
+      setDeleteConfirmId(null);
+    }, 300);
   };
 
   if (!isOpen) return null;
@@ -272,12 +305,9 @@ export default function MobileComments({
                                     Edit
                                   </button>
                                   <button
-                                    onClick={async () => {
-                                      setOpenMenuId(null);
-                                      if (onDeleteComment) {
-                                        await onDeleteComment(comment.id);
-                                      }
-                                    }}
+                                    onClick={() =>
+                                      handleDeleteClickInternal(comment.id)
+                                    }
                                     className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-gray-700 rounded-b-lg cursor-pointer transition-colors"
                                   >
                                     Delete
@@ -442,6 +472,7 @@ export default function MobileComments({
                             isMobile={false}
                             onUpdateReply={onUpdateComment}
                             onDeleteReply={onDeleteComment}
+                            onDeleteClick={handleDeleteClickInternal}
                           />
                         ))}
                       </div>
@@ -450,6 +481,52 @@ export default function MobileComments({
               ))
             )}
           </div>
+
+          {/* Delete Confirmation Bottom Sheet (only show if not using parent's onDeleteClick) */}
+          {showDeleteSheet && !onDeleteClick && (
+            <>
+              {/* Overlay */}
+              <div
+                className="fixed inset-0 z-[200] transition-opacity duration-300"
+                style={{
+                  backgroundColor: "rgba(0, 0, 0, 0.5)",
+                  opacity: showDeleteSheet && !isClosingDeleteSheet ? 1 : 0,
+                }}
+                onClick={handleCloseDeleteSheet}
+              />
+
+              {/* Bottom Sheet */}
+              <div
+                className={`fixed bottom-0 left-0 right-0 z-[201] bg-[#2a2a2a] rounded-t-3xl p-6 ${
+                  isClosingDeleteSheet
+                    ? "animate-slide-down"
+                    : "animate-slide-up"
+                }`}
+              >
+                <h3 className="text-white text-lg font-semibold mb-3">
+                  Delete Comment?
+                </h3>
+                <p className="text-gray-300 text-sm mb-6">
+                  Are you sure you want to delete this comment? This action
+                  cannot be undone.
+                </p>
+                <div className="flex flex-col gap-3">
+                  <button
+                    onClick={handleConfirmDelete}
+                    className="w-full py-3 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-xl cursor-pointer transition-colors"
+                  >
+                    Delete
+                  </button>
+                  <button
+                    onClick={handleCloseDeleteSheet}
+                    className="w-full py-3 text-gray-300 hover:text-white font-semibold rounded-xl hover:bg-gray-700 cursor-pointer transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
 
           {/* Comment Input or Signup Button */}
           <div className="px-4 py-4 border-t border-gray-700">

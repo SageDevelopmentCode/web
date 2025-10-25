@@ -132,6 +132,9 @@ export default function FeatureCard({
   const [hasUserReacted, setHasUserReacted] = useState<boolean>(false);
   const [comments, setComments] = useState<Comment[]>([]);
   const [isLoadingComments, setIsLoadingComments] = useState(false);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [showDeleteSheet, setShowDeleteSheet] = useState(false);
+  const [isClosingDeleteSheet, setIsClosingDeleteSheet] = useState(false);
   const buttonRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
 
   // Sync comment button state with sidebar state
@@ -452,13 +455,15 @@ export default function FeatureCard({
     setComments((prevComments) => updateCommentContent(prevComments));
   };
 
-  // Delete comment or reply (optimistic update)
-  const handleDeleteComment = async (commentId: string) => {
-    if (!user?.id) {
-      handleCloseBottomSheet();
-      onOpenSignupModal?.();
-      return;
-    }
+  // Handle delete click - show confirmation
+  const handleDeleteClick = (commentId: string) => {
+    setDeleteConfirmId(commentId);
+    setShowDeleteSheet(true);
+  };
+
+  // Confirm and execute delete
+  const handleConfirmDelete = async () => {
+    if (!deleteConfirmId) return;
 
     // Store original comments for potential revert
     const originalComments = [...comments];
@@ -466,7 +471,7 @@ export default function FeatureCard({
     // Recursive function to remove comment/reply
     const removeComment = (comments: Comment[]): Comment[] => {
       return comments
-        .filter((comment) => comment.id !== commentId)
+        .filter((comment) => comment.id !== deleteConfirmId)
         .map((comment) => {
           if (comment.replies && comment.replies.length > 0) {
             return {
@@ -480,7 +485,7 @@ export default function FeatureCard({
 
     const removeReplies = (replies: Reply[]): Reply[] => {
       return replies
-        .filter((reply) => reply.id !== commentId)
+        .filter((reply) => reply.id !== deleteConfirmId)
         .map((reply) => {
           if (reply.replies && reply.replies.length > 0) {
             return {
@@ -498,7 +503,7 @@ export default function FeatureCard({
     try {
       // Call API to soft delete comment
       const { error } = await FeatureCommentService.deleteFeatureComment(
-        commentId
+        deleteConfirmId
       );
 
       if (error) {
@@ -507,10 +512,21 @@ export default function FeatureCard({
         setComments(originalComments);
       }
     } catch (error) {
-      console.error("Error in handleDeleteComment:", error);
+      console.error("Error in handleConfirmDelete:", error);
       // Revert optimistic update on error
       setComments(originalComments);
     }
+
+    handleCloseDeleteSheet();
+  };
+
+  const handleCloseDeleteSheet = () => {
+    setIsClosingDeleteSheet(true);
+    setTimeout(() => {
+      setShowDeleteSheet(false);
+      setIsClosingDeleteSheet(false);
+      setDeleteConfirmId(null);
+    }, 300);
   };
 
   // Handle bottom sheet close with animation
@@ -823,8 +839,53 @@ export default function FeatureCard({
           isLoadingComments={isLoadingComments}
           currentUserId={user?.id}
           onUpdateComment={handleUpdateComment}
-          onDeleteComment={handleDeleteComment}
+          onDeleteComment={undefined}
+          onDeleteClick={handleDeleteClick}
         />
+
+        {/* Delete Confirmation Bottom Sheet */}
+        {showDeleteSheet && isMobile && (
+          <>
+            {/* Overlay */}
+            <div
+              className="fixed inset-0 z-[200] transition-opacity duration-300"
+              style={{
+                backgroundColor: "rgba(0, 0, 0, 0.5)",
+                opacity: showDeleteSheet && !isClosingDeleteSheet ? 1 : 0,
+              }}
+              onClick={handleCloseDeleteSheet}
+            />
+
+            {/* Bottom Sheet */}
+            <div
+              className={`fixed bottom-0 left-0 right-0 z-[201] bg-[#2a2a2a] rounded-t-3xl p-6 ${
+                isClosingDeleteSheet ? "animate-slide-down" : "animate-slide-up"
+              }`}
+            >
+              <h3 className="text-white text-lg font-semibold mb-3">
+                Delete Comment?
+              </h3>
+              <p className="text-gray-300 text-sm mb-6">
+                Are you sure you want to delete this comment? This action cannot
+                be undone.
+              </p>
+              <div className="flex flex-col gap-3">
+                <button
+                  onClick={handleConfirmDelete}
+                  className="w-full py-3 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-xl cursor-pointer transition-colors"
+                >
+                  Delete
+                </button>
+                <button
+                  onClick={handleCloseDeleteSheet}
+                  className="w-full py-3 text-gray-300 hover:text-white font-semibold rounded-xl hover:bg-gray-700 cursor-pointer transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </>
+        )}
 
         {/* Floating Emoji Animation */}
         {floatingEmojis.map((floatingEmoji) => (
