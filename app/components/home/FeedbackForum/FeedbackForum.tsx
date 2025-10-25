@@ -104,6 +104,7 @@ export default function FeedbackForum({
         return comments.map((comment) => ({
           id: comment.id,
           username: comment.user?.display_name || "Anonymous",
+          profile_picture: comment.user?.profile_picture,
           content: comment.content,
           timestamp: formatRelativeTime(comment.created_at),
           heartsCount: comment.like_count || 0,

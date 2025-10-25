@@ -1,8 +1,13 @@
 "use client";
 
 import { Send, MoreHorizontal } from "lucide-react";
+import Image from "next/image";
 import { PresetEmoji } from "../../Twemoji";
 import { FeedbackReply } from "./types";
+import {
+  getCharacterImageSrc,
+  getCharacterImageStyles,
+} from "../../../../lib/character-utils";
 
 interface FeedbackReplyItemProps {
   reply: FeedbackReply;
@@ -49,10 +54,25 @@ export default function FeedbackReplyItem({
   return (
     <div className="space-y-4">
       <div className="flex space-x-3">
-        <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
-          <span className="text-white text-xs font-semibold">
-            {reply.username.charAt(0)}
-          </span>
+        <div
+          className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden border-2 border-gray-300"
+          style={{ backgroundColor: "#D6E5E2" }}
+        >
+          {reply.profile_picture ? (
+            <Image
+              src={getCharacterImageSrc(reply.profile_picture)}
+              alt={reply.profile_picture}
+              width={200}
+              height={200}
+              className="w-auto h-full object-cover opacity-100 grayscale-0"
+              style={getCharacterImageStyles(reply.profile_picture)}
+              quality={100}
+            />
+          ) : (
+            <span className="text-white text-xs font-semibold">
+              {reply.username.charAt(0)}
+            </span>
+          )}
         </div>
         <div className="flex-1 space-y-1">
           <div className="flex items-center space-x-2">

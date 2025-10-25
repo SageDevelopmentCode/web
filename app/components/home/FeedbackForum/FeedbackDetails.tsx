@@ -213,6 +213,7 @@ export default function FeedbackDetails({
     const optimisticReply: FeedbackComment = {
       id: `temp-${Date.now()}`,
       username: userDisplayName || "You",
+      profile_picture: userProfilePicture,
       content: contentToSubmit,
       timestamp: "Just now",
       heartsCount: 0,
@@ -244,6 +245,7 @@ export default function FeedbackDetails({
           const realReply: FeedbackComment = {
             id: comment.id,
             username: userDisplayName || "You",
+            profile_picture: userProfilePicture,
             content: comment.content,
             timestamp: "Just now",
             heartsCount: 0,
@@ -288,6 +290,7 @@ export default function FeedbackDetails({
     const optimisticComment: FeedbackComment = {
       id: `temp-${Date.now()}`, // Temporary ID
       username: userDisplayName || "You",
+      profile_picture: userProfilePicture,
       content: contentToSubmit,
       timestamp: "Just now",
       heartsCount: 0,
@@ -322,6 +325,7 @@ export default function FeedbackDetails({
           const realComment: FeedbackComment = {
             id: comment.id,
             username: userDisplayName || "You",
+            profile_picture: userProfilePicture,
             content: comment.content,
             timestamp: "Just now",
             heartsCount: 0,
@@ -538,13 +542,28 @@ export default function FeedbackDetails({
             <div key={comment.id} className="space-y-4">
               {/* Main Comment */}
               <div className="flex space-x-4">
-                <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
-                  <span className="text-white text-xs font-semibold">
-                    {comment.username
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")}
-                  </span>
+                <div
+                  className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden border-2 border-gray-300"
+                  style={{ backgroundColor: "#D6E5E2" }}
+                >
+                  {comment.profile_picture ? (
+                    <Image
+                      src={getCharacterImageSrc(comment.profile_picture)}
+                      alt={comment.profile_picture}
+                      width={200}
+                      height={200}
+                      className="w-auto h-full object-cover opacity-100 grayscale-0"
+                      style={getCharacterImageStyles(comment.profile_picture)}
+                      quality={100}
+                    />
+                  ) : (
+                    <span className="text-white text-xs font-semibold">
+                      {comment.username
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")}
+                    </span>
+                  )}
                 </div>
                 <div className="flex-1 space-y-2">
                   <div className="flex items-center space-x-2">
