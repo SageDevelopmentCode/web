@@ -23,13 +23,13 @@ export default function Footer() {
     {
       name: "Instagram",
       icon: Instagram,
-      url: "https://instagram.com/sagefied",
+      url: "https://instagram.com/sagechristianapp",
       isLucide: true,
     },
     {
       name: "Discord",
       icon: DiscordIcon,
-      url: "https://discord.gg/sagefied",
+      url: "https://discord.gg/kMUdJkWS",
       isCustom: true,
     },
     {
@@ -41,13 +41,13 @@ export default function Footer() {
     {
       name: "Reddit",
       icon: RedditIcon,
-      url: "https://reddit.com/r/sagefied",
+      url: "https://www.reddit.com/r/SageChristianApp/?type=TEXT",
       isMui: true,
     },
     {
       name: "X",
       icon: XIcon,
-      url: "https://x.com/sagefied",
+      url: "https://x.com/sagefieldapp",
       isMui: true,
     },
   ];
