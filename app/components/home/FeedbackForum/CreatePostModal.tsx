@@ -125,6 +125,7 @@ function SuggestedAndSubmit({
   onDeleteTag,
   dropdownRef,
   editMode = false,
+  isSubmitting = false,
 }: {
   selectedFeature: Feature | undefined;
   onFeatureButtonClick: () => void;
@@ -137,6 +138,7 @@ function SuggestedAndSubmit({
   onDeleteTag: (tagId: string) => void;
   dropdownRef: React.RefObject<HTMLDivElement | null>;
   editMode?: boolean;
+  isSubmitting?: boolean;
 }) {
   // Get selected tags objects
   const selectedTags = availableTags.filter((tag) =>
@@ -233,14 +235,28 @@ function SuggestedAndSubmit({
       {/* Submit Button */}
       <button
         onClick={onSubmit}
-        className="w-full py-3 text-white font-bold transition-all hover:opacity-90 cursor-pointer"
+        disabled={isSubmitting}
+        className={`w-full py-3 text-white font-bold transition-all flex items-center justify-center gap-2 ${
+          isSubmitting
+            ? "opacity-70 cursor-not-allowed"
+            : "hover:opacity-90 cursor-pointer"
+        }`}
         style={{
           backgroundColor: "#778554",
           boxShadow: "0px 4px 0px 1px #57613B",
           borderRadius: "15px",
         }}
       >
-        {editMode ? "Save Changes" : "Submit Post"}
+        {isSubmitting && (
+          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+        )}
+        {isSubmitting
+          ? editMode
+            ? "Saving..."
+            : "Submitting..."
+          : editMode
+          ? "Save Changes"
+          : "Submit Post"}
       </button>
     </>
   );
@@ -276,6 +292,7 @@ export default function CreatePostModal({
   const [selectedTagIds, setSelectedTagIds] =
     useState<string[]>(existingTagIds);
   const [isTagDropdownOpen, setIsTagDropdownOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Check for mobile viewport
@@ -446,6 +463,8 @@ export default function CreatePostModal({
       return;
     }
 
+    setIsSubmitting(true);
+
     try {
       if (editMode && existingFeedbackId) {
         // Update existing feedback
@@ -460,6 +479,7 @@ export default function CreatePostModal({
 
         if (feedbackError) {
           console.error("Error updating feedback:", feedbackError);
+          setIsSubmitting(false);
           return;
         }
 
@@ -488,6 +508,7 @@ export default function CreatePostModal({
 
         if (feedbackError || !feedback) {
           console.error("Error creating feedback:", feedbackError);
+          setIsSubmitting(false);
           return;
         }
 
@@ -519,9 +540,11 @@ export default function CreatePostModal({
       setDescription("");
       setSelectedTagIds([]);
       setSelectedFeatureId(null);
+      setIsSubmitting(false);
       handleClose();
     } catch (error) {
       console.error("Error submitting feedback:", error);
+      setIsSubmitting(false);
     }
   };
 
@@ -615,6 +638,7 @@ export default function CreatePostModal({
                   onDeleteTag={handleDeleteTag}
                   dropdownRef={dropdownRef}
                   editMode={editMode}
+                  isSubmitting={isSubmitting}
                 />
               </div>
             </div>
@@ -731,6 +755,7 @@ export default function CreatePostModal({
               onDeleteTag={handleDeleteTag}
               dropdownRef={dropdownRef}
               editMode={editMode}
+              isSubmitting={isSubmitting}
             />
           </div>
 
