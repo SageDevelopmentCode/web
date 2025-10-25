@@ -32,6 +32,7 @@ interface MobileCommentsProps {
   isLoadingComments?: boolean;
   currentUserId?: string;
   onUpdateComment?: (commentId: string, newContent: string) => void;
+  onDeleteComment?: (commentId: string) => Promise<void>;
 }
 
 export default function MobileComments({
@@ -50,6 +51,7 @@ export default function MobileComments({
   isLoadingComments = false,
   currentUserId,
   onUpdateComment,
+  onDeleteComment,
 }: MobileCommentsProps) {
   const [showScrollHint, setShowScrollHint] = useState(true);
   const [activeReplyInput, setActiveReplyInput] = useState<string | null>(null);
@@ -270,9 +272,11 @@ export default function MobileComments({
                                     Edit
                                   </button>
                                   <button
-                                    onClick={() => {
-                                      // Delete functionality (not implemented)
+                                    onClick={async () => {
                                       setOpenMenuId(null);
+                                      if (onDeleteComment) {
+                                        await onDeleteComment(comment.id);
+                                      }
                                     }}
                                     className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-gray-700 rounded-b-lg cursor-pointer transition-colors"
                                   >
@@ -437,6 +441,7 @@ export default function MobileComments({
                             currentUserId={currentUserId}
                             isMobile={false}
                             onUpdateReply={onUpdateComment}
+                            onDeleteReply={onDeleteComment}
                           />
                         ))}
                       </div>

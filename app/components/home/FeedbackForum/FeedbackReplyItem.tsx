@@ -12,7 +12,10 @@ interface FeedbackReplyItemProps {
   replyText: string;
   setReplyText: (text: string) => void;
   onToggleReplyHeart: (commentId: string, replyId: string) => void;
-  onSubmitReply: (parentCommentId: string, replyContent: string) => Promise<void>;
+  onSubmitReply: (
+    parentCommentId: string,
+    replyContent: string
+  ) => Promise<void>;
   onToggleReplies: (replyId: string) => void;
   buttonRefs: {
     current: {

@@ -452,6 +452,67 @@ export default function FeatureCard({
     setComments((prevComments) => updateCommentContent(prevComments));
   };
 
+  // Delete comment or reply (optimistic update)
+  const handleDeleteComment = async (commentId: string) => {
+    if (!user?.id) {
+      handleCloseBottomSheet();
+      onOpenSignupModal?.();
+      return;
+    }
+
+    // Store original comments for potential revert
+    const originalComments = [...comments];
+
+    // Recursive function to remove comment/reply
+    const removeComment = (comments: Comment[]): Comment[] => {
+      return comments
+        .filter((comment) => comment.id !== commentId)
+        .map((comment) => {
+          if (comment.replies && comment.replies.length > 0) {
+            return {
+              ...comment,
+              replies: removeReplies(comment.replies),
+            };
+          }
+          return comment;
+        });
+    };
+
+    const removeReplies = (replies: Reply[]): Reply[] => {
+      return replies
+        .filter((reply) => reply.id !== commentId)
+        .map((reply) => {
+          if (reply.replies && reply.replies.length > 0) {
+            return {
+              ...reply,
+              replies: removeReplies(reply.replies),
+            };
+          }
+          return reply;
+        });
+    };
+
+    // Optimistic UI update - remove the comment/reply
+    setComments((prevComments) => removeComment(prevComments));
+
+    try {
+      // Call API to soft delete comment
+      const { error } = await FeatureCommentService.deleteFeatureComment(
+        commentId
+      );
+
+      if (error) {
+        console.error("Error deleting comment:", error);
+        // Revert optimistic update on error
+        setComments(originalComments);
+      }
+    } catch (error) {
+      console.error("Error in handleDeleteComment:", error);
+      // Revert optimistic update on error
+      setComments(originalComments);
+    }
+  };
+
   // Handle bottom sheet close with animation
   const handleCloseBottomSheet = () => {
     setIsClosingBottomSheet(true);
@@ -762,6 +823,7 @@ export default function FeatureCard({
           isLoadingComments={isLoadingComments}
           currentUserId={user?.id}
           onUpdateComment={handleUpdateComment}
+          onDeleteComment={handleDeleteComment}
         />
 
         {/* Floating Emoji Animation */}

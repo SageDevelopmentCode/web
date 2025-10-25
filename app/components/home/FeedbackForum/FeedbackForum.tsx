@@ -54,9 +54,18 @@ export default function FeedbackForum({
   const [feedbackIdMap, setFeedbackIdMap] = useState<Map<number, string>>(
     new Map()
   ); // Maps sequential ID to actual UUID
+  const [retryCount, setRetryCount] = useState(0);
+  const [loadError, setLoadError] = useState(false);
+  const [loadingTimeoutId, setLoadingTimeoutId] =
+    useState<NodeJS.Timeout | null>(null);
 
   // Section lazy loading
-  const { ref: sectionRef, hasLoaded, isVisible, hasBeenInvisible } = useSectionLazyLoad({
+  const {
+    ref: sectionRef,
+    hasLoaded,
+    isVisible,
+    hasBeenInvisible,
+  } = useSectionLazyLoad({
     threshold: 0.2,
     rootMargin: "100px",
     triggerOnce: true,
@@ -99,9 +108,10 @@ export default function FeedbackForum({
           timestamp: formatRelativeTime(comment.created_at),
           heartsCount: comment.like_count || 0,
           isHearted: comment.user_has_liked || false,
-          replies: comment.replies && comment.replies.length > 0
-            ? transformComments(comment.replies as any)
-            : [],
+          replies:
+            comment.replies && comment.replies.length > 0
+              ? transformComments(comment.replies as any)
+              : [],
           reply_count: comment.reply_count || 0,
           showReplies: false,
         }));
@@ -127,8 +137,25 @@ export default function FeedbackForum({
   };
 
   // Function to fetch feedback data with complete information
-  const fetchFeedback = async () => {
+  const fetchFeedback = async (isRetry = false) => {
+    // Clear any existing timeout
+    if (loadingTimeoutId) {
+      clearTimeout(loadingTimeoutId);
+      setLoadingTimeoutId(null);
+    }
+
     setIsLoadingFeedback(true);
+    setLoadError(false);
+
+    // Set a timeout to detect stuck loading (10 seconds)
+    const timeoutId = setTimeout(() => {
+      console.warn("Feedback loading timeout - attempting retry");
+      handleLoadingTimeout();
+    }, 10000);
+
+    setLoadingTimeoutId(timeoutId);
+
+    let shouldRetry = false;
 
     try {
       const { feedback, error, count } =
@@ -139,8 +166,13 @@ export default function FeedbackForum({
           user?.id // userId for reaction/like status
         );
 
+      // Clear timeout on successful response
+      clearTimeout(timeoutId);
+      setLoadingTimeoutId(null);
+
       if (error) {
         console.error("Error fetching feedback:", error);
+        throw error;
       } else {
         console.log("Feedback with complete data:", feedback);
 
@@ -150,11 +182,44 @@ export default function FeedbackForum({
           setPosts(transformedPosts);
           setFeedbackIdMap(idMap);
         }
+
+        // Reset retry count on success
+        setRetryCount(0);
+        setLoadError(false);
+        setIsLoadingFeedback(false);
       }
     } catch (error) {
       console.error("Exception in fetchFeedback:", error);
-    } finally {
-      // Always stop loading, even if there's an error
+      clearTimeout(timeoutId);
+      setLoadingTimeoutId(null);
+
+      // Handle retry logic
+      if (retryCount < 3) {
+        console.log(`Retrying feedback fetch (attempt ${retryCount + 1}/3)`);
+        setRetryCount((prev) => prev + 1);
+        shouldRetry = true;
+        // Retry after a short delay
+        setTimeout(() => fetchFeedback(true), 2000);
+      } else {
+        // Max retries reached
+        console.error("Max retries reached, showing error state");
+        setLoadError(true);
+        setIsLoadingFeedback(false);
+      }
+    }
+  };
+
+  // Handle loading timeout
+  const handleLoadingTimeout = () => {
+    if (retryCount < 3) {
+      console.log(`Loading timeout - retrying (attempt ${retryCount + 1}/3)`);
+      setRetryCount((prev) => prev + 1);
+      setIsLoadingFeedback(false);
+      // Retry after clearing the loading state
+      setTimeout(() => fetchFeedback(true), 1000);
+    } else {
+      console.error("Max retries reached after timeout");
+      setLoadError(true);
       setIsLoadingFeedback(false);
     }
   };
@@ -383,6 +448,15 @@ export default function FeedbackForum({
 
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (loadingTimeoutId) {
+        clearTimeout(loadingTimeoutId);
+      }
+    };
+  }, [loadingTimeoutId]);
 
   const handleSelectPost = (postId: number) => {
     setSelectedPostId(postId);
@@ -755,7 +829,38 @@ export default function FeedbackForum({
         {/* Desktop Layout */}
         {!isMobile && (
           <div className="flex gap-6" style={{ height: "80vh" }}>
-            {isLoadingFeedback ? (
+            {loadError ? (
+              /* Error State */
+              <div
+                className="w-full h-full flex items-center justify-center rounded-3xl"
+                style={{ backgroundColor: "#323817" }}
+              >
+                <div className="flex flex-col items-center gap-4 px-8 text-center">
+                  <div className="text-6xl">⚠️</div>
+                  <p className="text-white text-xl font-semibold">
+                    Failed to Load Feedback
+                  </p>
+                  <p className="text-gray-300 text-base max-w-md">
+                    We couldn't load the feedback after multiple attempts.
+                    Please check your connection and try again.
+                  </p>
+                  <button
+                    onClick={() => {
+                      setRetryCount(0);
+                      setLoadError(false);
+                      fetchFeedback();
+                    }}
+                    className="mt-4 px-6 py-3 text-white font-semibold rounded-full text-base cursor-pointer transition-opacity hover:opacity-90"
+                    style={{
+                      background:
+                        "linear-gradient(90.81deg, #9D638D 0.58%, #BF8EFF 99.31%)",
+                    }}
+                  >
+                    Retry
+                  </button>
+                </div>
+              </div>
+            ) : isLoadingFeedback ? (
               /* Loading State */
               <div
                 className="w-full h-full flex items-center justify-center rounded-3xl"
@@ -769,6 +874,11 @@ export default function FeedbackForum({
                   <p className="text-white text-lg font-medium">
                     Loading feedback...
                   </p>
+                  {retryCount > 0 && (
+                    <p className="text-gray-400 text-sm">
+                      Retry attempt {retryCount} of 3
+                    </p>
+                  )}
                 </div>
               </div>
             ) : (
@@ -802,7 +912,9 @@ export default function FeedbackForum({
                     }}
                     userId={user?.id}
                     feedbackId={
-                      selectedPostId ? feedbackIdMap.get(selectedPostId) : undefined
+                      selectedPostId
+                        ? feedbackIdMap.get(selectedPostId)
+                        : undefined
                     }
                     userDisplayName={user?.user_metadata?.display_name}
                     userProfilePicture={userProfile?.profile_picture}
@@ -821,7 +933,38 @@ export default function FeedbackForum({
         {/* Mobile Layout - Top 3 Posts */}
         {isMobile && (
           <div className="space-y-4">
-            {isLoadingFeedback ? (
+            {loadError ? (
+              /* Mobile Error State */
+              <div
+                className="w-full py-20 flex items-center justify-center rounded-3xl"
+                style={{ backgroundColor: "#323817" }}
+              >
+                <div className="flex flex-col items-center gap-4 px-6 text-center">
+                  <div className="text-5xl">⚠️</div>
+                  <p className="text-white text-lg font-semibold">
+                    Failed to Load Feedback
+                  </p>
+                  <p className="text-gray-300 text-sm">
+                    We couldn't load the feedback after multiple attempts.
+                    Please check your connection and try again.
+                  </p>
+                  <button
+                    onClick={() => {
+                      setRetryCount(0);
+                      setLoadError(false);
+                      fetchFeedback();
+                    }}
+                    className="mt-2 px-6 py-3 text-white font-semibold rounded-full text-base cursor-pointer transition-opacity hover:opacity-90"
+                    style={{
+                      background:
+                        "linear-gradient(90.81deg, #9D638D 0.58%, #BF8EFF 99.31%)",
+                    }}
+                  >
+                    Retry
+                  </button>
+                </div>
+              </div>
+            ) : isLoadingFeedback ? (
               /* Mobile Loading State */
               <div
                 className="w-full py-20 flex items-center justify-center rounded-3xl"
@@ -835,6 +978,11 @@ export default function FeedbackForum({
                   <p className="text-white text-base font-medium">
                     Loading feedback...
                   </p>
+                  {retryCount > 0 && (
+                    <p className="text-gray-400 text-xs">
+                      Retry attempt {retryCount} of 3
+                    </p>
+                  )}
                 </div>
               </div>
             ) : (

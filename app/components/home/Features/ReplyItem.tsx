@@ -31,6 +31,7 @@ interface ReplyItemProps {
   currentUserId?: string;
   isMobile?: boolean;
   onUpdateReply?: (replyId: string, newContent: string) => void;
+  onDeleteReply?: (replyId: string) => Promise<void>;
 }
 
 export default function ReplyItem({
@@ -49,6 +50,7 @@ export default function ReplyItem({
   currentUserId,
   isMobile = false,
   onUpdateReply,
+  onDeleteReply,
 }: ReplyItemProps) {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -175,9 +177,11 @@ export default function ReplyItem({
                       Edit
                     </button>
                     <button
-                      onClick={() => {
-                        // Delete functionality (not implemented)
+                      onClick={async () => {
                         setOpenMenuId(null);
+                        if (onDeleteReply) {
+                          await onDeleteReply(reply.id);
+                        }
                       }}
                       className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-gray-700 rounded-b-lg cursor-pointer transition-colors"
                     >
@@ -336,6 +340,7 @@ export default function ReplyItem({
               currentUserId={currentUserId}
               isMobile={isMobile}
               onUpdateReply={onUpdateReply}
+              onDeleteReply={onDeleteReply}
             />
           ))}
         </div>

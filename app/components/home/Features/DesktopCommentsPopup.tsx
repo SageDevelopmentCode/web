@@ -31,6 +31,7 @@ interface DesktopCommentsPopupProps {
   isLoadingComments?: boolean;
   currentUserId?: string;
   onUpdateComment?: (commentId: string, newContent: string) => void;
+  onDeleteComment?: (commentId: string) => Promise<void>;
 }
 
 export default function DesktopCommentsPopup({
@@ -48,6 +49,7 @@ export default function DesktopCommentsPopup({
   isLoadingComments = false,
   currentUserId,
   onUpdateComment,
+  onDeleteComment,
 }: DesktopCommentsPopupProps) {
   const [showScrollHint, setShowScrollHint] = useState(true);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -374,9 +376,11 @@ export default function DesktopCommentsPopup({
                                         Edit
                                       </button>
                                       <button
-                                        onClick={() => {
-                                          // Delete functionality (not implemented)
+                                        onClick={async () => {
                                           setOpenMenuId(null);
+                                          if (onDeleteComment) {
+                                            await onDeleteComment(comment.id);
+                                          }
                                         }}
                                         className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-gray-700 rounded-b-lg cursor-pointer transition-colors"
                                       >
@@ -542,6 +546,7 @@ export default function DesktopCommentsPopup({
                                 onOpenSignupModal={onOpenSignupModal}
                                 currentUserId={currentUserId}
                                 onUpdateReply={onUpdateComment}
+                                onDeleteReply={onDeleteComment}
                               />
                             ))}
                           </div>
