@@ -1,6 +1,7 @@
 "use client";
 
-import { Send, MoreHorizontal } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Send, MoreHorizontal, Edit, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { PresetEmoji } from "../../Twemoji";
 import { FeedbackReply } from "./types";
@@ -53,6 +54,24 @@ export default function FeedbackReplyItem({
   onOpenSignupModal,
   currentUserId,
 }: FeedbackReplyItemProps) {
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Handle click outside menu to close it
+  useEffect(() => {
+    const handleClickOutsideMenu = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setOpenMenuId(null);
+      }
+    };
+
+    if (openMenuId) {
+      document.addEventListener("mousedown", handleClickOutsideMenu);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutsideMenu);
+    }
+  }, [openMenuId]);
+
   return (
     <div className="space-y-4">
       <div className="flex space-x-3">
@@ -129,15 +148,50 @@ export default function FeedbackReplyItem({
               </button>
             )}
             {currentUserId && reply.user_id === currentUserId && (
-              <button
-                onClick={() => {
-                  // Handle more options menu for reply
-                }}
-                className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-600 transition-all duration-200 cursor-pointer ml-auto"
-                style={{ backgroundColor: "#282828" }}
-              >
-                <MoreHorizontal size={12} />
-              </button>
+              <div className="relative ml-auto">
+                <button
+                  onClick={() => {
+                    setOpenMenuId(
+                      openMenuId === `reply-${reply.id}`
+                        ? null
+                        : `reply-${reply.id}`
+                    );
+                  }}
+                  className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-600 transition-all duration-200 cursor-pointer"
+                  style={{ backgroundColor: "#282828" }}
+                >
+                  <MoreHorizontal size={12} />
+                </button>
+                {openMenuId === `reply-${reply.id}` && (
+                  <div
+                    ref={menuRef}
+                    className="absolute right-0 mt-1 w-32 bg-[#2a2a2a] rounded-lg shadow-lg border border-gray-700 z-10"
+                  >
+                    <button
+                      onClick={() => {
+                        setOpenMenuId(null);
+                        // Handle edit reply
+                        console.log("Edit reply:", reply.id);
+                      }}
+                      className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-t-lg cursor-pointer transition-colors flex items-center gap-2"
+                    >
+                      <Edit size={14} />
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => {
+                        setOpenMenuId(null);
+                        // Handle delete reply
+                        console.log("Delete reply:", reply.id);
+                      }}
+                      className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-gray-700 rounded-b-lg cursor-pointer transition-colors flex items-center gap-2"
+                    >
+                      <Trash2 size={14} />
+                      Delete
+                    </button>
+                  </div>
+                )}
+              </div>
             )}
           </div>
         </div>

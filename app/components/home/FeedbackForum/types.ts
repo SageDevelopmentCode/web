@@ -45,4 +45,5 @@ export interface FeedbackPost {
   isHearted?: boolean;
   comments: FeedbackComment[];
   tags?: FeedbackTag[];
+  feature_id?: string | null; // Feature ID if linked to a feature
 }

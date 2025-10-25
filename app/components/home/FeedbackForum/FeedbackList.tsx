@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { MoreHorizontal } from "lucide-react";
+import { MoreHorizontal, Edit, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { PresetEmoji } from "../../Twemoji";
 import { FeedbackPost } from "./types";
@@ -18,6 +18,7 @@ interface FeedbackListProps {
   isMobile?: boolean;
   isUserSignedIn?: boolean;
   currentUserId?: string; // Current logged in user's ID
+  onEditPost?: (postId: number) => void;
 }
 
 interface FloatingEmoji {
@@ -38,13 +39,16 @@ export default function FeedbackList({
   isMobile = false,
   isUserSignedIn = false,
   currentUserId,
+  onEditPost,
 }: FeedbackListProps) {
   const [activeFilter, setActiveFilter] = useState<
     "top" | "new" | "upcoming" | "all"
   >("all");
   const [floatingEmojis, setFloatingEmojis] = useState<FloatingEmoji[]>([]);
   const [animatingHeart, setAnimatingHeart] = useState<number | null>(null);
+  const [openMenuId, setOpenMenuId] = useState<number | null>(null);
   const buttonRefs = useRef<{ [key: number]: HTMLButtonElement | null }>({});
+  const menuRef = useRef<HTMLDivElement>(null);
 
   const filteredPosts =
     activeFilter === "all"
@@ -61,6 +65,21 @@ export default function FeedbackList({
       return () => clearTimeout(timer);
     }
   }, [floatingEmojis]);
+
+  // Handle click outside menu to close it
+  useEffect(() => {
+    const handleClickOutsideMenu = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setOpenMenuId(null);
+      }
+    };
+
+    if (openMenuId) {
+      document.addEventListener("mousedown", handleClickOutsideMenu);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutsideMenu);
+    }
+  }, [openMenuId]);
 
   // Function to create floating emoji animation
   const createEmojiFlurry = (postId: number) => {
@@ -293,16 +312,53 @@ export default function FeedbackList({
                 {!isMobile &&
                   currentUserId &&
                   post.user_id === currentUserId && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // Handle more options menu
-                      }}
-                      className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-700 transition-all duration-200 cursor-pointer"
-                      style={{ backgroundColor: "#282828" }}
-                    >
-                      <MoreHorizontal size={16} />
-                    </button>
+                    <div className="relative">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setOpenMenuId(
+                            openMenuId === post.id ? null : post.id
+                          );
+                        }}
+                        className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-700 transition-all duration-200 cursor-pointer"
+                        style={{ backgroundColor: "#282828" }}
+                      >
+                        <MoreHorizontal size={16} />
+                      </button>
+                      {openMenuId === post.id && (
+                        <div
+                          ref={menuRef}
+                          className="absolute right-0 mt-1 w-32 bg-[#2a2a2a] rounded-lg shadow-lg border border-gray-700 z-10"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setOpenMenuId(null);
+                              if (onEditPost) {
+                                onEditPost(post.id);
+                              }
+                            }}
+                            className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-t-lg cursor-pointer transition-colors flex items-center gap-2"
+                          >
+                            <Edit size={14} />
+                            Edit
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setOpenMenuId(null);
+                              // Handle delete post
+                              console.log("Delete post:", post.id);
+                            }}
+                            className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-gray-700 rounded-b-lg cursor-pointer transition-colors flex items-center gap-2"
+                          >
+                            <Trash2 size={14} />
+                            Delete
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   )}
               </div>
             </div>

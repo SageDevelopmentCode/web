@@ -36,6 +36,13 @@ interface CreatePostModalProps {
   };
   features?: Feature[];
   onSuccess?: () => void;
+  // Edit mode props
+  editMode?: boolean;
+  existingFeedbackId?: string;
+  existingTitle?: string;
+  existingDescription?: string;
+  existingFeatureId?: string | null;
+  existingTagIds?: string[];
 }
 
 // User Avatar Component
@@ -117,6 +124,7 @@ function SuggestedAndSubmit({
   onSelectTag,
   onDeleteTag,
   dropdownRef,
+  editMode = false,
 }: {
   selectedFeature: Feature | undefined;
   onFeatureButtonClick: () => void;
@@ -128,6 +136,7 @@ function SuggestedAndSubmit({
   onSelectTag: (tagId: string) => void;
   onDeleteTag: (tagId: string) => void;
   dropdownRef: React.RefObject<HTMLDivElement | null>;
+  editMode?: boolean;
 }) {
   // Get selected tags objects
   const selectedTags = availableTags.filter((tag) =>
@@ -231,7 +240,7 @@ function SuggestedAndSubmit({
           borderRadius: "15px",
         }}
       >
-        Submit Post
+        {editMode ? "Save Changes" : "Submit Post"}
       </button>
     </>
   );
@@ -244,13 +253,19 @@ export default function CreatePostModal({
   user,
   features = [],
   onSuccess,
+  editMode = false,
+  existingFeedbackId,
+  existingTitle = "",
+  existingDescription = "",
+  existingFeatureId = null,
+  existingTagIds = [],
 }: CreatePostModalProps) {
   const [isVisible, setIsVisible] = useState(false);
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
+  const [title, setTitle] = useState(existingTitle);
+  const [description, setDescription] = useState(existingDescription);
   const [showFeatureSelector, setShowFeatureSelector] = useState(false);
   const [selectedFeatureId, setSelectedFeatureId] = useState<string | null>(
-    null
+    existingFeatureId
   );
   const [isMobile, setIsMobile] = useState(false);
   const [mobileStep, setMobileStep] = useState<"form" | "selectFeature">(
@@ -258,7 +273,8 @@ export default function CreatePostModal({
   );
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [availableTags, setAvailableTags] = useState<Tag[]>([]);
-  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
+  const [selectedTagIds, setSelectedTagIds] =
+    useState<string[]>(existingTagIds);
   const [isTagDropdownOpen, setIsTagDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -277,6 +293,13 @@ export default function CreatePostModal({
   useEffect(() => {
     if (isOpen) {
       setIsVisible(true);
+      // Set initial values when opening in edit mode
+      if (editMode) {
+        setTitle(existingTitle);
+        setDescription(existingDescription);
+        setSelectedFeatureId(existingFeatureId);
+        setSelectedTagIds(existingTagIds);
+      }
       // Fetch tags when modal opens
       const fetchTags = async () => {
         const { tags, error } = await TagsService.getAllTags();
@@ -288,7 +311,14 @@ export default function CreatePostModal({
     } else {
       setIsVisible(false);
     }
-  }, [isOpen]);
+  }, [
+    isOpen,
+    editMode,
+    existingTitle,
+    existingDescription,
+    existingFeatureId,
+    existingTagIds,
+  ]);
 
   // Handle body scroll lock
   useEffect(() => {
@@ -417,36 +447,67 @@ export default function CreatePostModal({
     }
 
     try {
-      // Create the feedback post
-      const { feedback, error: feedbackError } =
-        await FeedbackService.createFeedback({
-          user_id: user.id,
-          title: title.trim(),
-          description: description.trim() || null,
-          feature_id: selectedFeatureId,
-        });
+      if (editMode && existingFeedbackId) {
+        // Update existing feedback
+        const { error: feedbackError } = await FeedbackService.updateFeedback(
+          existingFeedbackId,
+          {
+            title: title.trim(),
+            description: description.trim() || null,
+            feature_id: selectedFeatureId,
+          }
+        );
 
-      if (feedbackError || !feedback) {
-        console.error("Error creating feedback:", feedbackError);
-        return;
-      }
+        if (feedbackError) {
+          console.error("Error updating feedback:", feedbackError);
+          return;
+        }
 
-      // Add tags to the feedback if any were selected
-      if (selectedTagIds.length > 0) {
+        // Update tags - replace existing tags with new ones
         const { error: tagsError } =
-          await FeedbackTagsService.addTagsToFeedback(
-            feedback.id,
+          await FeedbackTagsService.updateFeedbackTags(
+            existingFeedbackId,
             selectedTagIds,
             user.id
           );
 
         if (tagsError) {
-          console.error("Error adding tags to feedback:", tagsError);
-          // Note: Feedback was created successfully, only tags failed
+          console.error("Error updating tags:", tagsError);
         }
-      }
 
-      console.log("Feedback submitted successfully:", feedback);
+        console.log("Feedback updated successfully");
+      } else {
+        // Create new feedback post
+        const { feedback, error: feedbackError } =
+          await FeedbackService.createFeedback({
+            user_id: user.id,
+            title: title.trim(),
+            description: description.trim() || null,
+            feature_id: selectedFeatureId,
+          });
+
+        if (feedbackError || !feedback) {
+          console.error("Error creating feedback:", feedbackError);
+          return;
+        }
+
+        // Add tags to the feedback if any were selected
+        if (selectedTagIds.length > 0) {
+          const { error: tagsError } =
+            await FeedbackTagsService.addTagsToFeedback(
+              feedback.id,
+              selectedTagIds,
+              user.id
+            );
+
+          if (tagsError) {
+            console.error("Error adding tags to feedback:", tagsError);
+            // Note: Feedback was created successfully, only tags failed
+          }
+        }
+
+        console.log("Feedback submitted successfully:", feedback);
+      }
 
       // Call onSuccess callback to refetch feedback list
       if (onSuccess) {
@@ -553,6 +614,7 @@ export default function CreatePostModal({
                   onSelectTag={handleSelectTag}
                   onDeleteTag={handleDeleteTag}
                   dropdownRef={dropdownRef}
+                  editMode={editMode}
                 />
               </div>
             </div>
@@ -668,6 +730,7 @@ export default function CreatePostModal({
               onSelectTag={handleSelectTag}
               onDeleteTag={handleDeleteTag}
               dropdownRef={dropdownRef}
+              editMode={editMode}
             />
           </div>
 

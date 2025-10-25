@@ -50,6 +50,7 @@ export default function FeedbackForum({
     "list"
   );
   const [showCreatePostModal, setShowCreatePostModal] = useState(false);
+  const [editingPostId, setEditingPostId] = useState<number | null>(null);
   const [isLoadingFeedback, setIsLoadingFeedback] = useState(false);
   const [feedbackIdMap, setFeedbackIdMap] = useState<Map<number, string>>(
     new Map()
@@ -133,6 +134,7 @@ export default function FeedbackForum({
         isHearted: fb.user_has_reacted,
         comments: transformComments(fb.comments),
         tags: fb.tags || [],
+        feature_id: fb.feature_id, // Include feature_id for editing
       };
     });
 
@@ -486,6 +488,11 @@ export default function FeedbackForum({
   const handleBackToList = () => {
     setBottomSheetView("list");
     setSelectedPostId(null);
+  };
+
+  const handleEditPost = (postId: number) => {
+    setEditingPostId(postId);
+    setShowCreatePostModal(true);
   };
 
   const handleTogglePostHeart = async (postId: number) => {
@@ -895,6 +902,7 @@ export default function FeedbackForum({
                     onToggleHeart={handleTogglePostHeart}
                     isUserSignedIn={isUserSignedIn}
                     currentUserId={user?.id}
+                    onEditPost={handleEditPost}
                   />
                 </div>
 
@@ -927,6 +935,7 @@ export default function FeedbackForum({
                     onCommentUpdated={handleCommentUpdated}
                     onReplyUpdated={handleReplyUpdated}
                     onCommentSubmitted={silentRefetchFeedback}
+                    onEditPost={handleEditPost}
                   />
                 </div>
               </>
@@ -1180,6 +1189,7 @@ export default function FeedbackForum({
                     isMobile={true}
                     isUserSignedIn={isUserSignedIn}
                     currentUserId={user?.id}
+                    onEditPost={handleEditPost}
                   />
                 ) : (
                   <div className="p-4 h-full">
@@ -1208,6 +1218,7 @@ export default function FeedbackForum({
                       onCommentUpdated={handleCommentUpdated}
                       onReplyUpdated={handleReplyUpdated}
                       onCommentSubmitted={silentRefetchFeedback}
+                      onEditPost={handleEditPost}
                     />
                   </div>
                 )}
@@ -1263,11 +1274,40 @@ export default function FeedbackForum({
       {userProfile && user && (
         <CreatePostModal
           isOpen={showCreatePostModal}
-          onClose={() => setShowCreatePostModal(false)}
+          onClose={() => {
+            setShowCreatePostModal(false);
+            setEditingPostId(null);
+          }}
           userProfile={userProfile}
           user={user}
           features={featureCards}
           onSuccess={fetchFeedback}
+          editMode={editingPostId !== null}
+          existingFeedbackId={
+            editingPostId ? feedbackIdMap.get(editingPostId) : undefined
+          }
+          existingTitle={
+            editingPostId
+              ? posts.find((p) => p.id === editingPostId)?.title
+              : undefined
+          }
+          existingDescription={
+            editingPostId
+              ? posts.find((p) => p.id === editingPostId)?.description
+              : undefined
+          }
+          existingFeatureId={
+            editingPostId
+              ? posts.find((p) => p.id === editingPostId)?.feature_id || null
+              : null
+          }
+          existingTagIds={
+            editingPostId
+              ? posts
+                  .find((p) => p.id === editingPostId)
+                  ?.tags?.map((t) => t.id) || []
+              : []
+          }
         />
       )}
     </section>
