@@ -1,5 +1,6 @@
 export interface FeedbackComment {
   id: string; // Changed from number to string (UUID from database)
+  user_id: string; // User ID of the comment author
   username: string;
   profile_picture?: string;
   content: string;
@@ -12,6 +13,7 @@ export interface FeedbackComment {
 
 export interface FeedbackReply {
   id: string; // Changed from number to string (UUID from database)
+  user_id: string; // User ID of the reply author
   username: string;
   profile_picture?: string;
   content: string;
@@ -31,6 +33,7 @@ export interface FeedbackTag {
 
 export interface FeedbackPost {
   id: number;
+  user_id: string; // User ID of the post author
   username: string;
   profile_picture?: string;
   timestamp: string;

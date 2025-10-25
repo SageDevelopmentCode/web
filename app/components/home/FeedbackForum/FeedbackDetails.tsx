@@ -22,7 +22,7 @@ interface FeedbackDetailsProps {
   isMobile?: boolean;
   isUserSignedIn?: boolean;
   onOpenSignupModal?: () => void;
-  userId?: string;
+  userId?: string; // Current logged in user's ID
   feedbackId?: string;
   userDisplayName?: string;
   userProfilePicture?: string;
@@ -212,6 +212,7 @@ export default function FeedbackDetails({
     // Create optimistic reply
     const optimisticReply: FeedbackComment = {
       id: `temp-${Date.now()}`,
+      user_id: userId, // Include user_id for ownership check
       username: userDisplayName || "You",
       profile_picture: userProfilePicture,
       content: contentToSubmit,
@@ -244,6 +245,7 @@ export default function FeedbackDetails({
         if (comment) {
           const realReply: FeedbackComment = {
             id: comment.id,
+            user_id: userId, // Include user_id for ownership check
             username: userDisplayName || "You",
             profile_picture: userProfilePicture,
             content: comment.content,
@@ -289,6 +291,7 @@ export default function FeedbackDetails({
     // Create optimistic comment
     const optimisticComment: FeedbackComment = {
       id: `temp-${Date.now()}`, // Temporary ID
+      user_id: userId, // Include user_id for ownership check
       username: userDisplayName || "You",
       profile_picture: userProfilePicture,
       content: contentToSubmit,
@@ -324,6 +327,7 @@ export default function FeedbackDetails({
         if (comment) {
           const realComment: FeedbackComment = {
             id: comment.id,
+            user_id: userId, // Include user_id for ownership check
             username: userDisplayName || "You",
             profile_picture: userProfilePicture,
             content: comment.content,
@@ -622,15 +626,17 @@ export default function FeedbackDetails({
                         {comment.replies.length} Replies
                       </button>
                     )}
-                    <button
-                      onClick={() => {
-                        // Handle more options menu for comment
-                      }}
-                      className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-600 transition-all duration-200 cursor-pointer ml-auto"
-                      style={{ backgroundColor: "#282828" }}
-                    >
-                      <MoreHorizontal size={14} />
-                    </button>
+                    {userId && comment.user_id === userId && (
+                      <button
+                        onClick={() => {
+                          // Handle more options menu for comment
+                        }}
+                        className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-600 transition-all duration-200 cursor-pointer ml-auto"
+                        style={{ backgroundColor: "#282828" }}
+                      >
+                        <MoreHorizontal size={14} />
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -701,6 +707,7 @@ export default function FeedbackDetails({
                         isUserSignedIn={isUserSignedIn}
                         onClose={() => {}}
                         onOpenSignupModal={onOpenSignupModal}
+                        currentUserId={userId}
                       />
                     ))}
                   </div>

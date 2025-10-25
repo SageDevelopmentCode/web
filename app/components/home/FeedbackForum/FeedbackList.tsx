@@ -17,6 +17,7 @@ interface FeedbackListProps {
   onToggleHeart: (postId: number) => Promise<void>;
   isMobile?: boolean;
   isUserSignedIn?: boolean;
+  currentUserId?: string; // Current logged in user's ID
 }
 
 interface FloatingEmoji {
@@ -36,6 +37,7 @@ export default function FeedbackList({
   onToggleHeart,
   isMobile = false,
   isUserSignedIn = false,
+  currentUserId,
 }: FeedbackListProps) {
   const [activeFilter, setActiveFilter] = useState<
     "top" | "new" | "upcoming" | "all"
@@ -288,18 +290,20 @@ export default function FeedbackList({
                     {post.commentsCount}
                   </span>
                 </div>
-                {!isMobile && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      // Handle more options menu
-                    }}
-                    className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-700 transition-all duration-200 cursor-pointer"
-                    style={{ backgroundColor: "#282828" }}
-                  >
-                    <MoreHorizontal size={16} />
-                  </button>
-                )}
+                {!isMobile &&
+                  currentUserId &&
+                  post.user_id === currentUserId && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // Handle more options menu
+                      }}
+                      className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-700 transition-all duration-200 cursor-pointer"
+                      style={{ backgroundColor: "#282828" }}
+                    >
+                      <MoreHorizontal size={16} />
+                    </button>
+                  )}
               </div>
             </div>
           </div>

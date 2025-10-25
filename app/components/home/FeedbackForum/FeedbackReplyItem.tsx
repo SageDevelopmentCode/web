@@ -32,6 +32,7 @@ interface FeedbackReplyItemProps {
   isUserSignedIn: boolean;
   onClose: () => void;
   onOpenSignupModal: () => void;
+  currentUserId?: string; // Current logged in user's ID
 }
 
 export default function FeedbackReplyItem({
@@ -50,6 +51,7 @@ export default function FeedbackReplyItem({
   isUserSignedIn,
   onClose,
   onOpenSignupModal,
+  currentUserId,
 }: FeedbackReplyItemProps) {
   return (
     <div className="space-y-4">
@@ -126,15 +128,17 @@ export default function FeedbackReplyItem({
                 Replies
               </button>
             )}
-            <button
-              onClick={() => {
-                // Handle more options menu for reply
-              }}
-              className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-600 transition-all duration-200 cursor-pointer ml-auto"
-              style={{ backgroundColor: "#282828" }}
-            >
-              <MoreHorizontal size={12} />
-            </button>
+            {currentUserId && reply.user_id === currentUserId && (
+              <button
+                onClick={() => {
+                  // Handle more options menu for reply
+                }}
+                className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-600 transition-all duration-200 cursor-pointer ml-auto"
+                style={{ backgroundColor: "#282828" }}
+              >
+                <MoreHorizontal size={12} />
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -203,6 +207,7 @@ export default function FeedbackReplyItem({
               isUserSignedIn={isUserSignedIn}
               onClose={onClose}
               onOpenSignupModal={onOpenSignupModal}
+              currentUserId={currentUserId}
             />
           ))}
         </div>

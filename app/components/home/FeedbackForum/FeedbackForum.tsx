@@ -103,6 +103,7 @@ export default function FeedbackForum({
       ): FeedbackPost["comments"] => {
         return comments.map((comment) => ({
           id: comment.id,
+          user_id: comment.user_id, // Include user_id for ownership check
           username: comment.user?.display_name || "Anonymous",
           profile_picture: comment.user?.profile_picture,
           content: comment.content,
@@ -120,6 +121,7 @@ export default function FeedbackForum({
 
       return {
         id: sequentialId, // Use sequential numbers starting from 1
+        user_id: fb.user_id, // Include user_id for ownership check
         username: fb.user?.display_name || "Anonymous",
         profile_picture: fb.user?.profile_picture,
         timestamp: formatRelativeTime(fb.created_at),
@@ -892,6 +894,7 @@ export default function FeedbackForum({
                     onSelectPost={handleSelectPost}
                     onToggleHeart={handleTogglePostHeart}
                     isUserSignedIn={isUserSignedIn}
+                    currentUserId={user?.id}
                   />
                 </div>
 
@@ -1176,6 +1179,7 @@ export default function FeedbackForum({
                     onToggleHeart={handleTogglePostHeart}
                     isMobile={true}
                     isUserSignedIn={isUserSignedIn}
+                    currentUserId={user?.id}
                   />
                 ) : (
                   <div className="p-4 h-full">
