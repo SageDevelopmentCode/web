@@ -492,7 +492,17 @@ export default function FeedbackForum({
 
   const handleEditPost = (postId: number) => {
     setEditingPostId(postId);
-    setShowCreatePostModal(true);
+
+    // On mobile, close the bottom sheet first before opening edit modal
+    if (isMobile && showBottomSheet) {
+      handleCloseBottomSheet();
+      // Wait for bottom sheet to close before opening edit modal
+      setTimeout(() => {
+        setShowCreatePostModal(true);
+      }, 300); // Match the bottom sheet animation duration
+    } else {
+      setShowCreatePostModal(true);
+    }
   };
 
   const handleTogglePostHeart = async (postId: number) => {
@@ -903,6 +913,7 @@ export default function FeedbackForum({
                     isUserSignedIn={isUserSignedIn}
                     currentUserId={user?.id}
                     onEditPost={handleEditPost}
+                    featureCards={featureCards}
                   />
                 </div>
 
@@ -936,6 +947,7 @@ export default function FeedbackForum({
                     onReplyUpdated={handleReplyUpdated}
                     onCommentSubmitted={silentRefetchFeedback}
                     onEditPost={handleEditPost}
+                    featureCards={featureCards}
                   />
                 </div>
               </>
@@ -1015,32 +1027,53 @@ export default function FeedbackForum({
                       {post.description}
                     </p>
 
-                    {/* Tags */}
-                    {post.tags && post.tags.length > 0 && (
+                    {/* Feature Badge and Tags */}
+                    {(post.feature_id ||
+                      (post.tags && post.tags.length > 0)) && (
                       <div className="flex flex-wrap gap-2 mb-3">
-                        {post.tags.map((tag) => {
-                          const tagColors = {
-                            question: { bg: "#5B8DEE", text: "#FFFFFF" },
-                            improvement: { bg: "#9B59B6", text: "#FFFFFF" },
-                            idea: { bg: "#A8C256", text: "#FFFFFF" },
-                          };
-                          const colors = tagColors[
-                            tag.name.toLowerCase() as keyof typeof tagColors
-                          ] || { bg: "#6B7280", text: "#FFFFFF" };
+                        {/* Feature Badge */}
+                        {post.feature_id && (
+                          <span
+                            className="px-2 py-1 text-xs rounded-full font-medium"
+                            style={{
+                              background:
+                                featureCards.find(
+                                  (f) => f.id === post.feature_id
+                                )?.gradient ||
+                                "linear-gradient(90.81deg, #9D638D 0.58%, #BF8EFF 99.31%)",
+                              color: "#FFFFFF",
+                            }}
+                          >
+                            {featureCards.find((f) => f.id === post.feature_id)
+                              ?.title || "Feature"}
+                          </span>
+                        )}
 
-                          return (
-                            <span
-                              key={tag.id}
-                              className="px-2 py-1 text-xs rounded-full font-medium capitalize"
-                              style={{
-                                backgroundColor: colors.bg,
-                                color: colors.text,
-                              }}
-                            >
-                              {tag.name}
-                            </span>
-                          );
-                        })}
+                        {/* Tags */}
+                        {post.tags &&
+                          post.tags.map((tag) => {
+                            const tagColors = {
+                              question: { bg: "#5B8DEE", text: "#FFFFFF" },
+                              improvement: { bg: "#9B59B6", text: "#FFFFFF" },
+                              idea: { bg: "#A8C256", text: "#FFFFFF" },
+                            };
+                            const colors = tagColors[
+                              tag.name.toLowerCase() as keyof typeof tagColors
+                            ] || { bg: "#6B7280", text: "#FFFFFF" };
+
+                            return (
+                              <span
+                                key={tag.id}
+                                className="px-2 py-1 text-xs rounded-full font-medium capitalize"
+                                style={{
+                                  backgroundColor: colors.bg,
+                                  color: colors.text,
+                                }}
+                              >
+                                {tag.name}
+                              </span>
+                            );
+                          })}
                       </div>
                     )}
 
@@ -1190,6 +1223,7 @@ export default function FeedbackForum({
                     isUserSignedIn={isUserSignedIn}
                     currentUserId={user?.id}
                     onEditPost={handleEditPost}
+                    featureCards={featureCards}
                   />
                 ) : (
                   <div className="p-4 h-full">
@@ -1219,6 +1253,7 @@ export default function FeedbackForum({
                       onReplyUpdated={handleReplyUpdated}
                       onCommentSubmitted={silentRefetchFeedback}
                       onEditPost={handleEditPost}
+                      featureCards={featureCards}
                     />
                   </div>
                 )}

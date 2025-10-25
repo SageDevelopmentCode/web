@@ -19,6 +19,11 @@ interface FeedbackListProps {
   isUserSignedIn?: boolean;
   currentUserId?: string; // Current logged in user's ID
   onEditPost?: (postId: number) => void;
+  featureCards?: Array<{
+    id: string;
+    title: string;
+    gradient: string;
+  }>;
 }
 
 interface FloatingEmoji {
@@ -40,6 +45,7 @@ export default function FeedbackList({
   isUserSignedIn = false,
   currentUserId,
   onEditPost,
+  featureCards = [],
 }: FeedbackListProps) {
   const [activeFilter, setActiveFilter] = useState<
     "top" | "new" | "upcoming" | "all"
@@ -215,32 +221,51 @@ export default function FeedbackList({
               {post.description}
             </p>
 
-            {/* Tags */}
-            {post.tags && post.tags.length > 0 && (
+            {/* Feature Badge and Tags */}
+            {(post.feature_id || (post.tags && post.tags.length > 0)) && (
               <div className="flex flex-wrap gap-2 mb-3">
-                {post.tags.map((tag) => {
-                  const tagColors = {
-                    question: { bg: "#5B8DEE", text: "#FFFFFF" },
-                    improvement: { bg: "#9B59B6", text: "#FFFFFF" },
-                    idea: { bg: "#A8C256", text: "#FFFFFF" },
-                  };
-                  const colors = tagColors[
-                    tag.name.toLowerCase() as keyof typeof tagColors
-                  ] || { bg: "#6B7280", text: "#FFFFFF" };
+                {/* Feature Badge */}
+                {post.feature_id && featureCards.length > 0 && (
+                  <span
+                    className="px-2 py-1 text-xs rounded-full font-medium"
+                    style={{
+                      background:
+                        featureCards.find((f) => f.id === post.feature_id)
+                          ?.gradient ||
+                        "linear-gradient(90.81deg, #9D638D 0.58%, #BF8EFF 99.31%)",
+                      color: "#FFFFFF",
+                    }}
+                  >
+                    {featureCards.find((f) => f.id === post.feature_id)
+                      ?.title || "Feature"}
+                  </span>
+                )}
 
-                  return (
-                    <span
-                      key={tag.id}
-                      className="px-2 py-1 text-xs rounded-full font-medium capitalize"
-                      style={{
-                        backgroundColor: colors.bg,
-                        color: colors.text,
-                      }}
-                    >
-                      {tag.name}
-                    </span>
-                  );
-                })}
+                {/* Tags */}
+                {post.tags &&
+                  post.tags.map((tag) => {
+                    const tagColors = {
+                      question: { bg: "#5B8DEE", text: "#FFFFFF" },
+                      improvement: { bg: "#9B59B6", text: "#FFFFFF" },
+                      idea: { bg: "#A8C256", text: "#FFFFFF" },
+                    };
+                    const colors = tagColors[
+                      tag.name.toLowerCase() as keyof typeof tagColors
+                    ] || { bg: "#6B7280", text: "#FFFFFF" };
+
+                    return (
+                      <span
+                        key={tag.id}
+                        className="px-2 py-1 text-xs rounded-full font-medium capitalize"
+                        style={{
+                          backgroundColor: colors.bg,
+                          color: colors.text,
+                        }}
+                      >
+                        {tag.name}
+                      </span>
+                    );
+                  })}
               </div>
             )}
 
