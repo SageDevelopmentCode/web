@@ -25,7 +25,6 @@ const emojiAssets: { [key: string]: string } = {
   "1f4bc": "/assets/emojis/1f4bc.png", // 💼 briefcase (professional)
   "1f614": "/assets/emojis/1f614.png", // 😔 pensive face (struggling)
   "1f494": "/assets/emojis/1f494.png", // 💔 broken heart (relationship issues)
-  "1f331": "/assets/emojis/1f331.png", // 🌱 seedling (growth)
   "1f64f": "/assets/emojis/1f64f.png", // 🙏 folded hands (seeking God)
   "1f64c": "/assets/emojis/1f64c.png", // 🙌 raising hands (praise/worship)
   "1f940": "/assets/emojis/1f940.png", // 🥀 wilted flower (alternative for struggling)
