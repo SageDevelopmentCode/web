@@ -4,7 +4,7 @@ import { ChevronDown } from "lucide-react";
 
 export default function BottomText() {
   const scrollToFeedbackForum = () => {
-    const feedbackSection = document.getElementById("feedback-forum");
+    const feedbackSection = document.getElementById("feedback-section");
     if (feedbackSection) {
       feedbackSection.scrollIntoView({
         behavior: "smooth",
