@@ -30,9 +30,14 @@ export default function Navigation() {
   }, []);
 
   const menuItems = [
-    { name: "Home", isActive: true },
-    { name: "About", isActive: false },
-    { name: "CharacterDex", isActive: false },
+    { name: "Home", isActive: true, disabled: false },
+    { name: "About", isActive: false, disabled: true, badge: "Coming Soon" },
+    {
+      name: "SageDex",
+      isActive: false,
+      disabled: true,
+      badge: "Coming Soon",
+    },
     // { name: "Features", isActive: false },
     // Only show Sign In / Sign Up if user is not logged in
     ...(!user
@@ -40,6 +45,7 @@ export default function Navigation() {
           {
             name: "Sign In / Sign Up",
             isActive: false,
+            disabled: false,
           },
         ]
       : []),
@@ -57,23 +63,38 @@ export default function Navigation() {
       <nav className="hidden md:block absolute top-4 sm:top-6 right-4 sm:right-6 z-50 pointer-events-auto">
         <div className="flex gap-4 lg:gap-7 items-center">
           {menuItems.map((item) => (
-            <button
-              key={item.name}
-              onClick={() => handleMenuClick(item.name)}
-              disabled={isLoading}
-              className={`px-3 lg:px-5 py-2 rounded-xl text-white font-bold transition-all hover:opacity-80 cursor-pointer text-sm lg:text-base ${
-                isLoading ? "opacity-50 cursor-not-allowed" : ""
-              }`}
-              style={{
-                background: item.isActive
-                  ? "linear-gradient(90.81deg, #9D638D 0.58%, #BF8EFF 99.31%)"
-                  : "#B84786",
-                pointerEvents: "auto",
-              }}
-              type="button"
-            >
-              {item.name}
-            </button>
+            <div key={item.name} className="relative">
+              <button
+                onClick={() => handleMenuClick(item.name)}
+                disabled={isLoading || item.disabled}
+                className={`px-3 lg:px-5 py-2 rounded-xl text-white font-bold transition-all text-sm lg:text-base ${
+                  isLoading || item.disabled
+                    ? "opacity-50 cursor-not-allowed"
+                    : "hover:opacity-80 cursor-pointer"
+                }`}
+                style={{
+                  background: item.isActive
+                    ? "linear-gradient(90.81deg, #9D638D 0.58%, #BF8EFF 99.31%)"
+                    : "#B84786",
+                  pointerEvents: "auto",
+                }}
+                type="button"
+              >
+                {item.name}
+              </button>
+              {item.badge && (
+                <span
+                  className="absolute -bottom-1 left-1/2 -translate-x-1/2 px-1.5 py-0.5 text-[10px] font-semibold rounded-full whitespace-nowrap"
+                  style={{
+                    backgroundColor: "#FFFFFF",
+                    color: "#1F1F1F",
+                    boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.1)",
+                  }}
+                >
+                  {item.badge}
+                </span>
+              )}
+            </div>
           ))}
 
           {/* User Avatar Dropdown - Desktop */}
@@ -173,12 +194,16 @@ export default function Navigation() {
                 <button
                   key={item.name}
                   onClick={() => {
-                    handleMenuClick(item.name);
-                    setIsMobileMenuOpen(false);
+                    if (!item.disabled) {
+                      handleMenuClick(item.name);
+                      setIsMobileMenuOpen(false);
+                    }
                   }}
-                  disabled={isLoading}
-                  className={`w-full text-left px-6 py-4 text-white font-bold transition-all hover:bg-black hover:bg-opacity-10 border-b last:border-b-0 ${
-                    isLoading ? "opacity-50 cursor-not-allowed" : ""
+                  disabled={isLoading || item.disabled}
+                  className={`w-full text-left px-6 py-4 text-white font-bold transition-all border-b last:border-b-0 flex items-center justify-between ${
+                    isLoading || item.disabled
+                      ? "opacity-50 cursor-not-allowed"
+                      : "hover:bg-black hover:bg-opacity-10"
                   }`}
                   style={{
                     background: item.isActive
@@ -187,7 +212,19 @@ export default function Navigation() {
                     borderBottomColor: "rgba(0, 0, 0, 0.2)",
                   }}
                 >
-                  {item.name}
+                  <span>{item.name}</span>
+                  {item.badge && (
+                    <span
+                      className="px-2 py-0.5 text-[10px] font-semibold rounded-full whitespace-nowrap ml-2"
+                      style={{
+                        backgroundColor: "#FFFFFF",
+                        color: "#1F1F1F",
+                        boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.2)",
+                      }}
+                    >
+                      {item.badge}
+                    </span>
+                  )}
                 </button>
               ))}
             </div>
