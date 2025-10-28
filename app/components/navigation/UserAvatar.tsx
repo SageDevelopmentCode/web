@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import {
   getCharacterImageSrc,
@@ -34,10 +35,17 @@ export default function UserAvatar({
   isMobile = false,
 }: UserAvatarProps) {
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   const toggleUserDropdown = () => {
     setIsUserDropdownOpen(!isUserDropdownOpen);
   };
+
+  // Handle mounting for portal
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -218,131 +226,137 @@ export default function UserAvatar({
           </div>
         )}
 
-        {/* Mobile Bottom Sheet */}
-        {isMobile && isUserDropdownOpen && (
-          <>
-            {/* Backdrop */}
-            <div
-              className="fixed inset-0 z-[100]"
-              style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
-              onClick={() => setIsUserDropdownOpen(false)}
-            />
+        {/* Mobile Bottom Sheet - Rendered via Portal */}
+        {isMobile &&
+          isUserDropdownOpen &&
+          mounted &&
+          createPortal(
+            <>
+              {/* Backdrop */}
+              <div
+                className="fixed inset-0 z-[9998]"
+                style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
+                onClick={() => setIsUserDropdownOpen(false)}
+              />
 
-            {/* Bottom Sheet */}
-            <div
-              className="fixed bottom-0 left-0 right-0 z-[101] transform transition-transform duration-300 ease-out"
-              style={{
-                backgroundColor: "#CBE2D8",
-                borderTopLeftRadius: "16px",
-                borderTopRightRadius: "16px",
-                animation: isUserDropdownOpen
-                  ? "slideUp 0.3s ease-out"
-                  : "slideDown 0.3s ease-out",
-              }}
-            >
-              {/* Handle bar */}
-              <div className="flex justify-center pt-3 pb-2">
-                <div
-                  className="w-12 h-1 rounded-full"
-                  style={{ backgroundColor: "rgba(47, 74, 93, 0.3)" }}
-                />
-              </div>
-
-              {/* Content */}
-              <div className="px-6 pb-8">
-                {/* User Info Section */}
-                <div className="pb-6 border-b border-gray-300 mb-6">
-                  {/* Avatar */}
-                  <div className="flex justify-center mb-4">
-                    <div
-                      className="w-20 h-20 rounded-full overflow-hidden border-2 border-gray-300"
-                      style={{ backgroundColor: "#D6E5E2" }}
-                    >
-                      <Image
-                        src={getCharacterImageSrc(userProfile.profile_picture)}
-                        alt={userProfile.profile_picture}
-                        width={200}
-                        height={200}
-                        className="w-auto h-full object-cover opacity-100 grayscale-0"
-                        style={getCharacterImageStyles(
-                          userProfile.profile_picture
-                        )}
-                        quality={100}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Display Name */}
-                  <div className="text-center mb-2">
-                    <div
-                      className="font-bold text-xl"
-                      style={{ color: "#2F4A5D" }}
-                    >
-                      {user.user_metadata?.display_name || "User"}
-                    </div>
-                  </div>
-
-                  {/* Email */}
-                  <div className="text-center">
-                    <div
-                      className="text-base opacity-75"
-                      style={{ color: "#2F4A5D" }}
-                    >
-                      {user.email}
-                    </div>
-                  </div>
+              {/* Bottom Sheet */}
+              <div
+                className="fixed bottom-0 left-0 right-0 z-[9999] transform transition-transform duration-300 ease-out"
+                style={{
+                  backgroundColor: "#CBE2D8",
+                  borderTopLeftRadius: "16px",
+                  borderTopRightRadius: "16px",
+                  animation: isUserDropdownOpen
+                    ? "slideUp 0.3s ease-out"
+                    : "slideDown 0.3s ease-out",
+                }}
+              >
+                {/* Handle bar */}
+                <div className="flex justify-center pt-3 pb-2">
+                  <div
+                    className="w-12 h-1 rounded-full"
+                    style={{ backgroundColor: "rgba(47, 74, 93, 0.3)" }}
+                  />
                 </div>
 
-                {/* Options Section */}
-                <div className="space-y-3 mb-6">
+                {/* Content */}
+                <div className="px-6 pb-8">
+                  {/* User Info Section */}
+                  <div className="pb-6 border-b border-gray-300 mb-6">
+                    {/* Avatar */}
+                    <div className="flex justify-center mb-4">
+                      <div
+                        className="w-20 h-20 rounded-full overflow-hidden border-2 border-gray-300"
+                        style={{ backgroundColor: "#D6E5E2" }}
+                      >
+                        <Image
+                          src={getCharacterImageSrc(
+                            userProfile.profile_picture
+                          )}
+                          alt={userProfile.profile_picture}
+                          width={200}
+                          height={200}
+                          className="w-auto h-full object-cover opacity-100 grayscale-0"
+                          style={getCharacterImageStyles(
+                            userProfile.profile_picture
+                          )}
+                          quality={100}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Display Name */}
+                    <div className="text-center mb-2">
+                      <div
+                        className="font-bold text-xl"
+                        style={{ color: "#2F4A5D" }}
+                      >
+                        {user.user_metadata?.display_name || "User"}
+                      </div>
+                    </div>
+
+                    {/* Email */}
+                    <div className="text-center">
+                      <div
+                        className="text-base opacity-75"
+                        style={{ color: "#2F4A5D" }}
+                      >
+                        {user.email}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Options Section */}
+                  <div className="space-y-3 mb-6">
+                    <button
+                      className="w-full text-center py-3 text-base font-medium rounded-lg transition-all hover:bg-white hover:bg-opacity-30"
+                      style={{ color: "#2F4A5D" }}
+                      onClick={() => {
+                        /* TODO: Change Email */
+                      }}
+                    >
+                      Change Email
+                    </button>
+                    <button
+                      className="w-full text-center py-3 text-base font-medium rounded-lg transition-all hover:bg-white hover:bg-opacity-30"
+                      style={{ color: "#2F4A5D" }}
+                      onClick={() => {
+                        /* TODO: Change Display Name */
+                      }}
+                    >
+                      Change Display Name
+                    </button>
+                    <button
+                      className="w-full text-center py-3 text-base font-medium rounded-lg transition-all hover:bg-white hover:bg-opacity-30"
+                      style={{ color: "#2F4A5D" }}
+                      onClick={() => {
+                        /* TODO: Change Avatar */
+                      }}
+                    >
+                      Change Avatar
+                    </button>
+                  </div>
+
+                  {/* Sign Out Button */}
                   <button
-                    className="w-full text-center py-3 text-base font-medium rounded-lg transition-all hover:bg-white hover:bg-opacity-30"
-                    style={{ color: "#2F4A5D" }}
-                    onClick={() => {
-                      /* TODO: Change Email */
+                    onClick={handleSignOut}
+                    disabled={isLoading}
+                    className={`w-full py-4 text-white font-bold text-lg transition-all hover:opacity-90 cursor-pointer ${
+                      isLoading ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
+                    style={{
+                      backgroundColor: "#778554",
+                      boxShadow: "0px 4px 0px 1px #57613B",
+                      borderRadius: "15px",
                     }}
                   >
-                    Change Email
-                  </button>
-                  <button
-                    className="w-full text-center py-3 text-base font-medium rounded-lg transition-all hover:bg-white hover:bg-opacity-30"
-                    style={{ color: "#2F4A5D" }}
-                    onClick={() => {
-                      /* TODO: Change Display Name */
-                    }}
-                  >
-                    Change Display Name
-                  </button>
-                  <button
-                    className="w-full text-center py-3 text-base font-medium rounded-lg transition-all hover:bg-white hover:bg-opacity-30"
-                    style={{ color: "#2F4A5D" }}
-                    onClick={() => {
-                      /* TODO: Change Avatar */
-                    }}
-                  >
-                    Change Avatar
+                    {isLoading ? "Signing Out..." : "Sign Out"}
                   </button>
                 </div>
-
-                {/* Sign Out Button */}
-                <button
-                  onClick={handleSignOut}
-                  disabled={isLoading}
-                  className={`w-full py-4 text-white font-bold text-lg transition-all hover:opacity-90 cursor-pointer ${
-                    isLoading ? "opacity-50 cursor-not-allowed" : ""
-                  }`}
-                  style={{
-                    backgroundColor: "#778554",
-                    boxShadow: "0px 4px 0px 1px #57613B",
-                    borderRadius: "15px",
-                  }}
-                >
-                  {isLoading ? "Signing Out..." : "Sign Out"}
-                </button>
               </div>
-            </div>
-          </>
-        )}
+            </>,
+            document.body
+          )}
       </div>
 
       {/* Add animation styles for mobile bottom sheet */}
